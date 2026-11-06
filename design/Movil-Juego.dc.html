@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ludoteca · Ficha del juego</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0E1014}
+a{color:#C8F25A}a:hover{color:#DDF79A}
+textarea::placeholder{color:#7D8696}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1380px; box-sizing: border-box; padding-bottom: 40px; background: #0E1014; color: #ECEEF2; font: 400 15px/1.45 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+
+  <div style="padding: 52px 8px 0; display: flex; justify-content: space-between; align-items: center">
+    <a href="Movil-Biblioteca.dc.html" aria-label="Volver a la biblioteca" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; color: #ECEEF2">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>
+    </a>
+    <button type="button" aria-label="Compartir" style="width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 12px; background: transparent; color: #ECEEF2; cursor: pointer">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 8 5-5 5 5"></path><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path></svg>
+    </button>
+  </div>
+
+  <div style="padding: 8px 20px 0; display: flex; gap: 16px; align-items: stretch">
+    <div aria-hidden="true" style="flex: none; width: 120px; height: 160px; box-sizing: border-box; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; background-color: #4A2A22; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 13px); color: #F2D9C9; border: 1px solid rgba(255,255,255,0.07)">
+      <span style="font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.06em">2019</span>
+      <span style="font: 700 44px/0.9 'Space Grotesk', Arial, sans-serif; letter-spacing: -0.04em">DE</span>
+    </div>
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px">
+      <h1 style="margin: 0; font: 700 28px/1.05 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.03em">Disco Elysium</h1>
+      <p style="margin: 0; color: #9AA3B2; font-size: 14px; line-height: 1.35">2019 · ZA/UM · Rol narrativo</p>
+      <p style="margin: 0; display: flex; align-items: center; gap: 6px; font-size: 14px; color: #C5CCD8">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+        18 h jugadas
+      </p>
+      <p style="margin: 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #9AA3B2">
+        Dura unas 22 h · IGDB
+        <a href="#" style="font-weight: 600; text-decoration: none">Editar</a>
+      </p>
+    </div>
+  </div>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Estado</h2>
+    <a href="Movil-Estado.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px; border-radius: 14px; background: #161A21; border: 1px solid #2A303B; text-decoration: none; color: #ECEEF2">
+      <span style="width: 10px; height: 10px; border-radius: 99px; background: #C8F25A; flex: none"></span>
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-weight: 600">Jugando</span>
+        <span style="font-size: 12px; color: #9AA3B2">En curso · desde el 28 oct</span>
+      </span>
+      <span style="font-size: 14px; color: #C5CCD8">Cambiar</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA3B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg>
+    </a>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Tu puntaje</h2>
+    <div style="display: flex; align-items: center; gap: 12px">
+      <button type="button" onClick="{{minus}}" aria-label="Bajar 0.1" style="flex: none; width: 48px; height: 48px; border-radius: 12px; border: 1px solid #2A303B; background: #161A21; color: #ECEEF2; font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace; cursor: pointer">−.1</button>
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px">
+        <span style="font: 500 52px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: -0.04em; color: #C8F25A">{{scoreText}}</span>
+        <span style="font: 600 16px/1.2 'Space Grotesk', Arial, sans-serif; color: #ECEEF2">{{scoreLabel}}</span>
+      </div>
+      <button type="button" onClick="{{plus}}" aria-label="Subir 0.1" style="flex: none; width: 48px; height: 48px; border-radius: 12px; border: 1px solid #2A303B; background: #161A21; color: #ECEEF2; font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace; cursor: pointer">+.1</button>
+    </div>
+    <label style="display: flex; flex-direction: column; gap: 2px">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Puntaje de 0 a 10</span>
+      <input type="range" min="0" max="10" step="0.1" value="{{score}}" onChange="{{onScore}}" style="width: 100%; height: 44px; accent-color: #C8F25A; cursor: pointer">
+      <span style="display: flex; justify-content: space-between; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2"><span>0</span><span>5</span><span>10</span></span>
+    </label>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Dónde lo tenés</h2>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; background: #161A21; border: 1px solid #2A303B">
+      <span aria-hidden="true" style="flex: none; width: 44px; height: 44px; border-radius: 10px; background: #1E232C; display: grid; place-items: center; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #ECEEF2">GOG</span>
+      <div style="flex: 1; min-width: 0">
+        <p style="margin: 0; font-weight: 600">GOG</p>
+        <p style="margin: 2px 0 0; font-size: 13px; color: #9AA3B2">Comprado · mar 2023</p>
+      </div>
+      <a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 6px; font-weight: 600; font-size: 14px; text-decoration: none">Abrir</a>
+    </div>
+    <button type="button" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; border-radius: 12px; border: 1px dashed #3A414E; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      Agregar otra copia
+    </button>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+      <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Diario</h2>
+      <span style="font-size: 13px; color: #9AA3B2">9 sesiones · 18 h</span>
+    </div>
+    <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+      <li style="display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-bottom: 1px solid #1C2129">
+        <span style="display: flex; justify-content: space-between; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2"><span>3 NOV</span><span>2 h 10 min</span></span>
+        <span style="font-size: 14px; color: #DDE1E8">Me cuesta dejar de leer cada diálogo. Voy lento pero vale la pena.</span>
+      </li>
+      <li style="display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-bottom: 1px solid #1C2129">
+        <span style="display: flex; justify-content: space-between; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2"><span>1 NOV</span><span>3 h 05 min</span></span>
+        <span style="font-size: 14px; color: #DDE1E8">Mucho más texto del que esperaba, y me encanta.</span>
+      </li>
+      <li style="display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-bottom: 1px solid #1C2129">
+        <span style="display: flex; justify-content: space-between; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2"><span>28 OCT</span><span>Pasó a Jugando</span></span>
+        <span style="font-size: 14px; color: #DDE1E8">Primera sesión. Le dediqué un buen rato a armar el personaje.</span>
+      </li>
+    </ol>
+    <button type="button" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; border-radius: 12px; border: 0; background: #C8F25A; color: #0E1014; font: 600 15px/1 Inter, system-ui, sans-serif; cursor: pointer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      Registrar sesión
+    </button>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <label for="resena" style="font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Tu reseña</label>
+    <textarea id="resena" rows="5" placeholder="¿Qué te pareció? Podés escribirla cuando lo termines." style="box-sizing: border-box; width: 100%; padding: 14px; border-radius: 14px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 400 15px/1.45 Inter, system-ui, sans-serif; resize: vertical"></textarea>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1380}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const score = st.score ?? 9.3;
+    const LABELS = ['Horrible', 'Horrible', 'Muy malo', 'Malo', 'Flojo', 'Regular', 'Pasable', 'Bueno', 'Muy bueno', 'Excelente', 'Obra maestra'];
+    const round = (n) => Math.round(Math.min(10, Math.max(0, n)) * 10) / 10;
+    return {
+      score,
+      scoreText: score.toFixed(1),
+      scoreLabel: LABELS[Math.floor(score)],
+      minus: () => this.setState({ score: round(score - 0.1) }),
+      plus: () => this.setState({ score: round(score + 0.1) }),
+      onScore: (e) => this.setState({ score: round(Number(e.target.value)) })
+    };
+  }
+}
+</script>
+</body>
+</html>

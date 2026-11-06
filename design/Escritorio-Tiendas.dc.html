@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ludoteca · Tiendas y avisos (escritorio)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0E1014}
+a{color:#ECEEF2}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0E1014; color: #ECEEF2; font: 400 15px/1.5 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+
+  <header style="border-bottom: 1px solid #222832">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 14px clamp(16px, 4vw, 40px); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+      <a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #ECEEF2">
+        <span style="width: 32px; height: 32px; border-radius: 8px; background: #C8F25A; color: #0E1014; display: grid; place-items: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="4" width="4.5" height="16" rx="1"></rect><rect x="9.5" y="4" width="4.5" height="16" rx="1"></rect><path d="M15.6 5.4l3.9-1 3.6 14.5-3.9 1z"></path></svg>
+        </span>
+        <span style="font: 700 21px/1 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.02em">Ludoteca</span>
+      </a>
+      <nav aria-label="Principal" style="display: flex; flex-wrap: wrap; gap: 4px">
+        <a href="Main.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Biblioteca</a>
+        <a href="Escritorio-LoTengo.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">¿Lo tengo?</a>
+        <a href="Escritorio-Suscripciones.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Suscripciones</a>
+        <a href="Escritorio-Tiendas.dc.html" aria-current="page" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; background: #1E232C; color: #ECEEF2; text-decoration: none; font-weight: 500; font-size: 14px">Tiendas</a>
+        <a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Estadísticas</a>
+      </nav>
+      <div style="flex: 1 1 300px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px">
+        <a href="Escritorio-LoTengo.dc.html" style="flex: 1 1 240px; max-width: 420px; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 10px; background: #161A21; border: 1px solid #2A303B; color: #9AA3B2; text-decoration: none; font-size: 15px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          ¿Lo tengo? Buscá un juego…
+        </a>
+        <a href="Escritorio-Agregar.dc.html" style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 10px; background: #C8F25A; color: #0E1014; text-decoration: none; font: 600 14px/1 Inter, system-ui, sans-serif">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          Agregar juego
+        </a>
+        <a href="Escritorio-Estados.dc.html" aria-label="Ajustes" style="width: 44px; height: 44px; box-sizing: border-box; border-radius: 999px; border: 1px solid #2A303B; background: #1E232C; color: #ECEEF2; display: grid; place-items: center; text-decoration: none; font: 600 16px/1 'Space Grotesk', Arial, sans-serif">L</a>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width: 1360px; margin: 0 auto; padding: 36px clamp(16px, 4vw, 40px) 64px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px">
+    <div>
+      <h1 style="margin: 0; font: 700 clamp(32px, 4vw, 44px)/1.05 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.03em">Tiendas</h1>
+      <p style="margin: 8px 0 0; color: #9AA3B2; max-width: 70ch">Juntamos todas tus bibliotecas en un solo lugar. Las tiendas que no se conectan solas las importás o las cargás a mano.</p>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 32px">
+      <div style="flex: 999 1 620px; min-width: 0; display: flex; flex-direction: column; gap: 28px">
+
+        <section style="display: flex; flex-direction: column; gap: 12px">
+          <h2 style="margin: 0; font: 700 22px/1.2 'Space Grotesk', Arial, sans-serif">Se sincronizan solas</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); gap: 16px">
+            <sc-for list="{{synced}}" as="s" hint-placeholder-count="3">
+              <article style="display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 16px; background: #161A21; border: 1px solid #2A303B">
+                <div style="display: flex; align-items: center; gap: 12px">
+                  <span aria-hidden="true" style="flex: none; width: 44px; height: 44px; border-radius: 10px; background: #1E232C; display: grid; place-items: center; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace">{{s.abbr}}</span>
+                  <div style="min-width: 0">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 600">{{s.name}}</h3>
+                    <p style="margin: 2px 0 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #9AA3B2"><span style="flex: none; width: 7px; height: 7px; border-radius: 99px; background: #C8F25A"></span>{{s.via}}</p>
+                  </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px">
+                  <span style="font: 500 26px/1 'JetBrains Mono', ui-monospace, monospace">{{s.count}}</span>
+                  <span style="font-size: 13px; color: #9AA3B2">{{s.when}}</span>
+                </div>
+                <button type="button" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-3.9L4 8"></path><path d="M4 4v4h4"></path><path d="M4 13a8 8 0 0 0 14.9 3.9L20 16"></path><path d="M20 20v-4h-4"></path></svg>
+                  Sincronizar ahora
+                </button>
+              </article>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="display: flex; flex-direction: column; gap: 12px">
+          <h2 style="margin: 0; font: 700 22px/1.2 'Space Grotesk', Arial, sans-serif">Importadas o a mano</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); gap: 16px">
+            <sc-for list="{{manual}}" as="s" hint-placeholder-count="3">
+              <article style="display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 16px; background: #161A21; border: 1px solid #2A303B">
+                <div style="display: flex; align-items: center; gap: 12px">
+                  <span aria-hidden="true" style="flex: none; width: 44px; height: 44px; border-radius: 10px; background: #1E232C; display: grid; place-items: center; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace">{{s.abbr}}</span>
+                  <div style="min-width: 0">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 600">{{s.name}}</h3>
+                    <p style="margin: 2px 0 0; font-size: 13px; color: #9AA3B2">{{s.via}}</p>
+                  </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px">
+                  <span style="font: 500 26px/1 'JetBrains Mono', ui-monospace, monospace">{{s.count}}</span>
+                  <span style="font-size: 13px; color: #9AA3B2">{{s.when}}</span>
+                </div>
+                <button type="button" style="height: 44px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">{{s.action}}</button>
+              </article>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="display: flex; flex-direction: column; gap: 12px">
+          <h2 style="margin: 0; font: 700 22px/1.2 'Space Grotesk', Arial, sans-serif">Sin conectar</h2>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+            <sc-for list="{{pending}}" as="p" hint-placeholder-count="5">
+              <button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 16px; border-radius: 999px; border: 1px dashed #3A414E; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>{{p.label}}</button>
+            </sc-for>
+          </div>
+          <a href="Escritorio-Suscripciones.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; color: #C5CCD8; text-decoration: none">
+            Game Pass y las demás suscripciones se manejan en Suscripciones
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA3B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg>
+          </a>
+        </section>
+      </div>
+
+      <aside style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 16px">
+        <section style="display: flex; flex-direction: column; gap: 12px">
+          <h2 style="margin: 0; font: 700 18px/1.2 'Space Grotesk', Arial, sans-serif">Familia de Steam</h2>
+          <sc-if value="{{inFamily}}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 16px; background: #161A21; border: 1px solid rgba(255,198,107,0.4)">
+              <div>
+                <p style="margin: 0; font-weight: 600">Estás en una familia</p>
+                <p style="margin: 2px 0 0; font-size: 13px; color: #9AA3B2">1 juego compartido que no es tuyo: Portal 2</p>
+              </div>
+              <p style="margin: 0; font-size: 13px; color: #F4E6CC">Si salís, esos juegos pasan a «Ya no lo tengo». Steam no te deja unirte a otra familia durante un año.</p>
+              <button type="button" onClick="{{leave}}" style="height: 44px; border-radius: 10px; border: 1px solid #FF9C8A; background: transparent; color: #FFC2B7; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Salí de la familia</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{leftFamily}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 18px; border-radius: 16px; background: #161A21; border: 1px solid #2A303B">
+              <p style="flex: 1; margin: 0; font-size: 14px; color: #DDE1E8">Listo: Portal 2 pasó a «Ya no lo tengo». Tu puntaje y tus horas quedan guardados.</p>
+              <button type="button" onClick="{{undo}}" style="flex: none; height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #C8F25A; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Deshacer</button>
+            </div>
+          </sc-if>
+        </section>
+
+        <section style="display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; border-radius: 16px; background: #161A21; border: 1px solid #2A303B">
+          <h2 style="margin: 0 0 6px; font: 700 18px/1.2 'Space Grotesk', Arial, sans-serif">Avisos</h2>
+          <sc-for list="{{toggles}}" as="t" hint-placeholder-count="3">
+            <div style="display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #222832">
+              <div style="flex: 1; min-width: 0">
+                <p style="margin: 0; font-weight: 600; font-size: 14px; line-height: 1.3">{{t.title}}</p>
+                <p style="margin: 3px 0 0; font-size: 13px; line-height: 1.4; color: #9AA3B2">{{t.sub}}</p>
+              </div>
+              <button type="button" role="switch" aria-checked="{{t.on}}" aria-label="{{t.title}}" onClick="{{t.toggle}}" style="flex: none; width: 56px; height: 44px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer">
+                <span style="{{t.trackStyle}}"><span style="{{t.knobStyle}}"></span></span>
+              </button>
+            </div>
+          </sc-for>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const on = st.on || { dup: true, free: true, price: false };
+    const left = !!st.left;
+
+    const synced = [
+      { abbr: 'ST', name: 'Steam', via: 'Con tu cuenta de Steam', count: '6 juegos', when: 'hace 2 h' },
+      { abbr: 'GOG', name: 'GOG', via: 'Con tu cuenta de GOG', count: '2 juegos', when: 'hace 2 h' },
+      { abbr: 'MS', name: 'Microsoft Store', via: 'Con tu cuenta Xbox', count: '1 juego', when: 'ayer' }
+    ];
+    const manual = [
+      { abbr: 'EP', name: 'Epic Games', via: 'Importación', count: '3 juegos', when: 'importada el 12 oct', action: 'Importar de nuevo' },
+      { abbr: 'SW', name: 'Nintendo Switch', via: 'Juegos físicos, a mano', count: '1 juego', when: 'cargado a mano', action: 'Agregar juego' },
+      { abbr: 'IO', name: 'itch.io', via: 'Sin forma de importar', count: '1 juego', when: 'cargado a mano', action: 'Agregar juego' }
+    ];
+
+    const defs = [
+      { id: 'dup', title: 'Antes de comprar algo que ya tenés', sub: 'Al agregar un juego a la biblioteca o a «Quiero jugarlo».' },
+      { id: 'free', title: 'Juegos de «Quiero jugarlo» que estén gratis', sub: 'Por ejemplo, los gratis de la semana de Epic Games.' },
+      { id: 'price', title: 'Bajadas de precio', sub: 'Para las tiendas donde se puede seguir el precio solo.' }
+    ];
+    const toggles = defs.map((d) => {
+      const isOn = !!on[d.id];
+      return {
+        title: d.title,
+        sub: d.sub,
+        on: isOn,
+        toggle: () => this.setState({ on: Object.assign({}, on, { [d.id]: !isOn }) }),
+        trackStyle: `position: relative; display: block; width: 52px; height: 32px; border-radius: 999px; background: ${isOn ? '#C8F25A' : '#2A303B'}; transition: background 0.15s`,
+        knobStyle: `position: absolute; top: 3px; left: ${isOn ? '23px' : '3px'}; width: 26px; height: 26px; border-radius: 999px; background: ${isOn ? '#0E1014' : '#C5CCD8'}; transition: left 0.15s`
+      };
+    });
+
+    return {
+      synced,
+      manual,
+      toggles,
+      pending: ['PlayStation', 'EA app', 'Ubisoft Connect', 'Battle.net', 'Amazon Games'].map((label) => ({ label })),
+      inFamily: !left,
+      leftFamily: left,
+      leave: () => this.setState({ left: true }),
+      undo: () => this.setState({ left: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

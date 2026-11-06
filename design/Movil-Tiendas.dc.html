@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ludoteca · Tiendas y avisos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0E1014}
+a{color:#ECEEF2}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; min-height: 1480px; box-sizing: border-box; padding-bottom: 120px; background: #0E1014; color: #ECEEF2; font: 400 15px/1.45 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+
+  <div style="padding: 60px 20px 0">
+    <h1 style="margin: 0; font: 700 34px/1 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.03em">Tiendas</h1>
+    <p style="margin: 8px 0 0; color: #9AA3B2; font-size: 14px">Juntamos todas tus bibliotecas en un solo lugar. Las tiendas que no se conectan solas las importás o las cargás a mano.</p>
+  </div>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Se sincronizan solas</h2>
+    <div style="border-radius: 14px; background: #161A21; border: 1px solid #2A303B; overflow: hidden">
+      <sc-for list="{{synced}}" as="s" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 6px 12px 14px; border-bottom: 1px solid #222832">
+          <span aria-hidden="true" style="flex: none; width: 40px; height: 40px; border-radius: 10px; background: #1E232C; display: grid; place-items: center; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace">{{s.abbr}}</span>
+          <div style="flex: 1; min-width: 0">
+            <p style="margin: 0; font-weight: 600">{{s.name}}</p>
+            <p style="margin: 2px 0 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #9AA3B2"><span style="width: 7px; height: 7px; border-radius: 99px; background: #C8F25A; flex: none"></span>{{s.detail}}</p>
+          </div>
+          <button type="button" aria-label="{{s.syncLabel}}" style="flex: none; width: 44px; height: 44px; border: 0; border-radius: 10px; background: transparent; color: #C5CCD8; display: grid; place-items: center; cursor: pointer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-3.9L4 8"></path><path d="M4 4v4h4"></path><path d="M4 13a8 8 0 0 0 14.9 3.9L20 16"></path><path d="M20 20v-4h-4"></path></svg>
+          </button>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Importadas o a mano</h2>
+    <div style="border-radius: 14px; background: #161A21; border: 1px solid #2A303B; overflow: hidden">
+      <sc-for list="{{manual}}" as="s" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px; border-bottom: 1px solid #222832">
+          <span aria-hidden="true" style="flex: none; width: 40px; height: 40px; border-radius: 10px; background: #1E232C; display: grid; place-items: center; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace">{{s.abbr}}</span>
+          <div style="flex: 1; min-width: 0">
+            <p style="margin: 0; font-weight: 600">{{s.name}}</p>
+            <p style="margin: 2px 0 0; font-size: 13px; color: #9AA3B2">{{s.detail}}</p>
+          </div>
+          <button type="button" style="flex: none; height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">{{s.action}}</button>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Familia de Steam</h2>
+    <sc-if value="{{inFamily}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 14px; background: #161A21; border: 1px solid rgba(255,198,107,0.4)">
+        <div>
+          <p style="margin: 0; font-weight: 600">Estás en una familia</p>
+          <p style="margin: 2px 0 0; font-size: 13px; color: #9AA3B2">1 juego compartido que no es tuyo: Portal 2</p>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #F4E6CC">Si salís, esos juegos pasan a «Ya no lo tengo». Steam no te deja unirte a otra familia durante un año.</p>
+        <button type="button" onClick="{{leave}}" style="height: 44px; border-radius: 10px; border: 1px solid #FF9C8A; background: transparent; color: #FFC2B7; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Salí de la familia</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{leftFamily}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; background: #161A21; border: 1px solid #2A303B">
+        <p style="flex: 1; margin: 0; font-size: 14px; color: #DDE1E8">Listo: Portal 2 pasó a «Ya no lo tengo». Tu puntaje y tus horas quedan guardados.</p>
+        <button type="button" onClick="{{undo}}" style="flex: none; height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #C8F25A; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Deshacer</button>
+      </div>
+    </sc-if>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Sin conectar</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{pending}}" as="p" hint-placeholder-count="5">
+        <button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px; border-radius: 999px; border: 1px dashed #3A414E; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>{{p.label}}</button>
+      </sc-for>
+    </div>
+    <a href="Movil-Suscripciones.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 48px; font-size: 14px; color: #C5CCD8; text-decoration: none">
+      <span style="flex: 1">Game Pass y otras suscripciones se manejan en Suscripciones</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA3B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg>
+    </a>
+  </section>
+
+  <section style="padding: 20px 20px 0; display: flex; flex-direction: column; gap: 4px">
+    <h2 style="margin: 0 0 8px; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Avisos</h2>
+    <sc-for list="{{toggles}}" as="t" hint-placeholder-count="3">
+      <div style="display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #1C2129">
+        <div style="flex: 1; min-width: 0">
+          <p style="margin: 0; font-weight: 600; font-size: 15px; line-height: 1.3">{{t.title}}</p>
+          <p style="margin: 3px 0 0; font-size: 13px; line-height: 1.4; color: #9AA3B2">{{t.sub}}</p>
+        </div>
+        <button type="button" role="switch" aria-checked="{{t.on}}" aria-label="{{t.title}}" onClick="{{t.toggle}}" style="flex: none; width: 56px; height: 44px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer">
+          <span style="{{t.trackStyle}}"><span style="{{t.knobStyle}}"></span></span>
+        </button>
+      </div>
+    </sc-for>
+  </section>
+
+  <nav aria-label="Secciones" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; padding: 6px 8px 26px; background: rgba(14,16,20,0.97); border-top: 1px solid #222832">
+    <a href="Movil-Biblioteca.dc.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #9AA3B2; font: 500 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="4.5" height="16" rx="1"></rect><rect x="9.5" y="4" width="4.5" height="16" rx="1"></rect><path d="M15.6 5.4l3.9-1 3.6 14.5-3.9 1z"></path></svg>
+      Biblioteca
+    </a>
+    <a href="Movil-LoTengo.dc.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #9AA3B2; font: 500 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      ¿Lo tengo?
+    </a>
+    <a href="Movil-Suscripciones.dc.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #9AA3B2; font: 500 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path><path d="M7 15h4"></path></svg>
+      Suscripciones
+    </a>
+    <a href="Movil-Tiendas.dc.html" aria-current="page" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #C8F25A; font: 600 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path></svg>
+      Tiendas
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1480}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const on = st.on || { dup: true, free: true, price: false };
+    const left = !!st.left;
+
+    const synced = [
+      { abbr: 'ST', name: 'Steam', detail: '6 juegos · hace 2 h' },
+      { abbr: 'GOG', name: 'GOG', detail: '2 juegos · hace 2 h' },
+      { abbr: 'MS', name: 'Microsoft Store', detail: '1 juego · con tu cuenta Xbox · ayer' }
+    ].map((s) => Object.assign({ syncLabel: `Sincronizar ${s.name}` }, s));
+
+    const manual = [
+      { abbr: 'EP', name: 'Epic Games', detail: '3 juegos · importada el 12 oct', action: 'Importar' },
+      { abbr: 'SW', name: 'Nintendo Switch', detail: '1 juego físico', action: 'Agregar' },
+      { abbr: 'IO', name: 'itch.io', detail: '1 juego · sin forma de importar', action: 'Agregar' }
+    ];
+
+    const defs = [
+      { id: 'dup', title: 'Antes de comprar algo que ya tenés', sub: 'Al agregar un juego a la biblioteca o a «Quiero jugarlo».' },
+      { id: 'free', title: 'Juegos de «Quiero jugarlo» que estén gratis', sub: 'Por ejemplo, los gratis de la semana de Epic Games.' },
+      { id: 'price', title: 'Bajadas de precio', sub: 'Para las tiendas donde se puede seguir el precio solo.' }
+    ];
+    const toggles = defs.map((d) => {
+      const isOn = !!on[d.id];
+      return {
+        title: d.title,
+        sub: d.sub,
+        on: isOn,
+        toggle: () => this.setState({ on: Object.assign({}, on, { [d.id]: !isOn }) }),
+        trackStyle: `position: relative; display: block; width: 52px; height: 32px; border-radius: 999px; background: ${isOn ? '#C8F25A' : '#2A303B'}; transition: background 0.15s`,
+        knobStyle: `position: absolute; top: 3px; left: ${isOn ? '23px' : '3px'}; width: 26px; height: 26px; border-radius: 999px; background: ${isOn ? '#0E1014' : '#C5CCD8'}; transition: left 0.15s`
+      };
+    });
+
+    return {
+      synced,
+      manual,
+      toggles,
+      pending: ['PlayStation', 'EA app', 'Ubisoft Connect', 'Battle.net', 'Amazon Games'].map((label) => ({ label })),
+      inFamily: !left,
+      leftFamily: left,
+      leave: () => this.setState({ left: true }),
+      undo: () => this.setState({ left: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

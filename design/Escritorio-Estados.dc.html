@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ludoteca · Ajustes de estados (escritorio)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0E1014}
+a{color:#ECEEF2}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0E1014; color: #ECEEF2; font: 400 15px/1.5 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+
+  <header style="border-bottom: 1px solid #222832">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 14px clamp(16px, 4vw, 40px); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+      <a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #ECEEF2">
+        <span style="width: 32px; height: 32px; border-radius: 8px; background: #C8F25A; color: #0E1014; display: grid; place-items: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="4" width="4.5" height="16" rx="1"></rect><rect x="9.5" y="4" width="4.5" height="16" rx="1"></rect><path d="M15.6 5.4l3.9-1 3.6 14.5-3.9 1z"></path></svg>
+        </span>
+        <span style="font: 700 21px/1 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.02em">Ludoteca</span>
+      </a>
+      <nav aria-label="Principal" style="display: flex; flex-wrap: wrap; gap: 4px">
+        <a href="Main.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Biblioteca</a>
+        <a href="Escritorio-LoTengo.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">¿Lo tengo?</a>
+        <a href="Escritorio-Suscripciones.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Suscripciones</a>
+        <a href="Escritorio-Tiendas.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Tiendas</a>
+        <a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Estadísticas</a>
+      </nav>
+      <div style="flex: 1 1 300px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px">
+        <a href="Escritorio-LoTengo.dc.html" style="flex: 1 1 240px; max-width: 420px; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 10px; background: #161A21; border: 1px solid #2A303B; color: #9AA3B2; text-decoration: none; font-size: 15px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          ¿Lo tengo? Buscá un juego…
+        </a>
+        <a href="Escritorio-Agregar.dc.html" style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 10px; background: #C8F25A; color: #0E1014; text-decoration: none; font: 600 14px/1 Inter, system-ui, sans-serif">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          Agregar juego
+        </a>
+        <a href="Escritorio-Estados.dc.html" aria-label="Ajustes" aria-current="page" style="width: 44px; height: 44px; box-sizing: border-box; border-radius: 999px; border: 2px solid #C8F25A; background: #1E232C; color: #ECEEF2; display: grid; place-items: center; text-decoration: none; font: 600 16px/1 'Space Grotesk', Arial, sans-serif">L</a>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width: 1360px; margin: 0 auto; padding: 36px clamp(16px, 4vw, 40px) 64px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px">
+    <h1 style="margin: 0; font: 700 clamp(32px, 4vw, 44px)/1.05 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.03em">Ajustes</h1>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 32px">
+      <nav aria-label="Ajustes" style="flex: 1 1 200px; max-width: 260px; display: flex; flex-direction: column; gap: 2px">
+        <a href="Escritorio-Estados.dc.html" aria-current="page" style="display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; background: #1E232C; box-shadow: inset 0 0 0 1px #C8F25A; color: #ECEEF2; text-decoration: none; font-weight: 500; font-size: 14px">Estados y motivos</a>
+        <a href="Escritorio-Tiendas.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Tiendas y avisos</a>
+        <a href="Escritorio-Suscripciones.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Suscripciones</a>
+        <a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Cuenta</a>
+      </nav>
+
+      <div style="flex: 999 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 32px">
+        <div>
+          <h2 style="margin: 0; font: 700 26px/1.15 'Space Grotesk', Arial, sans-serif">Tus estados</h2>
+          <p style="margin: 8px 0 0; color: #9AA3B2; max-width: 70ch">Renombralos, cambiales el color, reordenalos, ocultalos o creá nuevos. Cada estado vive dentro de un grupo fijo, así las estadísticas y los filtros siguen funcionando.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 16px; align-items: start">
+          <sc-for list="{{groups}}" as="gr" hint-placeholder-count="4">
+            <section style="display: flex; flex-direction: column; border-radius: 16px; background: #161A21; border: 1px solid #2A303B; overflow: hidden">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 16px 16px 12px; border-bottom: 1px solid #222832">
+                <h3 style="margin: 0; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #DDE1E8">{{gr.label}}</h3>
+                <span style="font-size: 12px; color: #9AA3B2">{{gr.hint}}</span>
+              </div>
+              <sc-for list="{{gr.items}}" as="s" hint-placeholder-count="2">
+                <div style="display: flex; align-items: center; gap: 2px; min-height: 52px; padding: 0 6px; border-bottom: 1px solid #222832">
+                  <button type="button" aria-label="{{s.moveLabel}}" style="flex: none; width: 36px; height: 44px; border: 0; background: transparent; color: #7D8696; display: grid; place-items: center; cursor: grab">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"></path></svg>
+                  </button>
+                  <button type="button" aria-label="{{s.colorLabel}}" style="flex: none; width: 40px; height: 44px; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer">
+                    <span style="{{s.dotStyle}}"></span>
+                  </button>
+                  <input type="text" defaultValue="{{s.name}}" aria-label="Nombre del estado" style="{{s.inputStyle}}">
+                  <sc-if value="{{s.custom}}" hint-placeholder-val="{{ false }}">
+                    <span style="flex: none; font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.06em; padding: 4px 6px; border-radius: 5px; background: #2A303B; color: #C5CCD8">TUYO</span>
+                  </sc-if>
+                  <button type="button" onClick="{{s.toggle}}" aria-pressed="{{s.hidden}}" aria-label="{{s.hideLabel}}" style="flex: none; width: 44px; height: 44px; border: 0; background: transparent; color: #9AA3B2; display: grid; place-items: center; cursor: pointer">
+                    <sc-if value="{{s.visible}}" hint-placeholder-val="{{ true }}">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </sc-if>
+                    <sc-if value="{{s.hidden}}" hint-placeholder-val="{{ false }}">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><path d="M3 3l18 18"></path></svg>
+                    </sc-if>
+                  </button>
+                </div>
+              </sc-for>
+              <button type="button" onClick="{{gr.add}}" style="display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; padding: 0 16px; border: 0; background: transparent; color: #C8F25A; font: 600 14px/1 Inter, system-ui, sans-serif; text-align: left; cursor: pointer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+                Nuevo estado en «{{gr.label}}»
+              </button>
+            </section>
+          </sc-for>
+        </div>
+
+        <section style="display: flex; flex-direction: column; gap: 12px">
+          <div>
+            <h2 style="margin: 0; font: 700 22px/1.2 'Space Grotesk', Arial, sans-serif">Motivos para pausar o dejar</h2>
+            <p style="margin: 6px 0 0; color: #9AA3B2">Aparecen cuando pasás un juego a En pausa, Abandonado o Lo probé.</p>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+            <sc-for list="{{reasons}}" as="r" hint-placeholder-count="6">
+              <span style="display: inline-flex; align-items: center; gap: 2px; height: 44px; padding: 0 2px 0 14px; border-radius: 999px; border: 1px solid #2A303B; font-size: 14px; color: #DDE1E8">
+                {{r.label}}
+                <button type="button" onClick="{{r.remove}}" aria-label="{{r.removeLabel}}" style="width: 40px; height: 40px; border: 0; border-radius: 999px; background: transparent; color: #9AA3B2; display: grid; place-items: center; cursor: pointer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+                </button>
+              </span>
+            </sc-for>
+            <button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px; border-radius: 999px; border: 1px dashed #3A414E; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+              Agregar motivo
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const hidden = st.hidden || {};
+    const added = st.added || {};
+    const removed = st.removed || [];
+    const BASE = [
+      { id: 'curso', label: 'En curso', hint: 'Cuenta como «jugando»', color: '#C8F25A', items: [['Jugando'], ['En pausa'], ['Sin fin'], ['Rejugando', true]] },
+      { id: 'empezar', label: 'Sin empezar', hint: 'Backlog y wishlist', color: '#C5CCD8', items: [['Quiero jugarlo', false, '#FFC66B'], ['Pendiente']] },
+      { id: 'terminado', label: 'Terminado', hint: 'Cuenta como completado', color: '#8EC5FF', items: [['Completado'], ['100%']] },
+      { id: 'dejado', label: 'Dejado', hint: 'Pide motivo al guardar', color: '#FF9C8A', items: [['Abandonado'], ['Lo probé']] }
+    ];
+
+    const groups = BASE.map((g) => {
+      const extra = [];
+      for (let i = 0; i < (added[g.id] || 0); i++) extra.push(['Nuevo estado', true]);
+      const items = g.items.concat(extra).map(([name, custom, color], i) => {
+        const key = `${g.id}-${i}`;
+        const isHidden = !!hidden[key];
+        return {
+          name,
+          custom: !!custom,
+          hidden: isHidden,
+          visible: !isHidden,
+          moveLabel: `Mover ${name}`,
+          colorLabel: `Cambiar color de ${name}`,
+          hideLabel: isHidden ? `Mostrar ${name}` : `Ocultar ${name}`,
+          dotStyle: `display: block; width: 22px; height: 22px; border-radius: 999px; background: ${color || g.color}; opacity: ${isHidden ? 0.35 : 1}`,
+          inputStyle: `flex: 1; min-width: 0; height: 44px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; color: ${isHidden ? '#7D8696' : '#ECEEF2'}; text-decoration: ${isHidden ? 'line-through' : 'none'}; font: 500 15px/1 Inter, system-ui, sans-serif`,
+          toggle: () => this.setState({ hidden: Object.assign({}, hidden, { [key]: !isHidden }) })
+        };
+      });
+      return {
+        label: g.label,
+        hint: g.hint,
+        items,
+        add: () => this.setState({ added: Object.assign({}, added, { [g.id]: (added[g.id] || 0) + 1 }) })
+      };
+    });
+
+    const reasons = ['Me aburrió', 'Muy difícil', 'Problemas técnicos', 'Me falta tiempo', 'Lo retomo después', 'Sin gente para jugar']
+      .filter((r) => removed.indexOf(r) < 0)
+      .map((label) => ({
+        label,
+        removeLabel: `Quitar motivo ${label}`,
+        remove: () => this.setState({ removed: removed.concat([label]) })
+      }));
+
+    return { groups, reasons };
+  }
+}
+</script>
+</body>
+</html>

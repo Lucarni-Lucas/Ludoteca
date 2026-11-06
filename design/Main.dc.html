@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ludoteca · Biblioteca</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0E1014}
+a{color:#ECEEF2}a:hover{color:#FFFFFF}
+input::placeholder{color:#7D8696}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0E1014; color: #ECEEF2; font: 400 15px/1.5 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+
+  <header style="border-bottom: 1px solid #222832">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 14px clamp(16px, 4vw, 40px); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+      <a href="#biblioteca" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #ECEEF2">
+        <span style="width: 32px; height: 32px; border-radius: 8px; background: #C8F25A; color: #0E1014; display: grid; place-items: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="4" width="4.5" height="16" rx="1"></rect><rect x="9.5" y="4" width="4.5" height="16" rx="1"></rect><path d="M15.6 5.4l3.9-1 3.6 14.5-3.9 1z"></path></svg>
+        </span>
+        <span style="font: 700 21px/1 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.02em">Ludoteca</span>
+      </a>
+      <nav aria-label="Principal" style="display: flex; flex-wrap: wrap; gap: 4px">
+        <a href="#biblioteca" aria-current="page" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; background: #1E232C; color: #ECEEF2; text-decoration: none; font-weight: 500; font-size: 14px">Biblioteca</a>
+        <a href="Escritorio-LoTengo.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">¿Lo tengo?</a>
+        <a href="Escritorio-Suscripciones.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Suscripciones</a>
+        <a href="Escritorio-Tiendas.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Tiendas</a>
+        <a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Estadísticas</a>
+      </nav>
+      <div style="flex: 1 1 300px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px">
+        <label style="position: relative; flex: 1 1 240px; max-width: 420px; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 10px; background: #161A21; border: 1px solid #2A303B; color: #9AA3B2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Buscar en tu biblioteca</span>
+          <input type="search" value="{{query}}" onChange="{{onQuery}}" placeholder="¿Lo tengo? Buscá un juego…" style="flex: 1; min-width: 0; height: 40px; background: transparent; border: 0; color: #ECEEF2; font: 400 15px/1 Inter, system-ui, sans-serif">
+        </label>
+        <a href="Escritorio-Agregar.dc.html" style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 10px; background: #C8F25A; color: #0E1014; text-decoration: none; font: 600 14px/1 Inter, system-ui, sans-serif">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          Agregar juego
+        </a>
+        <a href="Escritorio-Estados.dc.html" aria-label="Ajustes" style="width: 44px; height: 44px; box-sizing: border-box; border-radius: 999px; border: 1px solid #2A303B; background: #1E232C; color: #ECEEF2; display: grid; place-items: center; text-decoration: none; font: 600 16px/1 'Space Grotesk', Arial, sans-serif">L</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="biblioteca" style="max-width: 1360px; margin: 0 auto; padding: 36px clamp(16px, 4vw, 40px) 64px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px">
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+      <div>
+        <h1 style="margin: 0; font: 700 clamp(32px, 4vw, 44px)/1.05 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.03em">Tu biblioteca</h1>
+        <p style="margin: 8px 0 0; color: #9AA3B2">{{summary}}</p>
+      </div>
+      <label style="display: flex; align-items: center; gap: 10px; color: #9AA3B2; font-size: 14px">
+        Ordenar por
+        <select value="{{sort}}" onChange="{{onSort}}" style="height: 44px; padding: 0 12px; border-radius: 10px; background: #161A21; color: #ECEEF2; border: 1px solid #2A303B; font: 500 14px/1 Inter, system-ui, sans-serif">
+          <option value="recientes">Agregados recientemente</option>
+          <option value="puntaje">Mi puntaje</option>
+          <option value="horas">Horas jugadas</option>
+          <option value="duracion">Duración estimada</option>
+          <option value="titulo">Título (A–Z)</option>
+        </select>
+      </label>
+    </div>
+
+    <sc-if value="{{showDup}}" hint-placeholder-val="{{ true }}">
+      <section aria-label="Juego repetido" style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; padding: 18px 20px; border-radius: 14px; background: #1C1810; border: 1px solid #4A3B1E">
+        <span style="flex: none; width: 40px; height: 40px; border-radius: 10px; background: rgba(255,198,107,0.14); color: #FFC66B; display: grid; place-items: center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3z"></path><path d="M12 10v4"></path><path d="M12 17h.01"></path></svg>
+        </span>
+        <div style="flex: 1 1 360px; min-width: 0">
+          <p style="margin: 0; font-weight: 600; color: #F4E6CC">Civilization VI está dos veces en tu biblioteca</p>
+          <p style="margin: 4px 0 0; color: #C9BBA0; font-size: 14px">Lo reclamaste gratis en Epic Games en mayo de 2020 y lo compraste en Steam en agosto de 2023. Desde ahora te avisamos antes de que pase de nuevo.</p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <button type="button" onClick="{{showCiv}}" style="height: 44px; padding: 0 16px; border-radius: 10px; border: 0; background: #FFC66B; color: #1C1508; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Ver el juego</button>
+          <button type="button" onClick="{{dismissDup}}" style="height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #4A3B1E; background: transparent; color: #F4E6CC; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Fue a propósito</button>
+        </div>
+      </section>
+    </sc-if>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 32px">
+
+      <aside style="flex: 1 1 230px; display: flex; flex-direction: column; gap: 28px">
+
+        <section style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+            <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Duración estimada</h2>
+            <span style="font-size: 12px; color: #9AA3B2">IGDB o tuya</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #9AA3B2">Desde (h)
+              <input type="number" min="0" inputmode="numeric" value="{{durMin}}" onChange="{{onDurMin}}" placeholder="0" style="width: 100%; height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 10px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 500 14px/1 'JetBrains Mono', ui-monospace, monospace">
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #9AA3B2">Hasta (h)
+              <input type="number" min="0" inputmode="numeric" value="{{durMax}}" onChange="{{onDurMax}}" placeholder="sin tope" style="width: 100%; height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 10px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 500 14px/1 'JetBrains Mono', ui-monospace, monospace">
+            </label>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{durPresets}}" as="p" hint-placeholder-count="4">
+              <button type="button" onClick="{{p.pick}}" aria-pressed="{{p.active}}" style="{{p.style}}">{{p.label}}</button>
+            </sc-for>
+          </div>
+          <p style="margin: 0; font-size: 12px; color: #9AA3B2">Los juegos «Sin fin» no tienen duración y quedan afuera de este filtro.</p>
+        </section>
+
+        <section style="display: flex; flex-direction: column; gap: 10px">
+          <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Horas que jugaste</h2>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #9AA3B2">Desde (h)
+              <input type="number" min="0" inputmode="numeric" value="{{hrsMin}}" onChange="{{onHrsMin}}" placeholder="0" style="width: 100%; height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 10px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 500 14px/1 'JetBrains Mono', ui-monospace, monospace">
+            </label>
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #9AA3B2">Hasta (h)
+              <input type="number" min="0" inputmode="numeric" value="{{hrsMax}}" onChange="{{onHrsMax}}" placeholder="sin tope" style="width: 100%; height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 10px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 500 14px/1 'JetBrains Mono', ui-monospace, monospace">
+            </label>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{hrsPresets}}" as="p" hint-placeholder-count="4">
+              <button type="button" onClick="{{p.pick}}" aria-pressed="{{p.active}}" style="{{p.style}}">{{p.label}}</button>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="display: flex; flex-direction: column; gap: 2px">
+          <h2 style="margin: 0 0 8px; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Tienda</h2>
+          <sc-for list="{{storeFilters}}" as="f" hint-placeholder-count="8">
+            <button type="button" onClick="{{f.pick}}" aria-pressed="{{f.active}}" style="{{f.style}}">
+              <span>{{f.label}}</span>
+              <span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">{{f.count}}</span>
+            </button>
+          </sc-for>
+        </section>
+
+        <section style="display: flex; flex-direction: column; gap: 2px">
+          <h2 style="margin: 0 0 8px; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Cómo lo tenés</h2>
+          <sc-for list="{{kindFilters}}" as="f" hint-placeholder-count="7">
+            <button type="button" onClick="{{f.pick}}" aria-pressed="{{f.active}}" style="{{f.style}}">
+              <span>{{f.label}}</span>
+              <span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">{{f.count}}</span>
+            </button>
+          </sc-for>
+        </section>
+
+        <a href="Escritorio-Tiendas.dc.html" style="display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 12px; border: 1px dashed #3A414E; text-decoration: none; color: #ECEEF2">
+          <span style="font-weight: 600; font-size: 14px">Conectar otra tienda</span>
+          <span style="color: #9AA3B2; font-size: 13px; line-height: 1.45">PlayStation, EA app, Ubisoft Connect, Battle.net o cargá juegos físicos e indies a mano.</span>
+        </a>
+      </aside>
+
+      <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px">
+          <button type="button" onClick="{{pickAll}}" aria-pressed="{{allActive}}" style="{{allStyle}}">Todos<span style="{{allCountStyle}}">{{allCount}}</span></button>
+          <sc-for list="{{groups}}" as="gr" hint-placeholder-count="4">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+              <button type="button" onClick="{{gr.pick}}" aria-pressed="{{gr.active}}" style="{{gr.style}}">{{gr.label}}</button>
+              <sc-for list="{{gr.statuses}}" as="t" hint-placeholder-count="2">
+                <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.active}}" style="{{t.style}}">{{t.label}}<span style="{{t.countStyle}}">{{t.count}}</span></button>
+              </sc-for>
+            </div>
+          </sc-for>
+          <a href="Escritorio-Estados.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 14px; color: #C5CCD8">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path></svg>
+            Editar estados
+          </a>
+        </div>
+
+        <sc-if value="{{hasResults}}" hint-placeholder-val="{{ true }}">
+          <div style="display: grid; grid-template-columns: {{gridCols}}; gap: 28px 20px">
+            <sc-for list="{{games}}" as="g" hint-placeholder-count="10">
+              <article style="display: flex; flex-direction: column; gap: 12px; min-width: 0">
+                <a href="Escritorio-Juego.dc.html" aria-label="Ver la ficha de {{g.title}}" style="{{g.coverStyle}}; text-decoration: none">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px">
+                    <span style="font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.06em">{{g.year}}</span>
+                    <sc-if value="{{g.hasBadge}}" hint-placeholder-val="{{ false }}">
+                      <span style="{{g.badgeStyle}}">{{g.badge}}</span>
+                    </sc-if>
+                  </div>
+                  <span aria-hidden="true" style="font: 700 52px/0.9 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.04em">{{g.mono}}</span>
+                </a>
+                <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+                  <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+                    <h3 style="margin: 0; min-width: 0; font: 600 15px/1.3 Inter, system-ui, sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"><a href="Escritorio-Juego.dc.html" style="color: inherit; text-decoration: none">{{g.title}}</a></h3>
+                    <sc-if value="{{g.rated}}" hint-placeholder-val="{{ true }}">
+                      <span style="flex: none; font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace; color: #ECEEF2">{{g.scoreText}}<span style="font-size: 11px; color: #7D8696">/10</span></span>
+                    </sc-if>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+                    <span style="{{g.statusStyle}}">{{g.statusLabel}}</span>
+                    <sc-if value="{{g.showHours}}" hint-placeholder-val="{{ true }}">
+                      <span style="display: inline-flex; align-items: center; gap: 5px; color: #9AA3B2; font-size: 13px">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                        {{g.hoursText}}
+                      </span>
+                    </sc-if>
+                  </div>
+                  <sc-if value="{{g.hasReason}}" hint-placeholder-val="{{ false }}">
+                    <p style="margin: 0; font-size: 13px; line-height: 1.35; color: #9AA3B2">{{g.reason}}</p>
+                  </sc-if>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px">
+                    <sc-for list="{{g.stores}}" as="s" hint-placeholder-count="1">
+                      <span style="{{s.style}}">{{s.label}}</span>
+                    </sc-for>
+                  </div>
+                  <sc-if value="{{g.hasBuy}}" hint-placeholder-val="{{ false }}">
+                    <a href="#" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 10px; background: #161A21; border: 1px solid #2A303B; text-decoration: none; color: #ECEEF2">
+                      <span style="font: 500 10.5px/1.2 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.06em; text-transform: uppercase; color: #FFC66B">Dónde comprarlo</span>
+                      <span style="font-size: 14px; font-weight: 600">{{g.buyStore}} · {{g.buyPrice}}</span>
+                      <span style="font-size: 12px; color: #9AA3B2">{{g.buySeen}}</span>
+                    </a>
+                  </sc-if>
+                </div>
+              </article>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{emptySearch}}" hint-placeholder-val="{{ false }}">
+          <section style="display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 32px; border-radius: 16px; background: #161A21; border: 1px solid #2A303B">
+            <p style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Resultado</p>
+            <h2 style="margin: 0; font: 700 28px/1.15 'Space Grotesk', Arial, sans-serif; letter-spacing: -0.02em">No tenés “{{query}}” en ninguna tienda</h2>
+            <p style="margin: 0; color: #9AA3B2; max-width: 52ch">Revisamos tus tiendas, tus suscripciones, tu familia de Steam y tus juegos cargados a mano.</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px">
+              <a href="Escritorio-Agregar.dc.html" style="display: flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 10px; background: #C8F25A; color: #0E1014; text-decoration: none; font: 600 14px/1 Inter, system-ui, sans-serif">Agregar a «Quiero jugarlo»</a>
+              <a href="Escritorio-Agregar.dc.html" style="display: flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #2A303B; color: #ECEEF2; text-decoration: none; font: 500 14px/1 Inter, system-ui, sans-serif">Ya lo tengo en otro lado</a>
+            </div>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{emptyFilter}}" hint-placeholder-val="{{ false }}">
+          <section style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 24px; border-radius: 16px; background: #161A21; border: 1px solid #2A303B">
+            <p style="margin: 0; color: #C5CCD8">No hay juegos con esta combinación de filtros.</p>
+            <button type="button" onClick="{{clearAll}}" style="height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #2A303B; background: transparent; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Limpiar filtros</button>
+          </section>
+        </sc-if>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"portadas":{"editor":"enum","options":["Normales","Compactas"],"default":"Normales"},"$preview":{"width":1440,"height":2150}}'>
+class Component extends DCLogic {
+  games() {
+    return [
+      { title: 'Disco Elysium', mono: 'DE', year: 2019, status: 'jugando', score: 9.3, hours: 18, dur: 22, bg: '#4A2A22', fg: '#F2D9C9', stores: [{ s: 'gog', k: 'comprado' }] },
+      { title: 'Forza Horizon 5', mono: 'FH', year: 2021, status: 'sinfin', score: 8.1, hours: 31, dur: 0, bg: '#1F3A3A', fg: '#CDEDEB', stores: [{ s: 'gp', k: 'susc' }] },
+      { title: 'Civilization VI', mono: 'CV', year: 2016, status: 'sinfin', score: 7.4, hours: 112, dur: 0, bg: '#2E3B23', fg: '#E3EFCF', dup: true, stores: [{ s: 'epic', k: 'gratis' }, { s: 'steam', k: 'comprado' }] },
+      { title: 'Frostpunk', mono: 'FP', year: 2018, status: 'quiero', score: 0, hours: 0, dur: 12, bg: '#26303A', fg: '#DCE6EF', stores: [], buy: { store: 'Microsoft Store', price: 'ARS 400', seen: 'Visto el 5 nov' } },
+      { title: 'Cyberpunk 2077', mono: 'CP', year: 2020, status: 'pausa', score: 7.9, hours: 21, dur: 26, bg: '#3D3A12', fg: '#F2EEB3', reason: 'Lo retomo después · acto 2', stores: [{ s: 'gog', k: 'comprado' }] },
+      { title: 'Hades', mono: 'HA', year: 2020, status: 'cien', score: 9.6, hours: 64, dur: 22, bg: '#4A1E25', fg: '#F6CFD3', stores: [{ s: 'steam', k: 'comprado' }] },
+      { title: 'Outer Wilds', mono: 'OW', year: 2019, status: 'pendiente', score: 0, hours: 0, dur: 17, bg: '#2A2442', fg: '#DCD5F5', stores: [{ s: 'steam', k: 'comprado' }] },
+      { title: 'Hollow Knight', mono: 'HK', year: 2017, status: 'completado', score: 9.8, hours: 48, dur: 27, bg: '#22304A', fg: '#DCE6F7', stores: [{ s: 'steam', k: 'comprado' }] },
+      { title: 'Portal 2', mono: 'P2', year: 2011, status: 'completado', score: 9.0, hours: 9, dur: 8, bg: '#2B3036', fg: '#E2E6EA', stores: [{ s: 'steam', k: 'familia' }] },
+      { title: 'Cartas del Faro', mono: 'CF', year: 2025, status: 'completado', score: 8.0, hours: 1, dur: 1, bg: '#3A2E1F', fg: '#F0E0C8', manual: true, stores: [{ s: 'itch', k: 'gratis' }] },
+      { title: 'Stardew Valley', mono: 'SV', year: 2016, status: 'sinfin', score: 9.0, hours: 140, dur: 53, bg: '#2D4220', fg: '#E1F0CF', stores: [{ s: 'steam', k: 'comprado' }, { s: 'sw', k: 'fisico' }] },
+      { title: 'Celeste', mono: 'CE', year: 2018, status: 'completado', score: 8.7, hours: 22, dur: 8, bg: '#3F2240', fg: '#F1D2F2', stores: [{ s: 'epic', k: 'comprado' }] },
+      { title: 'Ori and the Will of the Wisps', mono: 'OR', year: 2020, status: 'completado', score: 8.8, hours: 13, dur: 11, bg: '#1D3340', fg: '#CFE6F2', stores: [{ s: 'gp', k: 'perdido' }] },
+      { title: 'Elden Ring', mono: 'ER', year: 2022, status: 'loprobe', score: 6.5, hours: 3, dur: 58, bg: '#3A3426', fg: '#EFE6CF', reason: 'Muy difícil · a las 3 h', stores: [{ s: 'steam', k: 'comprado' }] },
+      { title: 'Sea of Thieves', mono: 'ST', year: 2018, status: 'abandonado', score: 5.5, hours: 9, dur: 0, bg: '#163029', fg: '#CBEDE3', reason: 'Sin gente para jugar', stores: [{ s: 'ms', k: 'comprado' }] },
+      { title: 'Grand Theft Auto V', mono: 'GT', year: 2013, status: 'abandonado', score: 6.2, hours: 14, dur: 32, bg: '#3A2F18', fg: '#F4E3B8', reason: 'Me aburrió · a las 14 h', stores: [{ s: 'epic', k: 'gratis' }] }
+    ];
+  }
+
+  renderVals() {
+    const st = this.state || {};
+    const sf = st.sf || 'todos';
+    const store = st.store || 'todas';
+    const kind = st.kind || 'todos';
+    const query = st.query || '';
+    const sort = st.sort || 'recientes';
+    const durMin = st.durMin ?? '';
+    const durMax = st.durMax ?? '';
+    const hrsMin = st.hrsMin ?? '';
+    const hrsMax = st.hrsMax ?? '';
+    const compact = (this.props.portadas ?? 'Normales') === 'Compactas';
+    const all = this.games();
+
+    const STORE = { steam: 'Steam', epic: 'Epic Games', gog: 'GOG', ms: 'Microsoft Store', gp: 'Game Pass', sw: 'Switch', itch: 'itch.io' };
+    const KIND = { comprado: 'Comprado', gratis: 'Gratis', susc: 'Suscripción', familia: 'Familia', fisico: 'Físico', perdido: 'Ya no lo tengo' };
+    const GROUPS = [
+      { id: 'curso', label: 'En curso', statuses: [['jugando', 'Jugando'], ['pausa', 'En pausa'], ['sinfin', 'Sin fin']] },
+      { id: 'empezar', label: 'Sin empezar', statuses: [['quiero', 'Quiero jugarlo'], ['pendiente', 'Pendiente']] },
+      { id: 'terminado', label: 'Terminado', statuses: [['completado', 'Completado'], ['cien', '100%']] },
+      { id: 'dejado', label: 'Dejado', statuses: [['abandonado', 'Abandonado'], ['loprobe', 'Lo probé']] }
+    ];
+    const GROUP_OF = {};
+    const LABEL = {};
+    GROUPS.forEach((g) => g.statuses.forEach(([id, label]) => { GROUP_OF[id] = g.id; LABEL[id] = label; }));
+    const COLOR = {
+      jugando: ['#C8F25A', 'rgba(200,242,90,0.12)'], pausa: ['#C8F25A', 'rgba(200,242,90,0.12)'], sinfin: ['#C8F25A', 'rgba(200,242,90,0.12)'],
+      quiero: ['#FFC66B', 'rgba(255,198,107,0.13)'], pendiente: ['#C5CCD8', 'rgba(197,204,216,0.10)'],
+      completado: ['#8EC5FF', 'rgba(142,197,255,0.13)'], cien: ['#8EC5FF', 'rgba(142,197,255,0.13)'],
+      abandonado: ['#FF9C8A', 'rgba(255,156,138,0.13)'], loprobe: ['#FF9C8A', 'rgba(255,156,138,0.13)']
+    };
+
+    const num = (v) => (v === '' || v === null || isNaN(Number(v)) ? null : Number(v));
+    const dMin = num(durMin), dMax = num(durMax), hMin = num(hrsMin), hMax = num(hrsMax);
+    const durOn = dMin !== null || dMax !== null;
+    const hrsOn = hMin !== null || hMax !== null;
+    const matchStatus = (g) => sf === 'todos' || sf === g.status || (sf.indexOf('g:') === 0 && GROUP_OF[g.status] === sf.slice(2));
+
+    const q = query.trim().toLowerCase();
+    let list = all.filter((g) =>
+      matchStatus(g) &&
+      (store === 'todas' || g.stores.some((x) => x.s === store)) &&
+      (kind === 'todos' || g.stores.some((x) => x.k === kind)) &&
+      (!durOn || (g.dur > 0 && (dMin === null || g.dur >= dMin) && (dMax === null || g.dur <= dMax))) &&
+      (!hrsOn || (g.stores.length > 0 && (hMin === null || g.hours >= hMin) && (hMax === null || g.hours <= hMax))) &&
+      (!q || g.title.toLowerCase().includes(q)));
+    if (sort === 'puntaje') list = list.slice().sort((a, b) => b.score - a.score);
+    if (sort === 'horas') list = list.slice().sort((a, b) => b.hours - a.hours);
+    if (sort === 'duracion') list = list.slice().sort((a, b) => (a.dur || 9999) - (b.dur || 9999));
+    if (sort === 'titulo') list = list.slice().sort((a, b) => a.title.localeCompare(b.title, 'es'));
+
+    const chip = (k) => k === 'perdido'
+      ? "font: 500 10.5px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 7px; border-radius: 6px; border: 1px dashed #4A5160; color: #9AA3B2; text-decoration: line-through"
+      : "font: 500 10.5px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 7px; border-radius: 6px; border: 1px solid #353C48; color: #C5CCD8";
+
+    const games = list.map((g) => {
+      const c = COLOR[g.status];
+      const wish = g.stores.length === 0;
+      const border = wish ? '1px dashed rgba(255,255,255,0.4)' : '1px solid rgba(255,255,255,0.07)';
+      const badge = g.dup ? '2 COPIAS' : (g.manual ? 'A MANO' : '');
+      const stores = g.stores.map((x) => ({
+        label: x.k === 'comprado' ? STORE[x.s] : (x.k === 'perdido' ? `${STORE[x.s]} · ya no` : `${STORE[x.s]} · ${KIND[x.k]}`),
+        style: chip(x.k)
+      }));
+      if (wish) stores.push({ label: 'Sin comprar', style: "font: 500 10.5px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.04em; text-transform: uppercase; padding: 5px 7px; border-radius: 6px; border: 1px dashed #4A5160; color: #9AA3B2" });
+      return {
+        title: g.title,
+        mono: g.mono,
+        year: g.year,
+        rated: g.score > 0,
+        scoreText: g.score.toFixed(1),
+        statusLabel: LABEL[g.status],
+        statusStyle: `display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; font: 500 12px/1 Inter, system-ui, sans-serif; color: ${c[0]}; background: ${c[1]}`,
+        showHours: !wish,
+        hoursText: g.hours ? `${g.hours} h` : 'Sin empezar',
+        hasReason: !!g.reason,
+        reason: g.reason || '',
+        hasBadge: !!badge,
+        badge,
+        badgeStyle: g.dup
+          ? "font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.06em; padding: 5px 7px; border-radius: 6px; background: #FFC66B; color: #1C1508"
+          : "font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.06em; padding: 5px 7px; border-radius: 6px; background: #ECEEF2; color: #0E1014",
+        stores,
+        hasBuy: !!g.buy,
+        buyStore: g.buy ? g.buy.store : '',
+        buyPrice: g.buy ? g.buy.price : '',
+        buySeen: g.buy ? g.buy.seen : '',
+        coverStyle: `aspect-ratio: 3 / 4; box-sizing: border-box; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; background-color: ${g.bg}; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 14px); color: ${g.fg}; border: ${border}`
+      };
+    });
+
+    const pill = (active) => active
+      ? 'display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #C8F25A; background: #C8F25A; color: #0E1014; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer'
+      : 'display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #2A303B; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer';
+    const countStyle = (active) => active
+      ? "font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #33401A"
+      : "font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #8A93A3";
+    const groupStyle = (active) => `display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; border: 0; background: transparent; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; color: ${active ? '#C8F25A' : '#9AA3B2'}; text-decoration: ${active ? 'underline' : 'none'}; text-underline-offset: 6px`;
+    const small = (active) => active
+      ? "min-height: 44px; padding: 0 10px; border-radius: 8px; border: 1px solid #C8F25A; background: #1E232C; color: #ECEEF2; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; cursor: pointer"
+      : "min-height: 44px; padding: 0 10px; border-radius: 8px; border: 1px solid #2A303B; background: transparent; color: #C5CCD8; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; cursor: pointer";
+    const row = (active) => active
+      ? 'display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: #1E232C; box-shadow: inset 0 0 0 1px #C8F25A; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; text-align: left; cursor: pointer'
+      : 'display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; text-align: left; cursor: pointer';
+
+    const groups = GROUPS.map((g) => {
+      const gActive = sf === `g:${g.id}`;
+      return {
+        label: g.label,
+        active: gActive,
+        style: groupStyle(gActive),
+        pick: () => this.setState({ sf: gActive ? 'todos' : `g:${g.id}` }),
+        statuses: g.statuses.map(([id, label]) => {
+          const active = sf === id;
+          return {
+            label,
+            active,
+            count: all.filter((x) => x.status === id).length,
+            style: pill(active),
+            countStyle: countStyle(active),
+            pick: () => this.setState({ sf: active ? 'todos' : id })
+          };
+        })
+      };
+    });
+
+    const preset = (label, a, b, curMin, curMax, keyMin, keyMax) => {
+      const active = String(curMin) === String(a) && String(curMax) === String(b);
+      return {
+        label,
+        active,
+        style: small(active),
+        pick: () => this.setState(active ? { [keyMin]: '', [keyMax]: '' } : { [keyMin]: String(a), [keyMax]: String(b) })
+      };
+    };
+    const durPresets = [
+      preset('< 5 h', 0, 5, durMin, durMax, 'durMin', 'durMax'),
+      preset('5–15 h', 5, 15, durMin, durMax, 'durMin', 'durMax'),
+      preset('15–40 h', 15, 40, durMin, durMax, 'durMin', 'durMax'),
+      preset('40 h +', 40, '', durMin, durMax, 'durMin', 'durMax')
+    ];
+    const hrsPresets = [
+      preset('Sin abrir', 0, 0, hrsMin, hrsMax, 'hrsMin', 'hrsMax'),
+      preset('< 2 h', 0, 2, hrsMin, hrsMax, 'hrsMin', 'hrsMax'),
+      preset('2–20 h', 2, 20, hrsMin, hrsMax, 'hrsMin', 'hrsMax'),
+      preset('20 h +', 20, '', hrsMin, hrsMax, 'hrsMin', 'hrsMax')
+    ];
+
+    const storeFilters = [['todas', 'Todas'], ['steam', 'Steam'], ['epic', 'Epic Games'], ['gog', 'GOG'], ['ms', 'Microsoft Store'], ['gp', 'Game Pass'], ['sw', 'Switch (físico)'], ['itch', 'itch.io']]
+      .map(([id, label]) => {
+        const active = store === id;
+        return {
+          label, active, style: row(active),
+          count: id === 'todas' ? all.length : all.filter((g) => g.stores.some((x) => x.s === id)).length,
+          pick: () => this.setState({ store: active && id !== 'todas' ? 'todas' : id })
+        };
+      });
+
+    const kindFilters = [['todos', 'Todos'], ['comprado', 'Comprado'], ['gratis', 'Gratis'], ['susc', 'Suscripción'], ['familia', 'Familia'], ['fisico', 'Físico'], ['perdido', 'Ya no lo tengo']]
+      .map(([id, label]) => {
+        const active = kind === id;
+        return {
+          label, active, style: row(active),
+          count: id === 'todos' ? all.filter((g) => g.stores.length > 0).length : all.filter((g) => g.stores.some((x) => x.k === id)).length,
+          pick: () => this.setState({ kind: active && id !== 'todos' ? 'todos' : id })
+        };
+      });
+
+    const owned = all.filter((g) => g.stores.some((x) => x.k !== 'perdido'));
+    const storesUsed = new Set();
+    owned.forEach((g) => g.stores.forEach((x) => { if (x.k !== 'perdido') storesUsed.add(x.s); }));
+    const wishCount = all.filter((g) => g.stores.length === 0).length;
+    const lostCount = all.filter((g) => g.stores.length > 0 && g.stores.every((x) => x.k === 'perdido')).length;
+    const allActive = sf === 'todos';
+    const min = compact ? 140 : 170;
+
+    return {
+      summary: `${owned.length} juegos en ${storesUsed.size} tiendas · ${wishCount} en «Quiero jugarlo» · ${lostCount} que ya no tenés`,
+      query, sort, durMin, durMax, hrsMin, hrsMax,
+      games, groups, durPresets, hrsPresets, storeFilters, kindFilters,
+      allActive,
+      allStyle: pill(allActive),
+      allCountStyle: countStyle(allActive),
+      allCount: all.length,
+      pickAll: () => this.setState({ sf: 'todos' }),
+      hasResults: games.length > 0,
+      emptySearch: games.length === 0 && !!q,
+      emptyFilter: games.length === 0 && !q,
+      showDup: !st.dupHidden,
+      gridCols: `repeat(auto-fill, minmax(min(${min}px, 100%), 1fr))`,
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      onSort: (e) => this.setState({ sort: e.target.value }),
+      onDurMin: (e) => this.setState({ durMin: e.target.value }),
+      onDurMax: (e) => this.setState({ durMax: e.target.value }),
+      onHrsMin: (e) => this.setState({ hrsMin: e.target.value }),
+      onHrsMax: (e) => this.setState({ hrsMax: e.target.value }),
+      showCiv: () => this.setState({ query: 'Civilization', sf: 'todos', store: 'todas', kind: 'todos', durMin: '', durMax: '', hrsMin: '', hrsMax: '' }),
+      dismissDup: () => this.setState({ dupHidden: true }),
+      clearAll: () => this.setState({ query: '', sf: 'todos', store: 'todas', kind: 'todos', durMin: '', durMax: '', hrsMin: '', hrsMax: '' })
+    };
+  }
+}
+</script>
+</body>
+</html>

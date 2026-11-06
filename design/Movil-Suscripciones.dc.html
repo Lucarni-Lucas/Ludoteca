@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ludoteca · Suscripciones</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0E1014}
+a{color:#ECEEF2}a:hover{color:#FFFFFF}
+input::placeholder{color:#7D8696}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; min-height: 1540px; box-sizing: border-box; padding-bottom: 120px; background: #0E1014; color: #ECEEF2; font: 400 15px/1.45 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+
+  <div style="padding: 60px 20px 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px">
+    <div>
+      <h1 style="margin: 0; font: 700 32px/1 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.03em">Suscripciones</h1>
+      <p style="margin: 8px 0 0; color: #9AA3B2; font-size: 14px">Lo que pagás todos los meses y lo que está por vencer.</p>
+    </div>
+    <button type="button" aria-label="Agregar suscripción" style="flex: none; width: 44px; height: 44px; border-radius: 999px; border: 0; background: #C8F25A; color: #0E1014; display: grid; place-items: center; cursor: pointer">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+    </button>
+  </div>
+
+  <section aria-label="Total por mes" style="margin: 22px 20px 0; padding: 16px; border-radius: 16px; background: #161A21; border: 1px solid #2A303B; display: flex; flex-direction: column; gap: 12px">
+    <span style="font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Pagás por mes</span>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <sc-for list="{{totals}}" as="t" hint-placeholder-count="2">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font: 500 24px/1.1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: -0.02em">{{t.amount}}</span>
+          <span style="font-size: 12px; color: #9AA3B2">{{t.detail}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <p style="margin: 0; font-size: 12px; color: #9AA3B2">Cada moneda por separado. Las anuales suman su precio dividido 12.</p>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Se renuevan solas</h2>
+    <sc-for list="{{recurring}}" as="s" hint-placeholder-count="2">
+      <article style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 14px; background: #161A21; border: 1px solid #2A303B">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px">
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600">{{s.name}}</h3>
+          <span style="font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.04em; text-transform: uppercase; color: #9AA3B2">{{s.period}}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <label style="flex: 1; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; background: #0E1014; border: 1px solid #2A303B">
+            <span style="font: 500 13px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">{{s.currency}}</span>
+            <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">{{s.priceLabel}}</span>
+            <input type="number" min="0" inputmode="decimal" value="{{s.price}}" onChange="{{s.onPrice}}" placeholder="precio" style="flex: 1; min-width: 0; height: 40px; border: 0; background: transparent; color: #ECEEF2; font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace">
+          </label>
+          <span style="flex: none; font-size: 13px; color: #C5CCD8; text-align: right">{{s.next}}</span>
+        </div>
+        <p style="{{s.usageStyle}}">{{s.usage}}</p>
+      </article>
+    </sc-for>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">No se renuevan</h2>
+      <span style="font-size: 12px; color: #9AA3B2">No suman al total</span>
+    </div>
+    <sc-for list="{{prepaid}}" as="p" hint-placeholder-count="2">
+      <article style="{{p.cardStyle}}">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px">
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600">{{p.name}}</h3>
+          <sc-if value="{{p.soon}}" hint-placeholder-val="{{ false }}">
+            <span style="font: 600 12px/1 Inter, system-ui, sans-serif; padding: 5px 8px; border-radius: 999px; background: rgba(255,198,107,0.16); color: #FFC66B">Vence pronto</span>
+          </sc-if>
+        </div>
+        <span style="font-size: 13px; color: #9AA3B2">{{p.what}}</span>
+        <div style="height: 6px; border-radius: 99px; background: #0E1014; overflow: hidden">
+          <span style="{{p.barStyle}}"></span>
+        </div>
+        <span style="font-size: 14px; color: #DDE1E8">{{p.left}}</span>
+      </article>
+    </sc-for>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Avisos</h2>
+    <label style="display: flex; align-items: center; gap: 10px; font-size: 15px">
+      <span style="flex: 1">Días antes de cada cobro</span>
+      <input type="number" min="0" defaultValue="3" style="width: 72px; height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 10px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; text-align: center; font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace">
+    </label>
+    <label style="display: flex; align-items: center; gap: 10px; font-size: 15px">
+      <span style="flex: 1">Días antes de que algo venza</span>
+      <input type="number" min="0" defaultValue="30" style="width: 72px; height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 10px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; text-align: center; font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace">
+    </label>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{channels}}" as="c" hint-placeholder-count="3">
+        <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.active}}" style="{{c.style}}">{{c.label}}</button>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Terminadas</h2>
+    <a href="Movil-LoTengo.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px; border-radius: 14px; border: 1px dashed #3A414E; text-decoration: none; color: #ECEEF2">
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-weight: 600">Game Pass · hasta jun 2023</span>
+        <span style="font-size: 13px; color: #9AA3B2">1 juego que ya no tenés</span>
+      </span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA3B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg>
+    </a>
+  </section>
+
+  <nav aria-label="Secciones" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; padding: 6px 8px 26px; background: rgba(14,16,20,0.97); border-top: 1px solid #222832">
+    <a href="Movil-Biblioteca.dc.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #9AA3B2; font: 500 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="4.5" height="16" rx="1"></rect><rect x="9.5" y="4" width="4.5" height="16" rx="1"></rect><path d="M15.6 5.4l3.9-1 3.6 14.5-3.9 1z"></path></svg>
+      Biblioteca
+    </a>
+    <a href="Movil-LoTengo.dc.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #9AA3B2; font: 500 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      ¿Lo tengo?
+    </a>
+    <a href="Movil-Suscripciones.dc.html" aria-current="page" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #C8F25A; font: 600 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path><path d="M7 15h4"></path></svg>
+      Suscripciones
+    </a>
+    <a href="Movil-Tiendas.dc.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #9AA3B2; font: 500 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path></svg>
+      Tiendas
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1540}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const prices = st.prices || {};
+    const channel = st.channel || 'push';
+    const SUBS = [
+      { id: 'gp', name: 'Game Pass', period: 'Mensual', months: 1, currency: 'ARS', next: 'Cobra el 18 nov', usage: 'Este mes jugaste 6 h con juegos de Game Pass.', warn: false },
+      { id: 'humble', name: 'Humble Choice', period: 'Mensual', months: 1, currency: 'USD', next: 'Cobra el 2 dic', usage: 'Este mes no jugaste nada de lo que te dio.', warn: true },
+      { id: 'nso', name: 'Nintendo Switch Online', period: 'Anual', months: 12, currency: 'ARS', next: 'Cobra el 9 jun', usage: 'Se cobra una vez por año: al total suma su precio dividido 12.', warn: false }
+    ];
+
+    const recurring = SUBS.map((s) => ({
+      name: s.name,
+      period: s.period,
+      currency: s.currency,
+      next: s.next,
+      usage: s.usage,
+      usageStyle: s.warn ? 'margin: 0; font-size: 13px; line-height: 1.4; color: #FFC66B' : 'margin: 0; font-size: 13px; line-height: 1.4; color: #9AA3B2',
+      price: prices[s.id] ?? '',
+      priceLabel: `Precio de ${s.name} en ${s.currency}`,
+      onPrice: (e) => this.setState({ prices: Object.assign({}, prices, { [s.id]: e.target.value }) })
+    }));
+
+    const fmt = (n) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 });
+    const totals = ['ARS', 'USD'].map((cur) => {
+      const list = SUBS.filter((s) => s.currency === cur);
+      const filled = list.filter((s) => prices[s.id] !== undefined && prices[s.id] !== '' && !isNaN(Number(prices[s.id])));
+      const sum = filled.reduce((acc, s) => acc + Number(prices[s.id]) / s.months, 0);
+      const n = list.length;
+      return {
+        amount: filled.length ? `${cur} ${fmt(sum)}` : `${cur} —`,
+        detail: filled.length === n ? `${n} ${n === 1 ? 'suscripción' : 'suscripciones'}` : `Cargá ${n - filled.length === 1 ? 'el precio' : 'los precios'} abajo`
+      };
+    });
+
+    const prepaid = [
+      { name: 'Trackmania · Club', what: '1 año pagado una vez · no se renueva', left: 'Vence el 14 ene 2027 · faltan 70 días', pct: 19, soon: false },
+      { name: 'Ubisoft+ · 1 mes de regalo', what: 'No se renueva', left: 'Vence el 22 nov · faltan 17 días', pct: 55, soon: true }
+    ].map((p) => ({
+      name: p.name,
+      what: p.what,
+      left: p.left,
+      soon: p.soon,
+      cardStyle: `display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; background: #161A21; border: 1px solid ${p.soon ? 'rgba(255,198,107,0.45)' : '#2A303B'}`,
+      barStyle: `display: block; height: 100%; width: ${p.pct}%; border-radius: 99px; background: ${p.soon ? '#FFC66B' : '#C8F25A'}`
+    }));
+
+    const channels = [['push', 'Notificación'], ['mail', 'Mail'], ['ambos', 'Las dos']].map(([id, label]) => {
+      const active = channel === id;
+      return {
+        label,
+        active,
+        pick: () => this.setState({ channel: id }),
+        style: active
+          ? 'display: inline-flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #C8F25A; background: #C8F25A; color: #0E1014; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer'
+          : 'display: inline-flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #2A303B; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer'
+      };
+    });
+
+    return { recurring, totals, prepaid, channels };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-05T23:30:00Z" },
+  "title": "Ludoteca · biblioteca de videojuegos",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 2150, "title": "Escritorio · Biblioteca", "expand": "fill", "is_interactive": true },
+    "Escritorio-LoTengo.dc.html": { "x": 1520, "y": 0, "w": 1440, "h": 1000, "title": "Escritorio · ¿Lo tengo?", "expand": "fill", "is_interactive": true },
+    "Escritorio-Agregar.dc.html": { "x": 3040, "y": 0, "w": 1440, "h": 1200, "title": "Escritorio · Agregar juego", "expand": "fill", "is_interactive": true },
+    "Escritorio-Juego.dc.html": { "x": 4560, "y": 0, "w": 1440, "h": 1400, "title": "Escritorio · Ficha del juego", "expand": "fill", "is_interactive": true },
+    "Escritorio-Estado.dc.html": { "x": 6080, "y": 0, "w": 1440, "h": 1000, "title": "Escritorio · Cambiar estado", "expand": "fill", "is_interactive": true },
+    "Escritorio-Estados.dc.html": { "x": 7600, "y": 0, "w": 1440, "h": 1300, "title": "Escritorio · Ajustes de estados", "expand": "fill", "is_interactive": true },
+    "Escritorio-Suscripciones.dc.html": { "x": 9120, "y": 0, "w": 1440, "h": 1250, "title": "Escritorio · Suscripciones", "expand": "fill", "is_interactive": true },
+    "Escritorio-Tiendas.dc.html": { "x": 10640, "y": 0, "w": 1440, "h": 1200, "title": "Escritorio · Tiendas y avisos", "expand": "fill", "is_interactive": true },
+    "Movil-Biblioteca.dc.html": { "x": 0, "y": 2500, "w": 390, "h": 844, "title": "Móvil · Biblioteca", "is_interactive": true, "radius": 36 },
+    "Movil-Filtros.dc.html": { "x": 470, "y": 2500, "w": 390, "h": 1400, "title": "Móvil · Filtros", "is_interactive": true, "radius": 36 },
+    "Movil-Juego.dc.html": { "x": 940, "y": 2500, "w": 390, "h": 1380, "title": "Móvil · Ficha del juego", "is_interactive": true, "radius": 36 },
+    "Movil-Estado.dc.html": { "x": 1410, "y": 2500, "w": 390, "h": 1300, "title": "Móvil · Cambiar estado", "is_interactive": true, "radius": 36 },
+    "Movil-Estados.dc.html": { "x": 1880, "y": 2500, "w": 390, "h": 1520, "title": "Móvil · Editar estados", "is_interactive": true, "radius": 36 },
+    "Movil-LoTengo.dc.html": { "x": 0, "y": 4380, "w": 390, "h": 844, "title": "Móvil · ¿Lo tengo?", "is_interactive": true, "radius": 36 },
+    "Movil-Agregar.dc.html": { "x": 470, "y": 4380, "w": 390, "h": 844, "title": "Móvil · Agregar juego", "is_interactive": true, "radius": 36 },
+    "Movil-AgregarManual.dc.html": { "x": 940, "y": 4380, "w": 390, "h": 1320, "title": "Móvil · Agregar a mano", "is_interactive": true, "radius": 36 },
+    "Movil-Suscripciones.dc.html": { "x": 1410, "y": 4380, "w": 390, "h": 1540, "title": "Móvil · Suscripciones", "is_interactive": true, "radius": 36 },
+    "Movil-Tiendas.dc.html": { "x": 1880, "y": 4380, "w": 390, "h": 1480, "title": "Móvil · Tiendas y avisos", "is_interactive": true, "radius": 36 }
+  },
+  "order": [
+    "Main.dc.html",
+    "Escritorio-LoTengo.dc.html",
+    "Escritorio-Agregar.dc.html",
+    "Escritorio-Juego.dc.html",
+    "Escritorio-Estado.dc.html",
+    "Escritorio-Estados.dc.html",
+    "Escritorio-Suscripciones.dc.html",
+    "Escritorio-Tiendas.dc.html",
+    "Movil-Biblioteca.dc.html",
+    "Movil-Filtros.dc.html",
+    "Movil-Juego.dc.html",
+    "Movil-Estado.dc.html",
+    "Movil-Estados.dc.html",
+    "Movil-LoTengo.dc.html",
+    "Movil-Agregar.dc.html",
+    "Movil-AgregarManual.dc.html",
+    "Movil-Suscripciones.dc.html",
+    "Movil-Tiendas.dc.html"
+  ],
+  "notes": {
+    "fila-escritorio": { "x": 0, "y": -300, "text": "Escritorio", "kind": "title1", "maxW": 12080 },
+    "fila-biblioteca": { "x": 0, "y": 2240, "text": "Móvil · Biblioteca y juegos", "kind": "title1", "maxW": 2270 },
+    "fila-buscar": { "x": 0, "y": 4120, "text": "Móvil · Buscar, agregar y pagar", "kind": "title1", "maxW": 2270 }
+  },
+  "designSystems": []
+}

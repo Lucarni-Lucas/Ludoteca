@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ludoteca · Agregar juego (escritorio)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0E1014}
+a{color:#ECEEF2}a:hover{color:#FFFFFF}
+input::placeholder{color:#7D8696}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0E1014; color: #ECEEF2; font: 400 15px/1.5 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+
+  <header style="border-bottom: 1px solid #222832">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 14px clamp(16px, 4vw, 40px); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+      <a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #ECEEF2">
+        <span style="width: 32px; height: 32px; border-radius: 8px; background: #C8F25A; color: #0E1014; display: grid; place-items: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="4" width="4.5" height="16" rx="1"></rect><rect x="9.5" y="4" width="4.5" height="16" rx="1"></rect><path d="M15.6 5.4l3.9-1 3.6 14.5-3.9 1z"></path></svg>
+        </span>
+        <span style="font: 700 21px/1 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.02em">Ludoteca</span>
+      </a>
+      <nav aria-label="Principal" style="display: flex; flex-wrap: wrap; gap: 4px">
+        <a href="Main.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Biblioteca</a>
+        <a href="Escritorio-LoTengo.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">¿Lo tengo?</a>
+        <a href="Escritorio-Suscripciones.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Suscripciones</a>
+        <a href="Escritorio-Tiendas.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Tiendas</a>
+        <a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; color: #C5CCD8; text-decoration: none; font-weight: 500; font-size: 14px">Estadísticas</a>
+      </nav>
+      <div style="flex: 1 1 300px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px">
+        <a href="Escritorio-LoTengo.dc.html" style="flex: 1 1 240px; max-width: 420px; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 10px; background: #161A21; border: 1px solid #2A303B; color: #9AA3B2; text-decoration: none; font-size: 15px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          ¿Lo tengo? Buscá un juego…
+        </a>
+        <a href="Escritorio-Estados.dc.html" aria-label="Ajustes" style="width: 44px; height: 44px; box-sizing: border-box; border-radius: 999px; border: 1px solid #2A303B; background: #1E232C; color: #ECEEF2; display: grid; place-items: center; text-decoration: none; font: 600 16px/1 'Space Grotesk', Arial, sans-serif">L</a>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width: 1360px; margin: 0 auto; padding: 28px clamp(16px, 4vw, 40px) 64px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+    <a href="Main.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: #C5CCD8; text-decoration: none; font-size: 14px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>
+      Biblioteca
+    </a>
+    <div>
+      <h1 style="margin: 0; font: 700 clamp(32px, 4vw, 44px)/1.05 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.03em">Agregar juego</h1>
+      <p style="margin: 8px 0 0; color: #9AA3B2">Buscalo en IGDB. Si no aparece, cargalo a mano en el panel de la derecha.</p>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 32px">
+
+      <section aria-label="Buscar en IGDB" style="flex: 1 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+        <label style="position: relative; display: flex; align-items: center; gap: 12px; height: 60px; padding: 0 16px 0 18px; box-sizing: border-box; border-radius: 14px; background: #161A21; border: 1px solid #C8F25A; color: #9AA3B2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Buscar juego</span>
+          <input type="search" value="{{query}}" onChange="{{onQuery}}" placeholder="Escribí 2 o 3 letras" style="flex: 1; min-width: 0; height: 52px; background: transparent; border: 0; color: #ECEEF2; font: 500 18px/1 Inter, system-ui, sans-serif">
+        </label>
+        <p style="margin: 0; font-size: 13px; color: #9AA3B2">Buscamos en IGDB mientras escribís.</p>
+
+        <div style="display: flex; flex-direction: column">
+          <sc-for list="{{results}}" as="r" hint-placeholder-count="3">
+            <div style="display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #1C2129">
+              <span aria-hidden="true" style="{{r.coverStyle}}">{{r.mono}}</span>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+                <span style="font-weight: 600; font-size: 16px; line-height: 1.25">{{r.title}}</span>
+                <span style="font-size: 13px; color: #9AA3B2">{{r.meta}}</span>
+              </div>
+              <sc-if value="{{r.inLib}}" hint-placeholder-val="{{ false }}">
+                <span style="flex: none; font-size: 13px; color: #9AA3B2">{{r.libLabel}}</span>
+              </sc-if>
+              <sc-if value="{{r.canAdd}}" hint-placeholder-val="{{ true }}">
+                <button type="button" onClick="{{r.add}}" style="{{r.btnStyle}}">{{r.btnLabel}}</button>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{noResults}}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; color: #C5CCD8">No encontramos “{{query}}” en IGDB. Cargalo a mano a la derecha.</p>
+        </sc-if>
+        <sc-if value="{{tooShort}}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; color: #9AA3B2">Escribí al menos 2 letras.</p>
+        </sc-if>
+      </section>
+
+      <section aria-label="Agregar a mano" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 18px; padding: 24px; border-radius: 18px; background: #161A21; border: 1px solid #2A303B">
+        <div>
+          <h2 style="margin: 0; font: 700 22px/1.15 'Space Grotesk', Arial, sans-serif">¿No aparece? Cargalo a mano</h2>
+          <p style="margin: 6px 0 0; font-size: 14px; color: #9AA3B2">Para indies de itch.io, game jams o mods.</p>
+        </div>
+
+        <div style="display: flex; gap: 16px; align-items: stretch">
+          <div aria-hidden="true" style="flex: none; width: 96px; height: 128px; box-sizing: border-box; border-radius: 12px; padding: 10px; display: flex; align-items: flex-end; background-color: #3A2E1F; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 12px); color: #F0E0C8; border: 1px solid rgba(255,255,255,0.07); font: 700 36px/0.9 'Space Grotesk', Arial, sans-serif; letter-spacing: -0.04em">{{mono}}</div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 8px">
+            <span style="font-size: 13px; color: #C5CCD8">Portada (opcional)</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px">
+              <button type="button" style="height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #2A303B; background: #0E1014; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Subir imagen</button>
+              <button type="button" style="height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #2A303B; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Pegar link</button>
+            </div>
+            <span style="font-size: 12px; color: #9AA3B2">Si no ponés ninguna, usamos las iniciales.</span>
+          </div>
+        </div>
+
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Título
+          <input type="text" value="{{title}}" onChange="{{onTitle}}" style="height: 46px; box-sizing: border-box; padding: 0 12px; border-radius: 10px; background: #0E1014; border: 1px solid #2A303B; color: #ECEEF2; font: 500 16px/1 Inter, system-ui, sans-serif">
+        </label>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 12px">
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Dónde lo tenés
+            <select defaultValue="itch" style="height: 46px; padding: 0 10px; border-radius: 10px; background: #0E1014; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 Inter, system-ui, sans-serif">
+              <option value="itch">itch.io</option>
+              <option value="steam">Steam</option>
+              <option value="epic">Epic Games</option>
+              <option value="gog">GOG</option>
+              <option value="ms">Microsoft Store</option>
+              <option value="sw">Nintendo Switch</option>
+              <option value="ps">PlayStation</option>
+              <option value="otro">Otro (escribilo)</option>
+            </select>
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Link a la página del juego
+            <input type="url" placeholder="https://…" style="height: 46px; box-sizing: border-box; padding: 0 12px; border-radius: 10px; background: #0E1014; border: 1px solid #2A303B; color: #ECEEF2; font: 400 15px/1 Inter, system-ui, sans-serif">
+          </label>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; color: #C5CCD8">Cómo lo tenés</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+            <sc-for list="{{kinds}}" as="k" hint-placeholder-count="6">
+              <button type="button" onClick="{{k.pick}}" aria-pressed="{{k.active}}" style="{{k.style}}">{{k.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr)); gap: 12px">
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Año
+            <input type="number" inputmode="numeric" defaultValue="2025" style="height: 46px; box-sizing: border-box; padding: 0 12px; border-radius: 10px; background: #0E1014; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace">
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Duración (h)
+            <input type="number" inputmode="decimal" min="0" placeholder="opcional" style="height: 46px; box-sizing: border-box; padding: 0 12px; border-radius: 10px; background: #0E1014; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace">
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Estado
+            <select defaultValue="completado" style="height: 46px; padding: 0 10px; border-radius: 10px; background: #0E1014; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 Inter, system-ui, sans-serif">
+              <optgroup label="En curso">
+                <option value="jugando">Jugando</option>
+                <option value="pausa">En pausa</option>
+                <option value="sinfin">Sin fin</option>
+              </optgroup>
+              <optgroup label="Sin empezar">
+                <option value="quiero">Quiero jugarlo</option>
+                <option value="pendiente">Pendiente</option>
+              </optgroup>
+              <optgroup label="Terminado">
+                <option value="completado">Completado</option>
+                <option value="cien">100%</option>
+              </optgroup>
+              <optgroup label="Dejado">
+                <option value="abandonado">Abandonado</option>
+                <option value="loprobe">Lo probé</option>
+              </optgroup>
+            </select>
+          </label>
+        </div>
+
+        <p style="margin: 0; font-size: 13px; color: #9AA3B2">Queda marcado como «agregado a mano». Si algún día aparece en IGDB, lo podés vincular sin perder tu puntaje ni tu diario.</p>
+
+        <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px">
+          <a href="Main.dc.html" style="display: flex; align-items: center; height: 46px; padding: 0 16px; border-radius: 10px; border: 1px solid #2A303B; color: #ECEEF2; text-decoration: none; font: 500 15px/1 Inter, system-ui, sans-serif">Cancelar</a>
+          <a href="Main.dc.html" style="display: flex; align-items: center; height: 46px; padding: 0 18px; border-radius: 10px; background: #C8F25A; color: #0E1014; text-decoration: none; font: 600 15px/1 Inter, system-ui, sans-serif">Guardar juego</a>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const query = st.query === undefined ? 'hol' : st.query;
+    const added = st.added || {};
+    const title = st.title === undefined ? 'Cartas del Faro' : st.title;
+    const kind = st.kind || 'gratis';
+    const q = query.trim().toLowerCase();
+
+    const CATALOG = [
+      { title: 'Hollow Knight', year: 2017, lib: 'En tu biblioteca' },
+      { title: 'Hollow Knight: Silksong', year: 2025 },
+      { title: 'Holedown', year: 2018 },
+      { title: 'Hades', year: 2020, lib: 'En tu biblioteca' },
+      { title: 'Hades II', year: 2025 },
+      { title: 'Frostpunk', year: 2018, lib: 'En «Quiero jugarlo»' },
+      { title: 'Frostpunk 2', year: 2024 },
+      { title: 'Portal 2', year: 2011, lib: 'En tu biblioteca' },
+      { title: 'Celeste', year: 2018, lib: 'En tu biblioteca' },
+      { title: 'Cyberpunk 2077', year: 2020, lib: 'En tu biblioteca' }
+    ];
+    const TONES = [['#22304A', '#DCE6F7'], ['#2A2442', '#DCD5F5'], ['#2D4220', '#E1F0CF'], ['#4A1E25', '#F6CFD3'], ['#3A2E1F', '#F0E0C8'], ['#1F3A3A', '#CDEDEB']];
+    const STOP = ['de', 'del', 'la', 'el', 'los', 'las', 'of', 'the'];
+    const initials = (t) => (t.replace(/[^A-Za-zÀ-ÿ0-9 ]/g, '').split(' ').filter((w) => w && STOP.indexOf(w.toLowerCase()) < 0).slice(0, 2).map((w) => w[0]).join('') || '?').toUpperCase();
+
+    const list = q.length >= 2 ? CATALOG.filter((g) => g.title.toLowerCase().includes(q)) : [];
+    const results = list.map((g, i) => {
+      const isAdded = !!added[g.title];
+      const tone = TONES[i % TONES.length];
+      return {
+        title: g.title,
+        mono: initials(g.title),
+        meta: `${g.year} · IGDB`,
+        inLib: !!g.lib,
+        libLabel: g.lib || '',
+        canAdd: !g.lib,
+        btnLabel: isAdded ? 'Agregado' : 'Agregar',
+        btnStyle: isAdded
+          ? 'flex: none; height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #C8F25A; background: transparent; color: #C8F25A; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer'
+          : 'flex: none; height: 44px; padding: 0 16px; border-radius: 10px; border: 0; background: #C8F25A; color: #0E1014; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer',
+        add: () => this.setState({ added: Object.assign({}, added, { [g.title]: !isAdded }) }),
+        coverStyle: `flex: none; width: 48px; height: 64px; box-sizing: border-box; border-radius: 8px; padding: 6px; display: flex; align-items: flex-end; background-color: ${tone[0]}; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 9px); color: ${tone[1]}; font: 700 16px/0.9 'Space Grotesk', Arial, sans-serif; letter-spacing: -0.02em; border: 1px solid rgba(255,255,255,0.07)`
+      };
+    });
+
+    const kinds = [['comprado', 'Comprado'], ['gratis', 'Gratis'], ['susc', 'Suscripción'], ['familia', 'Familia'], ['fisico', 'Físico'], ['quiero', 'Todavía no lo tengo']]
+      .map(([id, label]) => {
+        const active = kind === id;
+        return {
+          label,
+          active,
+          pick: () => this.setState({ kind: id }),
+          style: active
+            ? 'display: inline-flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #C8F25A; background: #C8F25A; color: #0E1014; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer'
+            : 'display: inline-flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #2A303B; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer'
+        };
+      });
+
+    return {
+      query,
+      results,
+      noResults: q.length >= 2 && results.length === 0,
+      tooShort: q.length < 2,
+      title,
+      mono: initials(title),
+      kinds,
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      onTitle: (e) => this.setState({ title: e.target.value })
+    };
+  }
+}
+</script>
+</body>
+</html>

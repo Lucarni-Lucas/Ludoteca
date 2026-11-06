@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ludoteca · Agregar a mano</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0E1014}
+a{color:#C8F25A}a:hover{color:#DDF79A}
+input::placeholder{color:#7D8696}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; min-height: 1320px; box-sizing: border-box; padding-bottom: 130px; background: #0E1014; color: #ECEEF2; font: 400 15px/1.45 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+
+  <div style="padding: 52px 8px 0">
+    <a href="Movil-Agregar.dc.html" aria-label="Volver a la búsqueda" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; color: #ECEEF2">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>
+    </a>
+  </div>
+
+  <div style="padding: 4px 20px 0; display: flex; flex-direction: column; gap: 22px">
+    <div>
+      <h1 style="margin: 0; font: 700 32px/1 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.03em">Agregar a mano</h1>
+      <p style="margin: 8px 0 0; color: #9AA3B2; font-size: 14px">Para juegos que no están en IGDB: indies de itch.io, game jams, mods.</p>
+    </div>
+
+    <div style="display: flex; gap: 16px; align-items: stretch">
+      <div aria-hidden="true" style="flex: none; width: 96px; height: 128px; box-sizing: border-box; border-radius: 12px; padding: 10px; display: flex; align-items: flex-end; background-color: #3A2E1F; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 12px); color: #F0E0C8; border: 1px solid rgba(255,255,255,0.07); font: 700 36px/0.9 'Space Grotesk', Arial, sans-serif; letter-spacing: -0.04em">{{mono}}</div>
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 8px">
+        <span style="font-size: 13px; color: #C5CCD8">Portada (opcional)</span>
+        <button type="button" style="height: 44px; border-radius: 10px; border: 1px solid #2A303B; background: #161A21; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Subir imagen</button>
+        <span style="font-size: 12px; color: #9AA3B2">Si no ponés ninguna, usamos las iniciales.</span>
+      </div>
+    </div>
+
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Título
+      <input type="text" value="{{title}}" onChange="{{onTitle}}" style="height: 48px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 500 16px/1 Inter, system-ui, sans-serif">
+    </label>
+
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Dónde lo tenés
+      <select defaultValue="itch" style="height: 48px; padding: 0 10px; border-radius: 12px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 Inter, system-ui, sans-serif">
+        <option value="itch">itch.io</option>
+        <option value="steam">Steam</option>
+        <option value="epic">Epic Games</option>
+        <option value="gog">GOG</option>
+        <option value="ms">Microsoft Store</option>
+        <option value="sw">Nintendo Switch</option>
+        <option value="ps">PlayStation</option>
+        <option value="otro">Otro (escribilo)</option>
+      </select>
+    </label>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 13px; color: #C5CCD8">Cómo lo tenés</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{kinds}}" as="k" hint-placeholder-count="6">
+          <button type="button" onClick="{{k.pick}}" aria-pressed="{{k.active}}" style="{{k.style}}">{{k.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Link a la página del juego
+      <input type="url" placeholder="https://…" style="height: 48px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 400 15px/1 Inter, system-ui, sans-serif">
+    </label>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Año
+        <input type="number" inputmode="numeric" defaultValue="2025" style="height: 48px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace">
+      </label>
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Duración (h)
+        <input type="number" inputmode="decimal" min="0" placeholder="opcional" style="height: 48px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace">
+      </label>
+    </div>
+
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Estado
+      <select defaultValue="completado" style="height: 48px; padding: 0 10px; border-radius: 12px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 Inter, system-ui, sans-serif">
+        <optgroup label="En curso">
+          <option value="jugando">Jugando</option>
+          <option value="pausa">En pausa</option>
+          <option value="sinfin">Sin fin</option>
+        </optgroup>
+        <optgroup label="Sin empezar">
+          <option value="quiero">Quiero jugarlo</option>
+          <option value="pendiente">Pendiente</option>
+        </optgroup>
+        <optgroup label="Terminado">
+          <option value="completado">Completado</option>
+          <option value="cien">100%</option>
+        </optgroup>
+        <optgroup label="Dejado">
+          <option value="abandonado">Abandonado</option>
+          <option value="loprobe">Lo probé</option>
+        </optgroup>
+      </select>
+    </label>
+
+    <p style="margin: 0; font-size: 13px; color: #9AA3B2">Queda marcado como «agregado a mano». Si algún día aparece en IGDB, lo podés vincular sin perder tu puntaje ni tu diario.</p>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 20px 30px; background: rgba(14,16,20,0.97); border-top: 1px solid #222832">
+    <a href="Movil-Biblioteca.dc.html" style="display: flex; align-items: center; justify-content: center; height: 52px; border-radius: 14px; background: #C8F25A; color: #0E1014; text-decoration: none; font: 600 16px/1 Inter, system-ui, sans-serif">Guardar juego</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1320}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const title = st.title === undefined ? 'Cartas del Faro' : st.title;
+    const kind = st.kind || 'gratis';
+    const words = title.replace(/[^A-Za-zÀ-ÿ0-9 ]/g, '').split(' ').filter((w) => w && ['de', 'del', 'la', 'el', 'los', 'las', 'of', 'the'].indexOf(w.toLowerCase()) < 0);
+    const mono = (words.slice(0, 2).map((w) => w[0]).join('') || '?').toUpperCase();
+    const kinds = [['comprado', 'Comprado'], ['gratis', 'Gratis'], ['susc', 'Suscripción'], ['familia', 'Familia'], ['fisico', 'Físico'], ['quiero', 'Todavía no lo tengo']]
+      .map(([id, label]) => {
+        const active = kind === id;
+        return {
+          label,
+          active,
+          pick: () => this.setState({ kind: id }),
+          style: active
+            ? 'display: inline-flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #C8F25A; background: #C8F25A; color: #0E1014; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer'
+            : 'display: inline-flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #2A303B; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer'
+        };
+      });
+    return {
+      title,
+      mono,
+      kinds,
+      onTitle: (e) => this.setState({ title: e.target.value })
+    };
+  }
+}
+</script>
+</body>
+</html>

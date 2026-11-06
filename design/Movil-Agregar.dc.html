@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ludoteca · Agregar juego</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0E1014}
+a{color:#C8F25A}a:hover{color:#DDF79A}
+input::placeholder{color:#7D8696}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; display: flex; flex-direction: column; background: #0E1014; color: #ECEEF2; font: 400 15px/1.45 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+
+  <div style="padding: 52px 8px 0">
+    <a href="Movil-Biblioteca.dc.html" aria-label="Volver a la biblioteca" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; color: #ECEEF2">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>
+    </a>
+  </div>
+
+  <div style="padding: 4px 20px 0; display: flex; flex-direction: column; gap: 14px">
+    <h1 style="margin: 0; font: 700 32px/1 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.03em">Agregar juego</h1>
+    <label style="position: relative; display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 6px 0 16px; box-sizing: border-box; border-radius: 14px; background: #161A21; border: 1px solid #C8F25A; color: #9AA3B2">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Buscar juego</span>
+      <input type="search" value="{{query}}" onChange="{{onQuery}}" placeholder="Escribí 2 o 3 letras" style="flex: 1; min-width: 0; height: 48px; background: transparent; border: 0; color: #ECEEF2; font: 500 17px/1 Inter, system-ui, sans-serif">
+    </label>
+    <p style="margin: -4px 0 0; font-size: 12px; color: #9AA3B2">Buscamos en IGDB mientras escribís.</p>
+  </div>
+
+  <div style="flex: 1; min-height: 0; overflow-y: auto; padding: 10px 20px 32px; display: flex; flex-direction: column; gap: 4px">
+    <sc-for list="{{results}}" as="r" hint-placeholder-count="3">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1C2129">
+        <span aria-hidden="true" style="{{r.coverStyle}}">{{r.mono}}</span>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+          <span style="font-weight: 600; font-size: 15px; line-height: 1.25">{{r.title}}</span>
+          <span style="font-size: 12px; color: #9AA3B2">{{r.meta}}</span>
+        </div>
+        <sc-if value="{{r.inLib}}" hint-placeholder-val="{{ false }}">
+          <span style="flex: none; font-size: 12px; color: #9AA3B2; text-align: right; max-width: 96px">{{r.libLabel}}</span>
+        </sc-if>
+        <sc-if value="{{r.canAdd}}" hint-placeholder-val="{{ true }}">
+          <button type="button" onClick="{{r.add}}" style="{{r.btnStyle}}">{{r.btnLabel}}</button>
+        </sc-if>
+      </div>
+    </sc-for>
+
+    <sc-if value="{{noResults}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 8px 0 0; color: #C5CCD8">No encontramos “{{query}}” en IGDB.</p>
+    </sc-if>
+
+    <sc-if value="{{tooShort}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 8px 0 0; color: #9AA3B2">Escribí al menos 2 letras.</p>
+    </sc-if>
+
+    <section style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 16px; border: 1px dashed #3A414E">
+      <h2 style="margin: 0; font: 700 18px/1.2 'Space Grotesk', Arial, sans-serif">¿No aparece?</h2>
+      <p style="margin: 0; font-size: 14px; color: #9AA3B2">Juegos de itch.io, game jams, mods o lo que sea: cargalo a mano con título, link y portada.</p>
+      <a href="Movil-AgregarManual.dc.html" style="display: flex; align-items: center; justify-content: center; height: 48px; border-radius: 12px; border: 1px solid #2A303B; color: #ECEEF2; text-decoration: none; font: 600 15px/1 Inter, system-ui, sans-serif">Agregar a mano</a>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const query = st.query === undefined ? 'hol' : st.query;
+    const added = st.added || {};
+    const q = query.trim().toLowerCase();
+    const CATALOG = [
+      { title: 'Hollow Knight', year: 2017, lib: 'En tu biblioteca' },
+      { title: 'Hollow Knight: Silksong', year: 2025 },
+      { title: 'Holedown', year: 2018 },
+      { title: 'Hades', year: 2020, lib: 'En tu biblioteca' },
+      { title: 'Hades II', year: 2025 },
+      { title: 'Frostpunk', year: 2018, lib: 'En «Quiero jugarlo»' },
+      { title: 'Frostpunk 2', year: 2024 },
+      { title: 'Portal 2', year: 2011, lib: 'En tu biblioteca' },
+      { title: 'Celeste', year: 2018, lib: 'En tu biblioteca' },
+      { title: 'Cyberpunk 2077', year: 2020, lib: 'En tu biblioteca' }
+    ];
+    const TONES = [['#22304A', '#DCE6F7'], ['#2A2442', '#DCD5F5'], ['#2D4220', '#E1F0CF'], ['#4A1E25', '#F6CFD3'], ['#3A2E1F', '#F0E0C8'], ['#1F3A3A', '#CDEDEB']];
+    const initials = (t) => t.replace(/[^A-Za-z0-9 ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+
+    const list = q.length >= 2 ? CATALOG.filter((g) => g.title.toLowerCase().includes(q)) : [];
+    const results = list.map((g, i) => {
+      const isAdded = !!added[g.title];
+      const tone = TONES[i % TONES.length];
+      return {
+        title: g.title,
+        mono: initials(g.title),
+        meta: `${g.year} · IGDB`,
+        inLib: !!g.lib,
+        libLabel: g.lib || '',
+        canAdd: !g.lib,
+        btnLabel: isAdded ? 'Agregado' : 'Agregar',
+        btnStyle: isAdded
+          ? 'flex: none; height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #C8F25A; background: transparent; color: #C8F25A; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer'
+          : 'flex: none; height: 44px; padding: 0 14px; border-radius: 10px; border: 0; background: #C8F25A; color: #0E1014; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer',
+        add: () => this.setState({ added: Object.assign({}, added, { [g.title]: !isAdded }) }),
+        coverStyle: `flex: none; width: 42px; height: 56px; box-sizing: border-box; border-radius: 7px; padding: 5px; display: flex; align-items: flex-end; background-color: ${tone[0]}; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 9px); color: ${tone[1]}; font: 700 14px/0.9 'Space Grotesk', Arial, sans-serif; letter-spacing: -0.02em; border: 1px solid rgba(255,255,255,0.07)`
+      };
+    });
+
+    return {
+      query,
+      results,
+      noResults: q.length >= 2 && results.length === 0,
+      tooShort: q.length < 2,
+      onQuery: (e) => this.setState({ query: e.target.value })
+    };
+  }
+}
+</script>
+</body>
+</html>
