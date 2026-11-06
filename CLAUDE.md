@@ -10,6 +10,7 @@ Este archivo manda sobre la preferencia del agente, los tutoriales y el código 
 |---|---|
 | Decisiones técnicas y de producto, y supuestos | `docs/decisiones.md` (manda sobre la idea) |
 | Idea original del producto | `docs/ludoteca-idea.md` |
+| Cuentas, claves y paneles que configura el usuario en cada etapa | `docs/configuracion-externa.md` |
 | Diseño de referencia (1440 px PC, 390 px celu) | `design/*.dc.html`, cómo leerlos en `design/LEEME.md` |
 | Comportamiento que falta construir | `openspec/changes/<nn-nombre>/` |
 | Comportamiento ya construido | `openspec/specs/` |

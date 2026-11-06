@@ -7,8 +7,8 @@ Ludoteca todavía no existe como app. Antes de construir la biblioteca hace falt
 ## What Changes
 
 - Ingreso con Google y registro cerrado a una lista de mails permitidos.
-- Aislamiento entre usuarios desde el día uno: cada usuario ve y cambia solo sus datos.
-- Navegación de PC (menú de arriba) y de celu (barra de abajo), con acceso a Ajustes en los dos.
+- Sesión obligatoria para ver cualquier pantalla y cierre de sesión desde Ajustes.
+- Navegación de PC (menú de arriba) y de celu (barra de abajo), con acceso a Ajustes en los dos. Las secciones que todavía no están construidas muestran «Próximamente».
 - Tema oscuro con los colores por significado, tipografías y zonas táctiles de 44 px del diseño.
 - Textos en español rioplatense.
 - Deploy en Vercel y CI en GitHub Actions (lint, typecheck, tests y build).
@@ -16,7 +16,7 @@ Ludoteca todavía no existe como app. Antes de construir la biblioteca hace falt
 ## Capabilities
 
 ### New Capabilities
-- `acceso`: ingreso, cierre de sesión, registro cerrado y aislamiento de los datos de cada usuario.
+- `acceso`: ingreso, cierre de sesión, registro cerrado y sesión obligatoria. El aislamiento de los datos de cada usuario se suma a esta capacidad en `02-nucleo-biblioteca`, cuando existen los primeros datos de usuario.
 - `navegacion`: estructura de navegación en PC y celu, Ajustes, estilo visual y accesibilidad base.
 
 ### Modified Capabilities

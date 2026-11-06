@@ -35,6 +35,7 @@ operations:
     guidance:
       - Antes de cada tarea, releé la spec del cambio y las reglas de CLAUDE.md.
       - No modifiques ni borres tests existentes sin un «sí» explícito del usuario.
+      - Si una tarea necesita una cuenta, una clave o una configuración fuera del repo, frená y pedísela al usuario con los pasos exactos (ver docs/configuracion-externa.md). No inventes valores ni dejes datos de relleno sin avisar.
   archive:
     guidance:
       - Antes de archivar, confirmá que se cumple la definición de terminado de CLAUDE.md.

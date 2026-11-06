@@ -19,14 +19,21 @@ En pantallas de menos de 768 px de ancho, el sistema SHALL mostrar una barra fij
 - **THEN** ve esa sección y la sección queda marcada en la barra
 
 ### Requirement: Acceso a Ajustes en el celu
-El sistema SHALL ofrecer en el celu un acceso a Ajustes visible desde cualquier sección de la barra inferior.
+El sistema SHALL ofrecer en el celu, arriba de la pantalla, un acceso a Ajustes (avatar con la inicial del usuario) visible desde cualquier sección de la barra inferior.
 
 #### Scenario: Abrir Ajustes desde el celu
 - **WHEN** el usuario toca el acceso a Ajustes estando en la Biblioteca en el celu
 - **THEN** ve la pantalla de Ajustes
 
-### Requirement: Secciones no disponibles
-El sistema SHALL mostrar en el menú y en la barra inferior solo las secciones que ya existen. La sección Estadísticas MUST quedar oculta hasta que exista.
+### Requirement: Secciones todavía sin construir
+El sistema SHALL mostrar en el menú y en la barra inferior las secciones Biblioteca, ¿Lo tengo?, Suscripciones y Tiendas aunque todavía no estén construidas. Una sección sin construir SHALL mostrar su título y el aviso «Próximamente».
+
+#### Scenario: Sección sin construir
+- **WHEN** el usuario entra a una sección que todavía no está construida, por ejemplo Suscripciones antes de que exista
+- **THEN** ve el título de la sección y el aviso «Próximamente»
+
+### Requirement: Estadísticas oculta
+La sección Estadísticas MUST quedar oculta en el menú hasta que exista.
 
 #### Scenario: Estadísticas oculta
 - **WHEN** el usuario mira el menú de la PC
