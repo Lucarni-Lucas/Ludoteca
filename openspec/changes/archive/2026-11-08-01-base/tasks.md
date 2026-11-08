@@ -59,7 +59,7 @@ Los nombres entre comillas son escenarios de las specs: cada uno lleva un test c
 
 ## 10. Verificación final
 
-- [ ] 10.1 Revisar la definición de terminado de `CLAUDE.md` completa: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` y `npm run test:e2e` sin errores; cada escenario de las specs con su test de igual nombre; pantallas comparadas con `design/Main.dc.html`, `design/Movil-Biblioteca.dc.html` y `design/Escritorio-Estados.dc.html`; sin issues nuevos en SonarQube; y todas las tareas marcadas.
+- [x] 10.1 Revisar la definición de terminado de `CLAUDE.md` completa: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` y `npm run test:e2e` sin errores; cada escenario de las specs con su test de igual nombre; pantallas comparadas con `design/Main.dc.html`, `design/Movil-Biblioteca.dc.html` y `design/Escritorio-Estados.dc.html`; sin issues nuevos en SonarQube; y todas las tareas marcadas.
 
 ## Workflow follow-up
 
