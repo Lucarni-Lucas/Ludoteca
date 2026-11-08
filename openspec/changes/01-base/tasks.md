@@ -52,10 +52,10 @@ Los nombres entre comillas son escenarios de las specs: cada uno lleva un test c
 ## 9. Puesta en marcha
 
 - [x] 9.1 Crear `.github/workflows/ci.yml` (lint, typecheck, tests y build, sin secretos) y `.sonarcloud.properties` (el análisis automático ignora `sonar-project.properties`), y documentar en `README.md` cómo correr el proyecto y la puesta en marcha. Verificar: los comandos del workflow pasan en local con valores de ejemplo y el README se sigue tal cual.
-- [ ] 9.2 **[Usuario]** Crear el proyecto de Supabase y el cliente OAuth de Google, activar el proveedor Google, cargar las redirecciones permitidas y apagar la Data API. Verificar: el panel muestra Google activo y la Data API apagada.
-- [ ] 9.3 **[Usuario]** Correr `npm run db:migrate` contra Supabase, insertar tu mail en `allowed_email` y, recién después, activar el hook «Before User Created». Verificar: la tabla tiene tu mail y el hook figura activo.
-- [ ] 9.4 **[Usuario]** Crear el proyecto de Vercel conectado al repo, cargar las variables de entorno y activar el análisis automático en SonarQube Cloud. Verificar: un push a `main` despliega, y el CI y el análisis de SonarQube corren.
-- [ ] 9.5 Prueba manual sobre el deploy: ingresar con tu cuenta, cerrar sesión e intentar con un mail no permitido. Verificar: ves «Esta cuenta no tiene acceso a Ludoteca» y Supabase no muestra ningún usuario nuevo. Si el rechazo llega distinto a lo previsto, ajustar el mapeo y el servidor falso de e2e según `design.md` (Risks).
+- [x] 9.2 **[Usuario]** Crear el proyecto de Supabase y el cliente OAuth de Google, activar el proveedor Google, cargar las redirecciones permitidas y apagar la Data API. Verificar: el panel muestra Google activo y la Data API apagada.
+- [x] 9.3 **[Usuario]** Correr `npm run db:migrate` contra Supabase, insertar tu mail en `allowed_email` y, recién después, activar el hook «Before User Created». Verificar: la tabla tiene tu mail y el hook figura activo.
+- [x] 9.4 **[Usuario]** Crear el proyecto de Vercel conectado al repo, cargar las variables de entorno y activar el análisis automático en SonarQube Cloud. Verificar: un push a `main` despliega, y el CI y el análisis de SonarQube corren.
+- [x] 9.5 Prueba manual sobre el deploy: ingresar con tu cuenta, cerrar sesión e intentar con un mail no permitido. Verificar: ves «Esta cuenta no tiene acceso a Ludoteca» y Supabase no muestra ningún usuario nuevo. Si el rechazo llega distinto a lo previsto, ajustar el mapeo y el servidor falso de e2e según `design.md` (Risks).
 
 ## 10. Verificación final
 

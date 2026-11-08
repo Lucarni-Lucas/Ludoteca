@@ -15,7 +15,14 @@ body {
   min-height: 100vh;
   background: var(--color-bg);
   color: var(--color-text);
-  font: 400 var(--text-15) / 1.5 var(--font-body);
+  font: 400 var(--text-15) / 1.45 var(--font-body);
+}
+
+/* El interlineado de los diseños de celu es más cerrado que el de los de PC. */
+@media (min-width: 768px) {
+  body {
+    line-height: 1.5;
+  }
 }
 
 a {
