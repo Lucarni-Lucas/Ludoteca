@@ -1,0 +1,114 @@
+.header {
+  display: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+@media (min-width: 768px) {
+  .header {
+    display: block;
+  }
+}
+
+.inner {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-14) var(--page-gutter);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12) var(--space-28);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-14);
+  border-radius: var(--radius-md);
+  color: var(--color-text-soft);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: var(--text-14);
+}
+
+.linkActive {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.tools {
+  flex: 1 1 300px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-10);
+}
+
+.searchForm {
+  flex: 1 1 240px;
+  max-width: var(--header-search-max-width);
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  height: var(--touch-target);
+  padding: 0 var(--space-14);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* 44 px para que el propio campo cumpla la zona táctil: el diseño lo dejaba en 40. */
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  height: var(--touch-target);
+  background: transparent;
+  border: 0;
+  color: var(--color-text);
+  font: 400 var(--text-15) / 1 var(--font-body);
+}
+
+.add {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: var(--touch-target);
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  text-decoration: none;
+  font: 600 var(--text-14) / 1 var(--font-body);
+}
+
+.add:hover {
+  color: var(--color-on-accent);
+}

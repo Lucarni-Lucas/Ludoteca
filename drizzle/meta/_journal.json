@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1794161484166,
+      "tag": "0000_create_allowed_email",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794161493705,
+      "tag": "0001_before_user_created_hook",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+}
+
+.title {
+  margin: 0;
+  font: 700 var(--text-26) / 1.15 var(--font-heading);
+}
+
+.caption {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-14);
+}
+
+.email {
+  margin: var(--space-4) 0 0;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+
+.error {
+  margin: 0;
+  padding: var(--space-12) var(--space-14);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-size: var(--text-14);
+}
+
+.button {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  font: 500 var(--text-14) / 1 var(--font-body);
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}

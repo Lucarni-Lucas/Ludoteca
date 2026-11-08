@@ -1,0 +1,12 @@
+.main {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: calc(var(--space-20) + env(safe-area-inset-top)) var(--space-20)
+    calc(var(--bottom-nav-clearance) + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+  .main {
+    padding: var(--space-36) var(--page-gutter) var(--space-64);
+  }
+}

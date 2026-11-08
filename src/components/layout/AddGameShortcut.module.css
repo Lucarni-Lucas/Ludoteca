@@ -1,0 +1,19 @@
+.shortcut {
+  display: grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.shortcut:hover {
+  color: var(--color-on-accent);
+}
+
+@media (min-width: 768px) {
+  .shortcut {
+    display: none;
+  }
+}

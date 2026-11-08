@@ -1,0 +1,20 @@
+.text {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.invite {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  text-decoration: none;
+  font: 600 var(--text-14) / 1 var(--font-body);
+}
+
+.invite:hover {
+  color: var(--color-on-accent);
+}

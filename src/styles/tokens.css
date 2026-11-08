@@ -1,0 +1,94 @@
+/* Valores tomados de design/LEEME.md y de los design/*.dc.html. */
+:root {
+  /* Fondo y superficies */
+  --color-bg: #0e1014;
+  --color-surface: #161a21;
+  --color-surface-raised: #1e232c;
+  --color-bar: rgba(14, 16, 20, 0.97);
+
+  /* Bordes */
+  --color-border: #2a303b;
+  --color-border-subtle: #222832;
+  --color-border-strong: #3a414e;
+
+  /* Texto */
+  --color-text: #eceef2;
+  --color-text-strong: #ffffff;
+  --color-text-soft: #c5ccd8;
+  --color-text-muted: #9aa3b2;
+  --color-text-faint: #7d8696;
+
+  /* Colores con significado */
+  --color-accent: #c8f25a;
+  --color-on-accent: #0e1014;
+  --color-warning: #ffc66b;
+  --color-warning-bg: rgba(255, 198, 107, 0.13);
+  --color-danger: #ff9c8a;
+  --color-danger-bg: rgba(255, 156, 138, 0.13);
+
+  /* Grupos de estados */
+  --color-status-in-progress: #c8f25a;
+  --color-status-in-progress-bg: rgba(200, 242, 90, 0.12);
+  --color-status-not-started: #c5ccd8;
+  --color-status-not-started-bg: rgba(197, 204, 216, 0.1);
+  --color-status-finished: #8ec5ff;
+  --color-status-finished-bg: rgba(142, 197, 255, 0.13);
+  --color-status-dropped: #ff9c8a;
+  --color-status-dropped-bg: rgba(255, 156, 138, 0.13);
+
+  /* Tipografías: las variables --font-*-face las define next/font en el layout */
+  --font-heading: var(--font-heading-face), "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--font-body-face), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, monospace;
+
+  --text-11: 11px;
+  --text-12: 12px;
+  --text-13: 13px;
+  --text-14: 14px;
+  --text-15: 15px;
+  --text-16: 16px;
+  --text-21: 21px;
+  --text-26: 26px;
+  --text-32: 32px;
+  --text-page-title: clamp(32px, 4vw, 44px);
+
+  --tracking-tight: -0.03em;
+  --tracking-brand: -0.02em;
+  --tracking-label: 0.08em;
+
+  /* Espaciados */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-5: 5px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-9: 9px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-28: 28px;
+  --space-32: 32px;
+  --space-36: 36px;
+  --space-64: 64px;
+
+  /* Radios */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  /* Medidas */
+  --touch-target: 44px;
+  --status-badge-height: 24px;
+  --bottom-nav-item-height: 52px;
+  --bottom-nav-clearance: 96px;
+  --content-max-width: 1360px;
+  --page-gutter: clamp(16px, 4vw, 40px);
+  --login-card-width: 400px;
+  --settings-nav-max-width: 260px;
+  --header-search-max-width: 420px;
+  --logo-mark-size: 32px;
+}

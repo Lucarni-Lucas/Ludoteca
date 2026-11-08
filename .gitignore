@@ -1,1 +1,18 @@
 .idea/
+
+# Dependencias
+node_modules/
+
+# Next.js
+.next/
+next-env.d.ts
+*.tsbuildinfo
+
+# Variables de entorno: .env.example es la única que se versiona
+.env*
+!.env.example
+
+# Reportes de tests
+coverage/
+playwright-report/
+test-results/
