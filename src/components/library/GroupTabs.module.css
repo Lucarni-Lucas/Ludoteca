@@ -1,0 +1,10 @@
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.count {
+  font: 500 var(--text-12) / 1 var(--font-mono);
+  opacity: 0.7;
+}

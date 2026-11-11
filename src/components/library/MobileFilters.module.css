@@ -1,0 +1,41 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.groupLabel {
+  color: var(--color-text-muted);
+  font-size: var(--text-12);
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.clear {
+  flex: none;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-12);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: 600 var(--text-14) / 1 var(--font-body);
+}
+
+.cta {
+  flex: 1;
+  height: var(--bar-button-height);
+  border-radius: var(--radius-field-search);
+  font-size: var(--text-16);
+}

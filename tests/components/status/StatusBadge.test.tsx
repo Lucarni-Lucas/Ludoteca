@@ -47,4 +47,28 @@ describe("StatusBadge", () => {
 
     expect(screen.getByText(label)).toBeInTheDocument();
   });
+
+  it("Color de «Quiero jugarlo»", () => {
+    render(
+      <StatusBadge group="not_started" color="amber">
+        Quiero jugarlo
+      </StatusBadge>,
+    );
+
+    const reference = screen.getByText("Quiero jugarlo").style.getPropertyValue("--badge-color");
+
+    expect(tokenValue(reference)).toBe("#ffc66b");
+  });
+
+  it("«Pendiente» se ve en gris", () => {
+    render(
+      <StatusBadge group="not_started" color="gray">
+        Pendiente
+      </StatusBadge>,
+    );
+
+    const reference = screen.getByText("Pendiente").style.getPropertyValue("--badge-color");
+
+    expect(tokenValue(reference)).toBe("#c5ccd8");
+  });
 });

@@ -73,6 +73,29 @@ El sistema SHALL permitir cargar un juego a mano con el título como único dato
 - **WHEN** el usuario intenta guardar el formulario con el título vacío
 - **THEN** ve «Poné el título del juego» y no se guarda nada
 
+### Requirement: Quitar de la biblioteca
+El sistema SHALL permitir quitar un juego de la biblioteca desde su ficha, previa confirmación que avisa que no se puede deshacer. Quitarlo MUST borrar el juego del usuario junto con sus copias, su puntaje y su historial, sin afectar a otros usuarios. Es distinto de «Sin interés», que lo oculta, y de «Ya no lo tengo», que conserva todo.
+
+#### Scenario: Quitar un juego agregado por error
+- **WHEN** el usuario quita Outer Wilds de su biblioteca y confirma
+- **THEN** Outer Wilds deja de aparecer en su biblioteca, junto con sus copias y su historial
+
+#### Scenario: Cancelar
+- **WHEN** el usuario toca «Quitar de la biblioteca» y después cancela
+- **THEN** el juego queda igual
+
+#### Scenario: Volver a agregarlo
+- **WHEN** el usuario vuelve a agregar Outer Wilds después de haberlo quitado
+- **THEN** el juego entra como nuevo, sin puntaje, sin copias y sin historial
+
+#### Scenario: Juego cargado a mano
+- **WHEN** el usuario quita «Cartas del Faro», que había cargado a mano
+- **THEN** el juego también desaparece del catálogo y ya no le aparece al buscar
+
+#### Scenario: Juego de IGDB que otro usuario tiene
+- **WHEN** el usuario A quita Hades y el usuario B también lo tiene en su biblioteca
+- **THEN** Hades sigue en la biblioteca de B sin cambios
+
 ### Requirement: Juegos a mano privados
 Un juego cargado a mano MUST ser visible solo para el usuario que lo cargó.
 

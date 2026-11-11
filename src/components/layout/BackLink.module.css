@@ -1,0 +1,33 @@
+.link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  margin-left: calc(var(--space-12) * -1);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.text {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .link {
+    margin-left: 0;
+    color: var(--color-text-soft);
+    font-size: var(--text-14);
+  }
+
+  .link svg {
+    width: var(--space-16);
+    height: var(--space-16);
+  }
+
+  .text {
+    display: inline;
+  }
+}

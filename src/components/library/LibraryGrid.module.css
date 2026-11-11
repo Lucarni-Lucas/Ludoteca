@@ -1,0 +1,12 @@
+.grid {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--grid-card-min), 100%), 1fr));
+    gap: var(--space-28) var(--space-20);
+  }
+}

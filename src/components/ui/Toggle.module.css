@@ -1,0 +1,53 @@
+.row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-height: var(--touch-target);
+}
+
+.switch {
+  position: relative;
+  flex: none;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.switch::before {
+  content: "";
+  position: absolute;
+  top: var(--space-10);
+  left: 0;
+  width: var(--touch-target);
+  height: var(--status-badge-height);
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+}
+
+.switch[data-state="checked"]::before {
+  background: var(--color-accent);
+}
+
+.thumb {
+  position: absolute;
+  top: var(--space-12);
+  left: var(--space-2);
+  width: var(--space-20);
+  height: var(--space-20);
+  border-radius: var(--radius-pill);
+  background: var(--color-text-strong);
+  transition: transform 0.12s ease;
+}
+
+.thumb[data-state="checked"] {
+  transform: translateX(calc(var(--touch-target) - var(--status-badge-height)));
+}
+
+.label {
+  color: var(--color-text-soft);
+  font-size: var(--text-14);
+  cursor: pointer;
+}

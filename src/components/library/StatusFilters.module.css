@@ -1,0 +1,42 @@
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12) var(--space-20);
+}
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.count {
+  color: var(--color-count);
+  font: 500 var(--text-12) / 1 var(--font-mono);
+}
+
+.pill[aria-pressed="true"] .count {
+  color: var(--color-count-on-accent);
+}
+
+.groupButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-4);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font: 500 var(--text-11) / 1 var(--font-mono);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.groupButton[aria-pressed="true"] {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}

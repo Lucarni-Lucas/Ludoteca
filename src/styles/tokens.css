@@ -36,21 +36,75 @@
   --color-status-dropped: #ff9c8a;
   --color-status-dropped-bg: rgba(255, 156, 138, 0.13);
 
+  /* Paleta de estados: las claves que guarda status.color */
+  --color-status-lime: var(--color-status-in-progress);
+  --color-status-lime-bg: var(--color-status-in-progress-bg);
+  --color-status-amber: #ffc66b;
+  --color-status-amber-bg: rgba(255, 198, 107, 0.13);
+  --color-status-gray: #c5ccd8;
+  --color-status-gray-bg: rgba(197, 204, 216, 0.1);
+  --color-status-blue: var(--color-status-finished);
+  --color-status-blue-bg: var(--color-status-finished-bg);
+  --color-status-coral: var(--color-status-dropped);
+  --color-status-coral-bg: var(--color-status-dropped-bg);
+
+  /* Superficies y bordes propios de la biblioteca */
+  --color-sheet: #12151b;
+  --color-sheet-bar: rgba(18, 21, 27, 0.97);
+  --color-overlay: rgba(7, 8, 10, 0.72);
+  --color-border-row: #1c2129;
+  --color-border-chip: #353c48;
+  --color-border-chip-lost: #4a5160;
+  --color-text-body: #dde1e8;
+  --color-count: #8a93a3;
+  --color-count-on-accent: #33401a;
+
+  /* Portadas de respaldo: seis tonos, elegidos por un hash del título */
+  --color-cover-border: rgba(255, 255, 255, 0.07);
+  --color-cover-border-wish: rgba(255, 255, 255, 0.4);
+  --color-cover-stripe: rgba(255, 255, 255, 0.05);
+  --color-cover-0-bg: #22304a;
+  --color-cover-0-fg: #dce6f7;
+  --color-cover-1-bg: #2a2442;
+  --color-cover-1-fg: #dcd5f5;
+  --color-cover-2-bg: #2d4220;
+  --color-cover-2-fg: #e1f0cf;
+  --color-cover-3-bg: #4a1e25;
+  --color-cover-3-fg: #f6cfd3;
+  --color-cover-4-bg: #3a2e1f;
+  --color-cover-4-fg: #f0e0c8;
+  --color-cover-5-bg: #1f3a3a;
+  --color-cover-5-fg: #cdedeb;
+
   /* Tipografías: las variables --font-*-face las define next/font en el layout */
   --font-heading: var(--font-heading-face), "Helvetica Neue", Arial, sans-serif;
   --font-body: var(--font-body-face), system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-mono-face), ui-monospace, monospace;
 
+  --text-10: 10px;
+  --text-10-5: 10.5px;
   --text-11: 11px;
   --text-12: 12px;
   --text-13: 13px;
   --text-14: 14px;
   --text-15: 15px;
   --text-16: 16px;
+  --text-17: 17px;
+  --text-18: 18px;
+  --text-19: 19px;
+  --text-20: 20px;
   --text-21: 21px;
+  --text-22: 22px;
+  --text-24: 24px;
   --text-26: 26px;
+  --text-28: 28px;
   --text-32: 32px;
+  --text-36: 36px;
+  --text-44: 44px;
+  --text-52: 52px;
+  --text-104: 104px;
   --text-page-title: clamp(32px, 4vw, 44px);
+  --text-game-title: clamp(36px, 5vw, 60px);
 
   --tracking-tight: -0.03em;
   --tracking-brand: -0.02em;
@@ -58,26 +112,37 @@
 
   /* Espaciados */
   --space-2: 2px;
+  --space-3: 3px;
   --space-4: 4px;
   --space-5: 5px;
   --space-6: 6px;
+  --space-7: 7px;
   --space-8: 8px;
   --space-9: 9px;
   --space-10: 10px;
   --space-12: 12px;
   --space-14: 14px;
   --space-16: 16px;
+  --space-18: 18px;
   --space-20: 20px;
+  --space-22: 22px;
+  --space-24: 24px;
   --space-28: 28px;
   --space-32: 32px;
   --space-36: 36px;
+  --space-40: 40px;
   --space-64: 64px;
 
   /* Radios */
+  --radius-xs: 6px;
   --radius-sm: 8px;
   --radius-md: 10px;
   --radius-lg: 12px;
+  --radius-field-search: 14px;
   --radius-xl: 16px;
+  --radius-2xl: 18px;
+  --radius-dialog: 20px;
+  --radius-sheet: 24px;
   --radius-pill: 999px;
 
   /* Medidas */
@@ -91,4 +156,26 @@
   --settings-nav-max-width: 260px;
   --header-search-max-width: 420px;
   --logo-mark-size: 32px;
+  --field-height: 46px;
+  --field-height-mobile: 48px;
+  --bar-button-height: 52px;
+  --score-button-size: 48px;
+  --search-height: 60px;
+  --search-height-mobile: 56px;
+  --cover-small-width: 48px;
+  --cover-small-height: 64px;
+  --cover-form-width: 96px;
+  --cover-form-height: 128px;
+  --cover-detail-width-mobile: 120px;
+  --cover-detail-height-mobile: 160px;
+  --filter-column-width: 230px;
+  --detail-column-max: 340px;
+  --dialog-width: 560px;
+  --dialog-width-wide: 880px;
+  --grid-card-min: 170px;
+  --status-dot-size: 12px;
+  --status-option-dot-size: 14px;
+  --status-card-min-height: 58px;
+  --search-input-height: 52px;
+  --status-button-height: 46px;
 }

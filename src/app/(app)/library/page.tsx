@@ -1,26 +1,41 @@
-import Link from "next/link";
-
-import { AddGameShortcut } from "@/components/layout/AddGameShortcut";
-import { ComingSoon } from "@/components/layout/ComingSoon";
 import { avatarInitial } from "@/model/account/avatar";
 import { requireSessionUser } from "@/security/session";
+import { getLibraryService } from "@/service/game/instance";
+import { getStatusService } from "@/service/status/instance";
 
-import styles from "./page.module.css";
+import { LibraryScreen } from "./library-screen";
 
-export default async function LibraryPage() {
+type LibraryPageProps = Readonly<{
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}>;
+
+function toSearch(params: Awaited<LibraryPageProps["searchParams"]>): string {
+  const search = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === "string") {
+      search.set(key, value);
+    }
+  }
+
+  const query = search.toString();
+  return query ? `?${query}` : "";
+}
+
+export default async function LibraryPage({ searchParams }: LibraryPageProps) {
   const user = await requireSessionUser();
+  const [games, statusGroups, params] = await Promise.all([
+    getLibraryService().listLibrary(user.id),
+    getStatusService().listGrouped(user.id),
+    searchParams,
+  ]);
 
   return (
-    <ComingSoon
-      title="Biblioteca"
-      wideTitle="Tu biblioteca"
+    <LibraryScreen
+      games={games}
+      statusGroups={statusGroups}
       avatarInitial={avatarInitial(user)}
-      actions={<AddGameShortcut />}
-    >
-      <p className={styles.text}>Todavía no cargaste ningún juego.</p>
-      <Link href="/add" className={styles.invite}>
-        Agregá tu primer juego
-      </Link>
-    </ComingSoon>
+      initialSearch={toSearch(params)}
+    />
   );
 }

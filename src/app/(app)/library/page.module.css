@@ -1,20 +1,131 @@
-.text {
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+}
+
+/* En el celu el orden va debajo del buscador. */
+.sort {
+  order: 1;
+}
+
+.summary {
   margin: 0;
   color: var(--color-text-muted);
+  font-size: var(--text-13);
 }
 
-.invite {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--touch-target);
-  padding: 0 var(--space-16);
-  border-radius: var(--radius-md);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  text-decoration: none;
-  font: 600 var(--text-14) / 1 var(--font-body);
+.filtersButton {
+  display: grid;
+  place-items: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
 }
 
-.invite:hover {
-  color: var(--color-on-accent);
+.columns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
+
+.filters {
+  display: none;
+}
+
+.results {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.wideOnly {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .page {
+    gap: var(--space-28);
+  }
+
+  .top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--space-28) var(--space-16);
+  }
+
+  .heading {
+    gap: var(--space-8);
+  }
+
+  .sort {
+    order: 0;
+  }
+
+  .toolbar {
+    grid-column: 1 / -1;
+  }
+
+  .summary {
+    font-size: inherit;
+  }
+
+  .filtersButton {
+    display: none;
+  }
+
+  .filters {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-28);
+  }
+
+  .columns {
+    gap: var(--space-32);
+  }
+
+  .results {
+    gap: var(--space-20);
+  }
+
+  .wideOnly {
+    display: block;
+  }
+
+  .narrowOnly {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .columns {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .filters {
+    flex: none;
+    width: var(--filter-column-width);
+  }
+
+  .results {
+    flex: 1;
+  }
 }

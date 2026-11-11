@@ -39,7 +39,7 @@ Necesitás Node 24.
 | `npm run db:generate` | Genera una migración a partir de las tablas de `src/persistence/sql/`. |
 | `npm run db:migrate` | Aplica las migraciones, usando `DATABASE_MIGRATION_URL`. |
 
-Los e2e corren contra un servidor de Auth falso y PGlite, así que no usan Google ni Supabase. La primera vez hay que instalar el navegador:
+Los e2e corren contra servidores falsos de Auth, Twitch e IGDB y contra PGlite, así que no usan Google, Supabase ni IGDB. La primera vez hay que instalar el navegador:
 
 ```bash
 npx playwright install chromium
@@ -67,3 +67,27 @@ El detalle de cada panel está en [`docs/configuracion-externa.md`](docs/configu
 6. Activá el análisis automático en SonarQube Cloud.
 
 Para sumar a alguien más, insertá su mail en `allowed_email`. Sacarlo de la lista no corta una sesión ya abierta: para eso hay que borrar su usuario en Supabase.
+
+### Biblioteca (`02-nucleo-biblioteca`)
+
+Esta etapa suma IGDB y las portadas subidas. Sin estas variables la biblioteca sigue andando, pero no se puede buscar en IGDB ni subir imágenes.
+
+| Variable | Para qué | De dónde sale |
+|---|---|---|
+| `TWITCH_CLIENT_ID` y `TWITCH_CLIENT_SECRET` | Consultar IGDB desde el servidor. | La app de Twitch. |
+| `SUPABASE_SECRET_KEY` | Subir portadas al bucket `covers`. Solo servidor, nunca con prefijo `NEXT_PUBLIC_`. | Project Settings › API Keys de Supabase. |
+| `IGDB_API_URL` y `TWITCH_TOKEN_URL` | Opcionales: solo las cambian los e2e. | — |
+
+**El orden importa: primero la migración y después el deploy**, porque el código nuevo consulta las tablas nuevas.
+
+1. Creá la app de Twitch y el bucket público `covers`, y copiá la secret key.
+2. Cargá las variables en `.env.local` y en Vercel (Production y Preview).
+3. Con `DATABASE_MIGRATION_URL` en `.env.local`, aplicá las migraciones:
+
+   ```bash
+   npm run db:migrate
+   ```
+
+4. Desplegá. Los estados por defecto se crean solos la primera vez que cada usuario abre la biblioteca.
+
+Si hay que volver atrás, en Vercel se puede volver al deploy anterior: ignora las tablas nuevas, así que no hace falta revertir la migración.

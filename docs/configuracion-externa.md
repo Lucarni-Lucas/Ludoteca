@@ -16,7 +16,7 @@ Revisado el 6 de noviembre de 2026. Los paneles cambian seguido: si algo no coin
 | Etapa | Qué hacés vos | Cuándo |
 |---|---|---|
 | `01-base` | Supabase, Google, Vercel y SonarQube Cloud | Supabase y Google antes del `/opsx:apply`; Vercel y SonarQube cuando llegues a las tareas 9.x |
-| `02-nucleo-biblioteca` | App de Twitch para IGDB | Antes del `/opsx:apply` |
+| `02-nucleo-biblioteca` | App de Twitch para IGDB y bucket `covers` de Storage | Cuando llegues a la sección 16 de las tareas |
 | `03-importacion` | Clave de Steam, privacidad del perfil y export de Playnite | Antes del `/opsx:propose`, porque el diseño necesita ver el formato real |
 | `04-tiendas-y-steam` | Un secreto para el cron | Cuando lo pida la tarea |
 | `05`, `06` | Nada | — |
@@ -151,7 +151,13 @@ IGDB es de Twitch y se accede con una app registrada ahí. Es gratis para uso no
 
 ### Portadas subidas
 
-Si el diseño de esta etapa guarda las portadas que subís en Supabase Storage, el agente te va a pedir crear un bucket o la **secret key** del paso 2 de 01-base. La secret key va solo en el servidor (`.env.local` y Vercel), nunca en una variable `NEXT_PUBLIC_`.
+Las portadas que subís se guardan en Supabase Storage.
+
+1. En el proyecto, **Storage › New bucket**. Nombre: `covers`. Activá **Public bucket**, para que las portadas se puedan ver sin iniciar sesión en Supabase.
+2. En **Project Settings › API Keys**, copiá la **secret key** (`sb_secret_…`).
+3. Cargala como `SUPABASE_SECRET_KEY` en `.env.local` y en Vercel (Production y Preview). Va solo en el servidor, nunca en una variable `NEXT_PUBLIC_`.
+
+Twitch y Storage se piden recién en la sección 16 de `openspec/changes/02-nucleo-biblioteca/tasks.md`: sin esas credenciales, la implementación y los tests avanzan igual, porque usan servidores falsos.
 
 ---
 
@@ -238,7 +244,7 @@ Nada externo. Al terminar la `07-pwa`, instalá la app en el celu para probarla:
 | URL del session pooler (con contraseña) | 01 | Sí | Solo si el agente lo pide | **No** |
 | Client ID y secret de Google | 01 | No | No | **No**: van solo en Supabase |
 | Client ID y secret de Twitch | 02 | Sí | Sí | **No** |
-| Secret key de Supabase (si se usa) | 02 | Sí | Sí | **No** |
+| Secret key de Supabase | 02 | Sí | Sí | **No** |
 | Clave de la Steam Web API | 03 | Sí | Sí | **No** |
 | `CRON_SECRET` | 04 | No hace falta | Sí (Production) | **No** |
 | API key de Resend | 08 | Sí | Sí | **No** |

@@ -1,6 +1,15 @@
 import { defineConfig } from "@playwright/test";
 
-import { APP_PORT, APP_URL, AUTH_PORT, AUTH_URL, DB_PORT, DB_URL } from "./tests/e2e/support/constants.ts";
+import {
+  APP_PORT,
+  APP_URL,
+  AUTH_PORT,
+  AUTH_URL,
+  DB_CONTROL_PORT,
+  DB_URL,
+  IGDB_PORT,
+  IGDB_URL,
+} from "./tests/e2e/support/constants.ts";
 
 const BUILD_AND_START_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -24,12 +33,17 @@ export default defineConfig({
   webServer: [
     {
       command: "node tests/e2e/support/db-server.mts",
-      port: DB_PORT,
+      port: DB_CONTROL_PORT,
       reuseExistingServer: false,
     },
     {
       command: "node tests/e2e/support/auth-server.mts",
       port: AUTH_PORT,
+      reuseExistingServer: false,
+    },
+    {
+      command: "node tests/e2e/support/igdb-server.mts",
+      port: IGDB_PORT,
       reuseExistingServer: false,
     },
     {
@@ -43,6 +57,10 @@ export default defineConfig({
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_e2e",
         DATABASE_URL: DB_URL,
         DATABASE_POOL_MAX: "1",
+        TWITCH_CLIENT_ID: "cliente-e2e",
+        TWITCH_CLIENT_SECRET: "secreto-e2e",
+        IGDB_API_URL: `${IGDB_URL}/v4`,
+        TWITCH_TOKEN_URL: `${IGDB_URL}/token`,
       },
     },
   ],

@@ -1,0 +1,16 @@
+.empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-14);
+  padding: var(--space-24);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.text {
+  margin: 0;
+  color: var(--color-text-soft);
+}

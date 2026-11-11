@@ -1,0 +1,23 @@
+.sort {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  color: var(--color-text-muted);
+  font-size: var(--text-14);
+}
+
+.label {
+  flex: none;
+}
+
+.select {
+  flex: 1;
+  min-width: 0;
+  height: var(--touch-target);
+  padding: 0 var(--space-12);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: 500 var(--text-14) / 1 var(--font-body);
+}

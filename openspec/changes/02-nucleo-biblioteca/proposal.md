@@ -13,6 +13,7 @@ Es el corazón de Ludoteca: tener los juegos en un solo lugar, con dónde los te
 - Biblioteca en grilla (PC) y lista (celu), con filtros combinables de selección múltiple, rangos libres y orden.
 - Puntaje de 0.0 a 10.0 con etiquetas por rango.
 - Marca «Sin interés» para juegos que tenés pero no pensás jugar.
+- Quitar un juego de la biblioteca (por ejemplo, uno agregado por error), con confirmación y sin vuelta atrás.
 - Aislamiento entre usuarios: cada usuario ve y cambia solo sus datos. Viene de `01-base`, donde todavía no había datos de usuario para probarlo.
 
 ## Capabilities

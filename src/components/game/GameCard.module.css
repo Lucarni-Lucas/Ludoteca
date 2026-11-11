@@ -1,0 +1,152 @@
+.item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 96px;
+  min-width: 0;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-14);
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space-12) 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-row);
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.card[aria-pressed="true"] {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
+}
+
+.details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: var(--text-15);
+  line-height: 1.25;
+}
+
+.score {
+  flex: none;
+  color: var(--color-text);
+  font: 500 var(--text-19) / 1 var(--font-mono);
+}
+
+.scoreOutOf {
+  display: none;
+  color: var(--color-text-faint);
+  font-size: var(--text-11);
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.played {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-13);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+}
+
+.badge {
+  padding: var(--space-5) var(--space-7);
+  border-radius: var(--radius-xs);
+  background: var(--color-text);
+  color: var(--color-bg);
+  font: 500 var(--text-10) / 1 var(--font-mono);
+  letter-spacing: 0.06em;
+}
+
+@media (min-width: 768px) {
+  .item {
+    contain-intrinsic-size: auto 340px;
+  }
+
+  .card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-12);
+    height: 100%;
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .details {
+    gap: var(--space-8);
+  }
+
+  .titleRow {
+    align-items: baseline;
+  }
+
+  .title {
+    font-size: var(--text-15);
+    line-height: 1.3;
+  }
+
+  .score {
+    font-size: var(--text-15);
+  }
+
+  .scoreOutOf {
+    display: inline;
+  }
+
+  .statusRow {
+    gap: var(--space-10);
+  }
+
+  .chips {
+    gap: var(--space-6);
+  }
+
+  /* En PC, las marcas van sobre la portada. */
+  .badge {
+    position: absolute;
+    top: var(--space-14);
+    right: var(--space-14);
+  }
+
+  .badge + .badge {
+    top: calc(var(--space-14) + var(--status-badge-height));
+  }
+}

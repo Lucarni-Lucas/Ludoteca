@@ -1,0 +1,179 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.title {
+  margin: 0;
+  font: 700 var(--text-32) / 1 var(--font-heading);
+  letter-spacing: var(--tracking-tight);
+}
+
+.subtitle {
+  display: none;
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.columns {
+  margin-top: var(--space-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+}
+
+.searchColumn {
+  flex: 1 1 460px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.searchField {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  height: var(--search-height-mobile);
+  padding: 0 var(--space-6) 0 var(--space-16);
+  border-radius: var(--radius-field-search);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent);
+  color: var(--color-text-muted);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  height: var(--field-height-mobile);
+  background: transparent;
+  border: 0;
+  color: var(--color-text);
+  font: 500 var(--text-17) / 1 var(--font-body);
+}
+
+.searchHint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-12);
+}
+
+.message {
+  margin: 0;
+  color: var(--color-text-soft);
+}
+
+.tooShort {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.manualInvite {
+  margin-top: var(--space-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding: var(--space-16);
+  border-radius: var(--radius-xl);
+  border: 1px dashed var(--color-border-strong);
+}
+
+.manualInviteTitle {
+  margin: 0;
+  font: 700 var(--text-18) / 1.2 var(--font-heading);
+}
+
+.manualInviteText {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-14);
+}
+
+.manualLink {
+  box-sizing: content-box;
+  min-height: 0;
+  height: var(--field-height-mobile);
+  padding: 0;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-15);
+  font-weight: 600;
+}
+
+.manualPanel {
+  display: none;
+}
+
+.panelTitle {
+  margin: 0;
+  font: 700 var(--text-22) / 1.15 var(--font-heading);
+}
+
+.panelSubtitle {
+  margin: var(--space-6) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-14);
+}
+
+@media (min-width: 768px) {
+  .page {
+    /* El lienzo de esta pantalla arranca 8 px más arriba que el margen general. */
+    margin-top: calc(var(--space-28) - var(--space-36));
+    gap: var(--space-24);
+  }
+
+  .title {
+    font-size: var(--text-page-title);
+    line-height: 1.05;
+  }
+
+  .subtitle {
+    display: block;
+  }
+
+  .columns {
+    margin-top: 0;
+    flex-flow: row wrap;
+    align-items: flex-start;
+  }
+
+  .searchField {
+    gap: var(--space-12);
+    height: var(--search-height);
+    padding: 0 var(--space-16) 0 var(--space-18);
+  }
+
+  .searchInput {
+    height: var(--search-input-height);
+    font-size: var(--text-18);
+  }
+
+  .searchHint {
+    font-size: var(--text-13);
+  }
+
+  .manualInvite {
+    display: none;
+  }
+
+  .manualPanel {
+    /* content-box, como el lienzo: la base de 420 px no incluye el relleno. */
+    box-sizing: content-box;
+    flex: 1 1 420px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-18);
+    padding: var(--space-24);
+    border-radius: var(--radius-2xl);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+  }
+}

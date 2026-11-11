@@ -71,6 +71,11 @@ const layerRules = [
     [PERSISTENCE_SQL, PERSISTENCE_MAPPER, DRIZZLE, APP],
   ),
   layer(
+    ["src/adapter/**/*.ts"],
+    "Un adapter solo traduce a su proveedor: no persiste ni conoce las otras capas.",
+    [APP, SERVICE, PERSISTENCE, COMPONENTS, HOOKS, DRIZZLE],
+  ),
+  layer(
     ["src/components/**/*.{ts,tsx}"],
     "Los componentes reciben datos y callbacks por props: no conocen la API ni el router.",
     [["next/navigation"], SERVICE, PERSISTENCE, ADAPTER, APP, SECURITY, DRIZZLE],

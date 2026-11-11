@@ -15,7 +15,9 @@ export default defineConfig({
         test: {
           name: "node",
           environment: "node",
-          include: ["tests/{app,config,model,persistence,security,service,shared}/**/*.test.{ts,tsx}"],
+          // Cada test de persistencia levanta su propio Postgres en memoria.
+          hookTimeout: 30_000,
+          include: ["tests/{adapter,app,config,model,persistence,security,service,shared}/**/*.test.{ts,tsx}"],
         },
       },
       {

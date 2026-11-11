@@ -12,13 +12,23 @@ export type TestDatabase = Readonly<{
   db: PgliteDatabase;
 }>;
 
-/** Levanta un Postgres en memoria con las migraciones reales del proyecto. */
-export async function createTestDatabase(): Promise<TestDatabase> {
+let template: Promise<File | Blob> | undefined;
+
+/** Las migraciones corren una sola vez por proceso: cada test parte de una copia recién restaurada. */
+async function buildTemplate(): Promise<File | Blob> {
   const client = new PGlite();
   await client.exec(SUPABASE_ROLES.map((role) => `create role ${role} nologin;`).join("\n"));
+  await migrate(drizzle({ client }), { migrationsFolder: path.resolve("drizzle") });
 
-  const db = drizzle({ client });
-  await migrate(db, { migrationsFolder: path.resolve("drizzle") });
+  const dump = await client.dumpDataDir("none");
+  await client.close();
+  return dump;
+}
 
-  return { client, db };
+/** Levanta un Postgres en memoria con las migraciones reales del proyecto. */
+export async function createTestDatabase(): Promise<TestDatabase> {
+  template ??= buildTemplate();
+
+  const client = new PGlite({ loadDataDir: await template });
+  return { client, db: drizzle({ client }) };
 }

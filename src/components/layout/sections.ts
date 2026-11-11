@@ -8,12 +8,18 @@ export const SECTIONS = [
 export type SectionId = (typeof SECTIONS)[number]["id"];
 
 const SETTINGS_PATH = "/settings";
+const GAME_DETAIL_PATH = "/games";
 
 function isWithin(pathname: string, base: string): boolean {
   return pathname === base || pathname.startsWith(`${base}/`);
 }
 
 export function sectionForPath(pathname: string): SectionId | null {
+  // La ficha de un juego es parte de la biblioteca, aunque viva en otra ruta.
+  if (isWithin(pathname, GAME_DETAIL_PATH)) {
+    return "library";
+  }
+
   return SECTIONS.find(({ href }) => isWithin(pathname, href))?.id ?? null;
 }
 
