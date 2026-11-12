@@ -53,7 +53,8 @@ function selectCopies(db: Database) {
     .select({ copy, storeName: store.name })
     .from(copy)
     .innerJoin(store, eq(copy.storeId, store.id))
-    .orderBy(asc(copy.createdAt));
+    // Las copias de un mismo alta comparten created_at: el id deja el orden estable entre cargas.
+    .orderBy(asc(copy.createdAt), asc(copy.id));
 }
 
 function groupCopiesByGame(rows: Awaited<ReturnType<typeof listCopyRows>>): ReadonlyMap<string, Copy[]> {
@@ -92,7 +93,7 @@ async function insertLibraryEntry(
 ): Promise<string | null> {
   const [row] = await tx
     .insert(libraryGame)
-    .values({ userId, catalogGameId, statusId: entry.statusId, statusSince: entry.statusSince })
+    .values({ userId, catalogGameId, statusId: entry.statusId, statusSince: entry.statusSince, score: entry.score })
     .onConflictDoNothing({ target: [libraryGame.userId, libraryGame.catalogGameId] })
     .returning({ id: libraryGame.id });
 
@@ -109,9 +110,9 @@ async function findGameIdByCatalog(tx: Database, userId: string, catalogGameId: 
   return row?.id ?? null;
 }
 
-async function insertCopyIfAny(tx: Database, userId: string, gameId: string, value: NewCopy | null): Promise<void> {
-  if (value) {
-    await tx.insert(copy).values(toNewCopyRow(userId, gameId, value));
+async function insertCopies(tx: Database, userId: string, gameId: string, values: readonly NewCopy[]): Promise<void> {
+  if (values.length > 0) {
+    await tx.insert(copy).values(values.map((value) => toNewCopyRow(userId, gameId, value)));
   }
 }
 
@@ -199,7 +200,7 @@ export function createGameRepository(db: Database): GameRepository {
           return { kind: "already_in_library", gameId: (await findGameIdByCatalog(tx, userId, catalogGameId)) ?? "" };
         }
 
-        await insertCopyIfAny(tx, userId, gameId, entry.copy);
+        await insertCopies(tx, userId, gameId, entry.copies);
         return { kind: "added", gameId };
       });
     },
@@ -213,7 +214,7 @@ export function createGameRepository(db: Database): GameRepository {
         // Una fila recién creada no puede chocar con la restricción de un juego por usuario.
         const gameId = (await insertLibraryEntry(tx, userId, catalogRow.id, entry)) ?? "";
 
-        await insertCopyIfAny(tx, userId, gameId, entry.copy);
+        await insertCopies(tx, userId, gameId, entry.copies);
         return gameId;
       });
     },

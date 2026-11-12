@@ -5,6 +5,7 @@ import {
   type NewCopy,
   type NewCopyDetails,
   planStatusAfterNewCopy,
+  validateCopyDetails,
 } from "@/model/copy/new-copy";
 import { GameNotFoundError } from "@/model/game/errors";
 import type { LibraryGame } from "@/model/game/library-game";
@@ -58,13 +59,14 @@ export function createCopyService({
         throw new GameNotFoundError();
       }
 
+      const details = validateCopyDetails(input);
       const [store, statuses] = await Promise.all([
         storeResolver.resolve(userId, input.store),
         statusService.listStatuses(userId),
       ]);
-      const plan = planStatusAfterNewCopy(game, input.kind, statuses, clock.today());
+      const plan = planStatusAfterNewCopy(game, details.kind, statuses, clock.today());
 
-      await copyRepo.addCopy(userId, gameId, buildNewCopy(store.id, input), plan);
+      await copyRepo.addCopy(userId, gameId, buildNewCopy(store.id, details), plan);
 
       const backlog = findStatusByKey(statuses, BACKLOG_KEY);
       return { notice: plan && backlog ? movedToNotice(game.title, backlog.name) : null };

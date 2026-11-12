@@ -4,12 +4,15 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { AddResultAction } from "@/components/game/AddResultAction";
+import { IgdbAddDialog } from "@/components/game/IgdbAddDialog";
 import { IgdbResults } from "@/components/game/IgdbResults";
 import { BackLink } from "@/components/layout/BackLink";
 import controls from "@/components/ui/controls.module.css";
 import { SearchIcon } from "@/components/ui/icons";
+import type { EntryValues } from "@/hooks/use-entry-form";
 import { useIgdbSearch } from "@/hooks/use-igdb-search";
 import { useServerAction } from "@/hooks/use-server-action";
+import type { MarkedSearchResult } from "@/model/game/add-game";
 import type { StatusGroupView } from "@/model/status/status";
 import type { Store } from "@/model/store/store";
 
@@ -28,15 +31,14 @@ export function AddGameScreen({ stores, statusGroups }: AddGameScreenProps) {
   const search = useIgdbSearch();
   const add = useServerAction(addFromIgdbAction);
   const [addedGames, setAddedGames] = useState<ReadonlyMap<number, string>>(new Map());
-  const [addingId, setAddingId] = useState<number | null>(null);
+  const [adding, setAdding] = useState<MarkedSearchResult | null>(null);
 
-  async function addGame(igdbId: number): Promise<void> {
-    setAddingId(igdbId);
-    const result = await add.run(igdbId);
-    setAddingId(null);
+  async function saveGame(game: MarkedSearchResult, values: EntryValues): Promise<void> {
+    const result = await add.run(game.igdbId, values);
 
     if (result.ok) {
-      setAddedGames((current) => new Map(current).set(igdbId, result.data.gameId));
+      setAddedGames((current) => new Map(current).set(game.igdbId, result.data.gameId));
+      setAdding(null);
     }
   }
 
@@ -70,13 +72,12 @@ export function AddGameScreen({ stores, statusGroups }: AddGameScreenProps) {
               <AddResultAction
                 result={result}
                 addedGameId={addedGames.get(result.igdbId)}
-                pending={addingId === result.igdbId}
-                onAdd={() => void addGame(result.igdbId)}
+                pending={add.pending && adding?.igdbId === result.igdbId}
+                onAdd={() => setAdding(result)}
               />
             )}
           />
 
-          {add.errorMessage ? <p className={controls.error}>{add.errorMessage}</p> : null}
           {search.errorMessage ? <p className={controls.error}>{search.errorMessage}</p> : null}
           {search.noResults ? (
             <p className={styles.message}>No encontramos “{search.trimmedQuery}” en IGDB</p>
@@ -102,6 +103,21 @@ export function AddGameScreen({ stores, statusGroups }: AddGameScreenProps) {
           <ManualGameSection stores={stores} statusGroups={statusGroups} />
         </section>
       </div>
+
+      {adding ? (
+        <IgdbAddDialog
+          // Cada juego abre un formulario nuevo, sin lo que quedó del anterior.
+          key={adding.igdbId}
+          open
+          onOpenChange={(open) => setAdding(open ? adding : null)}
+          title={adding.title}
+          stores={stores}
+          statusGroups={statusGroups}
+          pending={add.pending}
+          errorMessage={add.errorMessage}
+          onSave={(values) => void saveGame(adding, values)}
+        />
+      ) : null}
     </div>
   );
 }

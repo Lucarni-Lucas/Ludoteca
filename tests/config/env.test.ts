@@ -57,7 +57,7 @@ describe("parseServerEnv", () => {
 
     const env = parseServerEnv(source);
 
-    expect(env).toEqual({ DATABASE_URL: databaseUrl, DATABASE_POOL_MAX: 3 });
+    expect(env).toEqual({ DATABASE_URL: databaseUrl, DATABASE_POOL_MAX: 10 });
   });
 
   it("convierte a número el tamaño de pool", () => {

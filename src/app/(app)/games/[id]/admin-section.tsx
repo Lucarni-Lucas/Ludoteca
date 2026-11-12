@@ -5,6 +5,8 @@ import { useState } from "react";
 import { LinkIgdbDialog } from "@/components/game/LinkIgdbDialog";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import controls from "@/components/ui/controls.module.css";
+import { HELP } from "@/components/ui/help-texts";
+import { HelpTip } from "@/components/ui/HelpTip";
 import { useIgdbSearch } from "@/hooks/use-igdb-search";
 import { useRedirectingAction } from "@/hooks/use-redirecting-action";
 import { useServerAction } from "@/hooks/use-server-action";
@@ -70,6 +72,7 @@ export function AdminSection({ game, onEdit }: AdminSectionProps) {
         >
           {game.notInterested ? "Quitar «Sin interés»" : "Marcar sin interés"}
         </button>
+        <HelpTip help={HELP.notInterested} />
         <button type="button" className={controls.danger} onClick={() => setRemoveOpen(true)}>
           Quitar de la biblioteca
         </button>

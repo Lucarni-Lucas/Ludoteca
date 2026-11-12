@@ -156,3 +156,32 @@ describe("GameCover", () => {
     expect(screen.getByText("H")).toBeInTheDocument();
   });
 });
+
+describe("GameCard con copias de tipo Otro", () => {
+  it("Copia de otro tipo", () => {
+    const game = buildGame({ title: "Celeste", copies: [buildCopy({ kind: "other", kindDetail: "Regalo" })] });
+
+    render(<GameCard game={game} />);
+
+    expect(screen.getByText("Steam · Regalo")).toBeInTheDocument();
+  });
+
+  it("muestra «Otro» si la copia no tiene detalle", () => {
+    const game = buildGame({ copies: [buildCopy({ kind: "other" })] });
+
+    render(<GameCard game={game} />);
+
+    expect(screen.getByText("Steam · Otro")).toBeInTheDocument();
+  });
+});
+
+describe("GameCard con el puntaje", () => {
+  it("Puntaje alto", () => {
+    const game = buildGame({ score: 9.8 });
+
+    render(<GameCard game={game} />);
+
+    expect(screen.getByText("9.8")).toBeInTheDocument();
+    expect(screen.queryByText(/Excelente/)).not.toBeInTheDocument();
+  });
+});

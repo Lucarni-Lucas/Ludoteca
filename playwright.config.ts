@@ -56,7 +56,8 @@ export default defineConfig({
         NEXT_PUBLIC_SUPABASE_URL: AUTH_URL,
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_e2e",
         DATABASE_URL: DB_URL,
-        DATABASE_POOL_MAX: "1",
+        // Como en producción: el pooler de db-server.mts reparte la única conexión de PGlite.
+        DATABASE_POOL_MAX: "10",
         TWITCH_CLIENT_ID: "cliente-e2e",
         TWITCH_CLIENT_SECRET: "secreto-e2e",
         IGDB_API_URL: `${IGDB_URL}/v4`,

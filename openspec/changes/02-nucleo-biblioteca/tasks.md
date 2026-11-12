@@ -104,17 +104,48 @@ Los nombres entre comillas son escenarios de las specs: cada uno lleva un test c
 - [x] 15.1 Aplicar los chequeos de zona táctil, ancho de 360 px y tabulador a `/library` con juegos, `/add/manual`, la ficha y las ventanas emergentes. Verificar: `npm run test:e2e`, corrigiendo los componentes si algo no cumple.
 - [x] 15.2 Comparar cada pantalla con sus `.dc.html` (§1), midiendo posiciones y no solo valores, y corregir lo que difiera fuera de lo que lista §1. Verificar: las diferencias que quedan son solo las de §1.
 
-## 16. Puesta en marcha
+## 16. Base que no responde (prioridad máxima)
 
-- [x] 16.1 Documentar en `README.md` las variables nuevas y el orden de puesta en marcha. Verificar: los comandos del workflow de CI pasan en local con valores de ejemplo.
-- [ ] 16.2 **[Usuario]** Crear la app de Twitch, el bucket `covers` y copiar la secret key, siguiendo `docs/configuracion-externa.md`, y cargar las variables en `.env.local` y en Vercel. Verificar: el panel de Supabase muestra el bucket público y Vercel, las variables.
-- [ ] 16.3 **[Usuario]** Correr `npm run db:migrate` contra Supabase, **antes** de desplegar. Verificar: las tablas nuevas aparecen en Supabase con RLS activa y están las 12 tiendas.
-- [ ] 16.4 Prueba manual sobre el deploy: buscar «hol» en IGDB real, agregar un juego, comprobar duración y portada, y subir una imagen. Verificar: aparece Hollow Knight. Si «hol» no lo trae, aplicar en el adapter el prefijo previsto en `design.md` (Risks), con su test MSW.
+- [x] 16.1 Reproducir la cuelga antes de tocar el driver: crear `tests/persistence/support/stalled-postgres.ts`, un servidor que completa el saludo de Postgres y nunca responde (§17), y un test de persistencia que, contra la base de `db.ts`, espere `DatabaseUnavailableError` en el tiempo previsto. Verificar: con postgres.js el test falla porque la consulta no termina, y esa es la reproducción.
+- [x] 16.2 Pasar a `pg` con `drizzle-orm/node-postgres` y `attachDatabasePool` (§16, §17): pool global con las opciones de la tabla de §17, cliente que venció destruido y conversión a `DatabaseUnavailableError` en `persistence/db.ts`; quitar `postgres`. Tests: el de 16.1 pasa; conectar a un servidor que no responde falla por `connectionTimeoutMillis`; después de un fallo, la consulta siguiente a una base sana anda sin heredar el cliente trabado, también dentro de una transacción; y el test existente de `getDatabase` sigue igual. Verificar: `npm test`, `npm run build` y `npm run test:e2e` completos, con el pool de 1 de los e2e.
+- [x] 16.3 Sumar `DatabaseUnavailableError` a `shared/app-error.ts` y hacer que el manejador único busque el `AppError` en la cadena de `cause` (§13), con tests: un `DrizzleQueryError` que lo envuelve devuelve `{ code: "DATABASE_UNAVAILABLE", message: "No pudimos guardar el cambio. Probá de nuevo." }`, y un error interno sigue dando el mensaje genérico. Verificar: `npm test`.
+- [x] 16.4 Crear `app/(app)/error.tsx` con «No pudimos cargar tus datos. Probá de nuevo.» y «Reintentar» (`retry()`), con su test de componente, y declarar `maxDuration = 20` en las páginas y rutas de §2. Verificar: `npm test` y `npm run build`.
+- [x] 16.5 Sumar a `db-server.mts` el proxy que se traba a pedido (§15) y los e2e "Base que no responde al abrir la Biblioteca", "Reintentar", "Cambio que no se guarda" y "Las demás pantallas siguen andando". Verificar: `npm run test:e2e` en los dos anchos, con el aviso antes de los 15 s.
 
-## 17. Verificación final
+## 17. Formulario de agregar
 
-- [ ] 17.1 Revisar la definición de terminado de `CLAUDE.md` completa: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` y `npm run test:e2e` sin errores; cada escenario de las specs con su test de igual nombre; pantallas comparadas con sus `.dc.html`; sin issues nuevos en SonarQube; y todas las tareas marcadas.
+- [x] 17.1 Sumar el tipo «Otro»: `other` en los tipos de copia y `kind_detail`, con una migración nueva generada por drizzle-kit (§4); `KindDetailTooLongError`; etiquetas de tarjeta y de ficha; propio para el paso a «Pendiente»; y opción del filtro «Cómo lo tenés». Con los tests "Copia de otro tipo" (el de la tarjeta y el de la ficha), "Otro sin detalle", "Detalle demasiado largo", "Tipo Otro" y "Regalo de un juego deseado". Verificar: `npm test`, con la migración aplicada en PGlite.
+- [x] 17.2 Sumar «Año de lanzamiento» (§5): `releaseYearRange` y `ReleaseYearOutOfRangeError` en el modelo, validado en el servicio con `clock`, con los tests "Año negativo", "Año que viene" y "Sin año". Verificar: `npm test`.
+- [x] 17.3 Agregar con varias copias y con puntaje en el servicio y el repositorio, en una transacción (§19), con los tests "Agregar con dos copias", "Sin copias", "Fila incompleta", "Agregar con puntaje" y "Agregar sin tocar el puntaje". Antes de tocar tests existentes que esperan una sola copia o la regla vieja, pedir el «sí» del usuario. Verificar: `npm test`.
+- [x] 17.4 Crear las filas de copias (con «Todavía no lo tenés», «Agregar una copia» o «Agregar otra copia» y quitar), separar `ScoreInput` de la ficha (§11), y sumar «Año de lanzamiento» y «opcional» en los campos de texto opcionales (§14). Va en el formulario a mano, la ventana de copia y «Editar», con los tests "Quitar una fila antes de guardar", "Link de la página" y "Título obligatorio". Verificar: `npm test`.
+- [x] 17.5 Hacer que «Agregar» en un resultado de IGDB abra el formulario en una ventana, que guarde con «Guardar juego» y que deje el resultado en «Agregado» (§19). Con el «sí» del usuario, cambiar el helper `addFromIgdb` de los e2e y el test de componente que espera agregar de un toque. Verificar con e2e: "Agregar con dos copias" y "Agregar con puntaje", y que siguen pasando "Agregar un juego nuevo", "Grilla en la PC" y "Lista en el celu".
+
+## 18. Puntaje solo con el número
+
+- [x] 18.1 Sacar la etiqueta del puntaje de la ficha y de su texto accesible (§11), dejando `scoreLabel` y sus tests en el modelo. Con el «sí» del usuario, ajustar solo los tests de interfaz que esperan la etiqueta. Con los tests "Puntaje alto" (tarjeta y ficha muestran «9.8» sin etiqueta) y "Puntaje cero" con su texto nuevo. Verificar: `npm test`.
+
+## 19. Ayuda «?»
+
+- [x] 19.1 Crear `HelpTip` con el popover nativo, zona táctil de 44 px y foco visible (§18), y los textos de la spec en un solo módulo, con un test de componente por término: "Ayuda de «Sin interés»", "Ayuda del año de lanzamiento", "Ayuda de «Familia»", "Ayuda de «Otro»", "Ayuda de «A mano»", "Ayuda de «Ya no lo tengo»" y "Ayuda de «Sin fin»". Verificar: `npm test`.
+- [x] 19.2 Ponerlo junto a cada término, en los lugares de la tabla de §18. Verificar con e2e: "Cerrar la ayuda" en los dos anchos, y que siguen pasando la zona táctil, el ancho de 360 px y el tabulador.
+
+## 20. Barra del puntaje
+
+- [x] 20.1 Centrar el círculo sobre el valor, llevarlo a los bordes en 0.0 y 10.0 y terminar el relleno en su centro (§11). Verificar con un e2e que mide el centro del círculo contra el del input nativo del `.dc.html` en 0.0, 5.0 y 10.0, a 390 y a 1440 px, con menos de 1 px de diferencia.
+
+## 21. Puesta en marcha
+
+- [x] 21.1 Documentar en `README.md` las variables nuevas y el orden de puesta en marcha. Verificar: los comandos del workflow de CI pasan en local con valores de ejemplo.
+- [x] 21.2 Actualizar `README.md` y `docs/configuracion-externa.md`: `pg` y sus tiempos máximos, el paso de los tiempos del rol con su SQL y el comando para verificarlos a través del pooler, la migración nueva, y la referencia a «la sección 16 de estas tareas», que pasa a ser esta. Verificar: los comandos del workflow de CI pasan en local con valores de ejemplo.
+- [ ] 21.3 **[Usuario]** Crear la app de Twitch, el bucket `covers` y copiar la secret key, siguiendo `docs/configuracion-externa.md`, y cargar las variables en `.env.local` y en Vercel. Verificar: el panel de Supabase muestra el bucket público y Vercel, las variables.
+- [ ] 21.4 **[Usuario]** En el SQL Editor de Supabase, configurar los tiempos máximos del rol (§17): `alter role postgres set statement_timeout = '8s';` y `alter role postgres set idle_in_transaction_session_timeout = '15s';`. Verificar con el comando de 21.2, que pasa por el pooler: `show statement_timeout` devuelve `8s`.
+- [ ] 21.5 **[Usuario]** Correr `npm run db:migrate` contra Supabase, **antes** de desplegar. Verificar: las tablas nuevas aparecen en Supabase con RLS activa, están las 12 tiendas y `copy` tiene `kind_detail`.
+- [ ] 21.6 Prueba manual sobre el deploy, con tu sesión iniciada: buscar «hol» en IGDB real, agregar un juego, comprobar duración y portada, y subir una imagen. Después, repetir el caso del 11/11: marcar «Sin interés», volver, desmarcar y volver, varias veces y con pausas de algunos minutos. Verificar: aparece Hollow Knight, y en los logs de Vercel no hay «Task timed out». Si «hol» no lo trae, aplicar en el adapter el prefijo previsto en `design.md` (Risks), con su test MSW.
+
+## 22. Verificación final
+
+- [ ] 22.1 Revisar la definición de terminado de `CLAUDE.md` completa: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` y `npm run test:e2e` sin errores; cada escenario de las specs con su test de igual nombre; pantallas comparadas con sus `.dc.html`; sin issues nuevos en SonarQube; y todas las tareas marcadas.
 
 ## Workflow follow-up
 
-- Archivar con `/opsx:archive` una vez cumplida la definición de terminado, antes de empezar `03-importacion`.
+- Archivar con `/opsx:archive` una vez cumplida la definición de terminado, antes de empezar `03-idiomas`.

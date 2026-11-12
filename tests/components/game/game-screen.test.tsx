@@ -371,3 +371,21 @@ describe("GameScreen", () => {
     expect(actions.setGameNotInterestedAction).toHaveBeenCalledWith("juego", false);
   });
 });
+
+describe("CopyList con copias de tipo Otro", () => {
+  it("Copia de otro tipo", () => {
+    const copy = buildCopy({ kind: "other", kindDetail: "Regalo" });
+
+    render(<CopyList copies={[copy]} onAdd={vi.fn()} onMarkLost={vi.fn()} onRecover={vi.fn()} onRemove={vi.fn()} />);
+
+    expect(screen.getByText("Otro · Regalo")).toBeInTheDocument();
+  });
+
+  it("Otro sin detalle", () => {
+    const copy = buildCopy({ kind: "other" });
+
+    render(<CopyList copies={[copy]} onAdd={vi.fn()} onMarkLost={vi.fn()} onRecover={vi.fn()} onRemove={vi.fn()} />);
+
+    expect(screen.getByText("Otro")).toBeInTheDocument();
+  });
+});

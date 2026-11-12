@@ -37,11 +37,11 @@ Si IGDB no devuelve resultados, el sistema SHALL invitar a cargar el juego a man
 Al agregar un resultado, el sistema SHALL sumar el juego a la biblioteca con sus datos de IGDB: título, año, desarrollador, portada, link y duración estimada.
 
 #### Scenario: Agregar un juego nuevo
-- **WHEN** el usuario toca «Agregar» en «Outer Wilds»
+- **WHEN** el usuario toca «Agregar» en «Outer Wilds» y después «Guardar juego» sin cambiar nada
 - **THEN** Outer Wilds aparece en su biblioteca con sus datos de IGDB
 
 ### Requirement: Estado inicial según las copias
-Un juego recién agregado SHALL quedar en «Quiero jugarlo» si no tiene copias, o en «Pendiente» si se agrega con una copia, salvo que el usuario elija otro estado.
+Un juego recién agregado SHALL quedar en «Quiero jugarlo» si no tiene copias, o en «Pendiente» si se agrega con al menos una copia, salvo que el usuario elija otro estado.
 
 #### Scenario: Agregado sin copias
 - **WHEN** el usuario agrega un juego desde IGDB sin indicar cómo lo tiene
@@ -50,6 +50,25 @@ Un juego recién agregado SHALL quedar en «Quiero jugarlo» si no tiene copias,
 #### Scenario: Agregado con copia
 - **WHEN** el usuario carga a mano un juego indicando que lo tiene gratis en itch.io y no elige estado
 - **THEN** el juego queda en «Pendiente»
+
+### Requirement: Varias copias al agregar
+El formulario para agregar un juego, desde IGDB o a mano, SHALL permitir cargar cero, una o varias copias en «Dónde y cómo lo tenés». Cada copia es una fila con su tienda y su tipo, más «De quién es» si es Familia o el detalle si es Otro. El formulario arranca sin copias, con el texto «Todavía no lo tenés» y el botón «Agregar una copia»; con una copia cargada, el botón pasa a decir «Agregar otra copia». Cada fila se puede quitar antes de guardar.
+
+#### Scenario: Agregar con dos copias
+- **WHEN** el usuario agrega Civilization VI con una copia Gratis en Epic Games y otra Comprado en Steam
+- **THEN** Civilization VI queda en su biblioteca con las dos copias y en «Pendiente»
+
+#### Scenario: Quitar una fila antes de guardar
+- **WHEN** el usuario suma una segunda copia en el formulario, la quita y guarda
+- **THEN** el juego se guarda solo con la primera copia
+
+#### Scenario: Fila incompleta
+- **WHEN** el usuario intenta guardar con una copia que tiene tipo pero no tienda
+- **THEN** ve «Elegí la tienda de cada copia» y no se guarda nada
+
+#### Scenario: Sin copias
+- **WHEN** el usuario guarda sin agregar ninguna copia
+- **THEN** el juego se guarda sin copias
 
 ### Requirement: Un juego por usuario
 El sistema MUST mantener un solo juego por cada juego de IGDB en la biblioteca de un usuario. Las ediciones SHALL guardarse como el juego base que indica IGDB.
@@ -63,7 +82,7 @@ El sistema MUST mantener un solo juego por cada juego de IGDB en la biblioteca d
 - **THEN** en su biblioteca aparece Civilization VI
 
 ### Requirement: Agregar a mano
-El sistema SHALL permitir cargar un juego a mano con el título como único dato obligatorio; portada, tienda, tipo de copia, link, año, duración y estado son opcionales. El juego queda marcado como «agregado a mano».
+El sistema SHALL permitir cargar un juego a mano con el título como único dato obligatorio; portada, copias, link de la página, año de lanzamiento, duración, estado y puntaje son opcionales. El juego queda marcado como «agregado a mano».
 
 #### Scenario: Carga mínima
 - **WHEN** el usuario carga a mano solo el título «Cartas del Faro»
@@ -72,6 +91,32 @@ El sistema SHALL permitir cargar un juego a mano con el título como único dato
 #### Scenario: Sin título
 - **WHEN** el usuario intenta guardar el formulario con el título vacío
 - **THEN** ve «Poné el título del juego» y no se guarda nada
+
+### Requirement: Año de lanzamiento
+El campo del año SHALL llamarse «Año de lanzamiento», es opcional y MUST aceptar solo un año entero entre 1950 y el año siguiente al actual.
+
+#### Scenario: Año negativo
+- **WHEN** en 2026 el usuario escribe -2017 como año de lanzamiento
+- **THEN** ve «Poné un año entre 1950 y 2027» y no se guarda nada
+
+#### Scenario: Año que viene
+- **WHEN** en 2026 el usuario escribe 2027 como año de lanzamiento de un juego anunciado
+- **THEN** el juego se guarda con el año 2027
+
+#### Scenario: Sin año
+- **WHEN** el usuario deja vacío el año de lanzamiento
+- **THEN** el juego se guarda sin año
+
+### Requirement: Campos opcionales a la vista
+En los formularios para agregar y editar un juego y sus copias, cada campo de texto opcional SHALL indicar «opcional» dentro del campo, mientras está vacío.
+
+#### Scenario: Link de la página
+- **WHEN** el usuario abre «Agregar a mano»
+- **THEN** el campo del link de la página dice «opcional», igual que el año de lanzamiento y la duración
+
+#### Scenario: Título obligatorio
+- **WHEN** el usuario abre «Agregar a mano»
+- **THEN** el campo del título no dice «opcional»
 
 ### Requirement: Quitar de la biblioteca
 El sistema SHALL permitir quitar un juego de la biblioteca desde su ficha, previa confirmación que avisa que no se puede deshacer. Quitarlo MUST borrar el juego del usuario junto con sus copias, su puntaje y su historial, sin afectar a otros usuarios. Es distinto de «Sin interés», que lo oculta, y de «Ya no lo tengo», que conserva todo.

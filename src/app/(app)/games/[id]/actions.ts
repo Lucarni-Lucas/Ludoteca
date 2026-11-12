@@ -37,6 +37,8 @@ const addCopySchema = z
     kind: z.enum(COPY_KINDS),
     acquiredOn: optionalDate,
     familyOwner: z.preprocess(blankToNull, z.string().trim().max(MAX_TEXT_LENGTH).nullable()),
+    // Sin tope acá: lo pone el modelo, con el mensaje que pide la spec.
+    kindDetail: z.preprocess(blankToNull, z.string().trim().nullable().optional()),
   })
   .refine((copy) => copy.storeId !== null || copy.otherStoreName !== null, { error: "Elegí una tienda" });
 
@@ -101,6 +103,7 @@ export async function addCopyAction(gameId: string, values: AddCopyFormValues): 
       kind: input.kind,
       acquiredOn: input.acquiredOn,
       familyOwner: input.familyOwner,
+      kindDetail: input.kindDetail,
     });
   });
 }

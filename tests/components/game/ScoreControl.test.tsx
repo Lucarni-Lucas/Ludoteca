@@ -46,7 +46,7 @@ describe("ScoreControl", () => {
 
     setup(score);
 
-    expect(screen.getByText("0.0 · Horrible")).toBeInTheDocument();
+    expect(screen.getByText("0.0", { selector: "output" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Puntaje" })).toHaveValue("0.0");
   });
 
@@ -154,5 +154,25 @@ describe("ScoreControl", () => {
     rerender(<ScoreControl score={8} errorMessage={null} onSave={() => undefined} />);
 
     expect(screen.getByRole("textbox", { name: "Puntaje" })).toHaveValue("8.0");
+  });
+});
+
+describe("ScoreControl solo con el número", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("Puntaje alto", () => {
+    const score = 9.8;
+
+    render(<ScoreControl score={score} errorMessage={null} onSave={vi.fn()} />);
+
+    expect(screen.getByRole("textbox", { name: "Puntaje" })).toHaveValue("9.8");
+    expect(screen.getByText("9.8", { selector: "output" })).toBeInTheDocument();
+    expect(screen.queryByText(/Excelente/)).not.toBeInTheDocument();
   });
 });

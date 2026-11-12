@@ -6,6 +6,9 @@ import { getCatalogService } from "@/service/game/instance";
 import { toActionResult } from "@/shared/action-result";
 import { parseInput } from "@/shared/parse-input";
 
+// Usa la base: corta mucho antes de los 300 s por defecto de Vercel (design.md §17).
+export const maxDuration = 20;
+
 const MIN_QUERY_LENGTH = 2;
 const MAX_QUERY_LENGTH = 100;
 const HTTP_UNAUTHORIZED = 401;

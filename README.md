@@ -77,17 +77,21 @@ Esta etapa suma IGDB y las portadas subidas. Sin estas variables la biblioteca s
 | `TWITCH_CLIENT_ID` y `TWITCH_CLIENT_SECRET` | Consultar IGDB desde el servidor. | La app de Twitch. |
 | `SUPABASE_SECRET_KEY` | Subir portadas al bucket `covers`. Solo servidor, nunca con prefijo `NEXT_PUBLIC_`. | Project Settings › API Keys de Supabase. |
 | `IGDB_API_URL` y `TWITCH_TOKEN_URL` | Opcionales: solo las cambian los e2e. | — |
+| `DATABASE_POOL_MAX` | Opcional, 10 por defecto: cuántas conexiones abre cada instancia hacia el transaction pooler. | — |
 
-**El orden importa: primero la migración y después el deploy**, porque el código nuevo consulta las tablas nuevas.
+La app se conecta con `pg` y no espera para siempre: corta a los 5 s si no puede conectarse y a los 8 s si una consulta no responde, y avisa «No pudimos cargar tus datos. Probá de nuevo.» con «Reintentar». Para que la base también corte esas consultas, sus tiempos máximos van en el rol `postgres` (paso 3).
+
+**El orden importa: primero la migración y después el deploy**, porque el código nuevo consulta las tablas nuevas, el tipo de copia «Otro» y la columna `kind_detail`.
 
 1. Creá la app de Twitch y el bucket público `covers`, y copiá la secret key.
 2. Cargá las variables en `.env.local` y en Vercel (Production y Preview).
-3. Con `DATABASE_MIGRATION_URL` en `.env.local`, aplicá las migraciones:
+3. Configurá los tiempos máximos del rol `postgres` y verificalos a través del pooler, como dice [la guía de configuración externa](docs/configuracion-externa.md#tiempos-máximos-de-la-base).
+4. Con `DATABASE_MIGRATION_URL` en `.env.local`, aplicá las migraciones:
 
    ```bash
    npm run db:migrate
    ```
 
-4. Desplegá. Los estados por defecto se crean solos la primera vez que cada usuario abre la biblioteca.
+5. Desplegá. Los estados por defecto se crean solos la primera vez que cada usuario abre la biblioteca.
 
-Si hay que volver atrás, en Vercel se puede volver al deploy anterior: ignora las tablas nuevas, así que no hace falta revertir la migración.
+Si hay que volver atrás, en Vercel se puede volver al deploy anterior: ignora las tablas nuevas, la columna `kind_detail` y el valor `other` (mientras no haya copias de tipo Otro), así que no hace falta revertir la migración.

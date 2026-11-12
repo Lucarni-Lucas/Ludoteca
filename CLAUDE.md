@@ -20,11 +20,11 @@ Este archivo manda sobre la preferencia del agente, los tutoriales y el código 
 - Spec-driven con OpenSpec. Cada etapa ya tiene su cambio con `proposal.md` y specs.
 - Para arrancar una etapa, `/opsx:propose <nn-nombre>`: genera `design.md` y `tasks.md` del cambio existente. Si hay algo para charlar antes, `/opsx:explore`.
 - Después `/opsx:apply` para implementar y `/opsx:archive` al terminar.
-- Las etapas se hacen en orden (01 → 08) y cada una se archiva antes de empezar la siguiente.
+- Las etapas se hacen en orden (01 → 09) y cada una se archiva antes de empezar la siguiente.
 
 ## Stack
 
-Next.js (App Router) + TypeScript estricto en Vercel Hobby · Supabase (Postgres, Auth, Storage) · Drizzle ORM · Zod · CSS Modules + `tokens.css` · Radix sin estilos · Vitest, React Testing Library, MSW, PGlite y Playwright · ESLint + `eslint-plugin-sonarjs` · SonarQube Cloud. El detalle y el porqué de cada uno está en `docs/decisiones.md` §2.
+Next.js (App Router) + TypeScript estricto en Vercel Hobby · Supabase (Postgres, Auth, Storage) · Drizzle ORM con `pg` · Zod · next-intl (desde `03-idiomas`) · CSS Modules + `tokens.css` · Radix sin estilos · Vitest, React Testing Library, MSW, PGlite y Playwright · ESLint + `eslint-plugin-sonarjs` · SonarQube Cloud. El detalle y el porqué de cada uno está en `docs/decisiones.md` §2.
 
 ## I. Arquitectura en capas (NO NEGOCIABLE)
 
@@ -87,7 +87,7 @@ El árbol no es una lista cerrada: se puede proponer una carpeta nueva, pero se 
 - **Forma del pedido:** esquema Zod en la Server Action o el Route Handler, con trim y normalización.
 - **Que lo pedido exista y sea del usuario:** en el servicio, a través del repositorio.
 - **Invariantes del dominio:** en `model/`, lanzando errores con nombre (`ScoreOutOfRangeError`, `GameNotFoundError`). Prohibido `throw new Error("...")` para reglas del dominio.
-- Un único manejador en `shared/` traduce los errores a `{ ok: false, error: { code, message } }`, con el mensaje en español. Nunca llegan stack traces ni mensajes internos al navegador.
+- Un único manejador en `shared/` traduce los errores a `{ ok: false, error: { code, message } }`, con el mensaje en el idioma del usuario (desde `03-idiomas`; antes, en español). Nunca llegan stack traces ni mensajes internos al navegador.
 
 ## IV. Tests (NO NEGOCIABLE)
 
@@ -132,11 +132,14 @@ SonarQube Cloud con menos de 10 issues. El código se escribe así desde el prin
 - Nombres de tablas y columnas explícitos, en snake_case. Nada de palabras reservadas de Postgres (`user`, `order`, `group`): se usa `app_user`, `status_group`, etc.
 - Ids uuid. Toda tabla tiene `created_at` y `updated_at`; las de datos de un usuario, `user_id`.
 - SQL crudo (`sql` de Drizzle) solo si de verdad hace falta, avisando y con aprobación antes de escribirlo.
+- La conexión a la base tiene tiempos máximos de conexión, de consulta y de inactividad. Ninguna consulta puede esperar para siempre: si la base no responde, falla rápido con un error con nombre y la pantalla ofrece reintentar.
 
 ## VII. Idioma
 
 - Código (archivos, tipos, funciones, variables, rutas de la API): en inglés y sin acentos ni eñe.
-- Specs, docs, comentarios, mensajes de error y textos de la interfaz: en español. La interfaz, en rioplatense con voseo («Agregá», «¿Lo tengo?»).
+- Specs, docs y comentarios: en español.
+- Textos de la interfaz y mensajes de error: en español rioplatense con voseo («Agregá», «¿Lo tengo?») y en inglés. Desde `03-idiomas` salen de los catálogos de mensajes, nunca escritos sueltos en un componente, un hook o un servicio, y cada texto nuevo entra en los dos catálogos a la vez.
+- Lo que escribe el usuario y los datos de IGDB no se traducen.
 - Términos técnicos: en inglés.
 
 ## Frontend
@@ -159,6 +162,7 @@ Una tarea o un cambio están terminados cuando:
 4. Cada pantalla tocada se comparó con su `.dc.html` de `design/`.
 5. No aparecen issues nuevos en SonarQube.
 6. Las tareas de `tasks.md` están marcadas.
+7. Desde `03-idiomas`: los textos nuevos están en los dos catálogos, y los e2e de las pantallas tocadas pasan también en inglés.
 
 ## Cómo trabaja el agente
 

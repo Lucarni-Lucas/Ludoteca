@@ -32,6 +32,11 @@ export function normalizeScore(value: number): number {
   return roundToDecimal(value);
 }
 
+/** Sin puntaje no es lo mismo que 0.0: `null` queda `null`. */
+export function normalizeOptionalScore(value: number | null): number | null {
+  return value === null ? null : normalizeScore(value);
+}
+
 export function scoreLabel(score: number): string {
   return SCORE_LABELS.find(([minimum]) => score >= minimum)?.[1] ?? "";
 }

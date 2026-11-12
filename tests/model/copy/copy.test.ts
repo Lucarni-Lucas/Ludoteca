@@ -114,3 +114,55 @@ describe("marcar y recuperar", () => {
     expect(copyCardLabel(recovered)).toBe("Game Pass · Suscripción");
   });
 });
+
+describe("copias de tipo Otro", () => {
+  it("Copia de otro tipo", () => {
+    const gift = copy({ kind: "other", kindDetail: "Regalo" });
+
+    const label = copyDetailLabel(gift);
+
+    expect(label).toBe("Otro · Regalo");
+  });
+
+  it("Otro sin detalle", () => {
+    const other = copy({ kind: "other" });
+
+    const label = copyDetailLabel(other);
+
+    expect(label).toBe("Otro");
+  });
+
+  it("en la tarjeta muestra la tienda y el detalle", () => {
+    const gift = copy({ kind: "other", kindDetail: "Regalo" });
+
+    const label = copyCardLabel(gift);
+
+    expect(label).toBe("Steam · Regalo");
+  });
+
+  it("en la tarjeta muestra «Otro» si no tiene detalle", () => {
+    const other = copy({ kind: "other" });
+
+    const label = copyCardLabel(other);
+
+    expect(label).toBe("Steam · Otro");
+  });
+
+  it("una copia Otro perdida conserva su tipo y su detalle", () => {
+    const gift = copy({ kind: "other", kindDetail: "Regalo" });
+
+    const lost = { ...gift, ...markCopyLost("2026-11-06", "other") };
+
+    expect(copyDetailLabel(lost)).toBe("Otro · ya no");
+    expect(lost.kind).toBe("other");
+    expect(lost.kindDetail).toBe("Regalo");
+  });
+
+  it("una copia Otro cuenta como propia", () => {
+    const kind = "other";
+
+    const own = isOwnCopyKind(kind);
+
+    expect(own).toBe(true);
+  });
+});

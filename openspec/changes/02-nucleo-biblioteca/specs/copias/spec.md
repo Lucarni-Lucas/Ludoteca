@@ -23,14 +23,26 @@ El sistema SHALL ofrecer las tiendas Steam, Epic Games, GOG, Microsoft Store, Ga
 - **THEN** la copia queda en «Humble Store» y esa tienda aparece en sus opciones de ahí en adelante
 
 ### Requirement: Tipos de copia
-Cada copia SHALL tener uno de estos tipos: Comprado, Gratis, Suscripción, Familia o Físico. Una copia de tipo Familia SHALL poder guardar de quién es.
+Cada copia SHALL tener uno de estos tipos: Comprado, Gratis, Suscripción, Familia, Físico u Otro. Una copia de tipo Familia SHALL poder guardar de quién es, y una de tipo Otro, un detalle corto en texto libre que dice qué es. Los dos datos son opcionales.
 
 #### Scenario: Copia de la familia
 - **WHEN** el usuario agrega Portal 2 como copia Familia de «Martín» en Steam
 - **THEN** la copia muestra «Familia · de Martín»
 
+#### Scenario: Copia de otro tipo
+- **WHEN** el usuario agrega Celeste como copia Otro en Steam con el detalle «Regalo»
+- **THEN** la copia muestra «Otro · Regalo»
+
+#### Scenario: Otro sin detalle
+- **WHEN** el usuario agrega una copia Otro sin escribir el detalle
+- **THEN** la copia se guarda y muestra «Otro»
+
+#### Scenario: Detalle demasiado largo
+- **WHEN** el usuario escribe un detalle de más de 40 caracteres
+- **THEN** ve «El detalle puede tener hasta 40 caracteres» y la copia no se guarda
+
 ### Requirement: Marca «Ya no lo tengo»
-El sistema SHALL permitir marcar una copia como «Ya no lo tengo», con fecha y motivo (Salí de la familia, Terminó la suscripción, Lo vendí u Otro). La copia MUST conservar su tipo original.
+El sistema SHALL permitir marcar una copia como «Ya no lo tengo», con fecha y motivo (Salí de la familia, Terminó la suscripción, Lo vendí u Otro). La copia MUST conservar su tipo original, y su detalle si es de tipo Otro.
 
 #### Scenario: Copia vendida
 - **WHEN** el usuario marca su copia física de un juego como «Ya no lo tengo» con el motivo «Lo vendí»
@@ -58,11 +70,15 @@ El sistema SHALL permitir eliminar una copia previa confirmación. A diferencia 
 - **THEN** la copia desaparece del juego sin dejar rastro
 
 ### Requirement: Comprar algo de «Quiero jugarlo»
-Al agregar una copia Comprado, Gratis o Físico a un juego que está en «Quiero jugarlo», el sistema SHALL pasarlo a «Pendiente» y avisarlo.
+Al agregar una copia propia (Comprado, Gratis, Físico u Otro) a un juego que está en «Quiero jugarlo», el sistema SHALL pasarlo a «Pendiente» y avisarlo.
 
 #### Scenario: Compra de un juego deseado
 - **WHEN** el usuario agrega una copia Comprado en Microsoft Store a Frostpunk, que estaba en «Quiero jugarlo»
 - **THEN** Frostpunk pasa a «Pendiente» y el usuario ve «Frostpunk pasó a «Pendiente»»
+
+#### Scenario: Regalo de un juego deseado
+- **WHEN** el usuario agrega a Hollow Knight: Silksong, que estaba en «Quiero jugarlo», una copia Otro en Steam con el detalle «Regalo»
+- **THEN** Silksong pasa a «Pendiente» y el usuario ve «Hollow Knight: Silksong pasó a «Pendiente»»
 
 #### Scenario: Copia que no es propia
 - **WHEN** el usuario agrega una copia Suscripción a un juego en «Quiero jugarlo»

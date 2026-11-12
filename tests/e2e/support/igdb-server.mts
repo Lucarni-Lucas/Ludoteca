@@ -47,6 +47,13 @@ function matchGames(body: string): readonly FakeGame[] {
     return GAMES.filter((game) => game.name.toLowerCase().includes(search));
   }
 
+  // Con textos cortos el adapter busca por el comienzo del nombre, como IGDB con `name ~ "hol"*`.
+  const prefix = /where name ~ "([^"]*)"\*/.exec(body)?.[1]?.toLowerCase();
+
+  if (prefix !== undefined) {
+    return GAMES.filter((game) => game.name.toLowerCase().startsWith(prefix));
+  }
+
   const id = Number(/where id = (\d+);/.exec(body)?.[1]);
   return GAMES.filter((game) => game.id === id);
 }

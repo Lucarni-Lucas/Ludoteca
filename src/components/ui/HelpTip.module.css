@@ -1,0 +1,55 @@
+.button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  /* Ocupa 44 px para tocarlo, pero no agranda la línea en la que está. */
+  margin-block: calc((var(--help-mark-size) - var(--touch-target)) / 2);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--help-mark-size);
+  height: var(--help-mark-size);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-12);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.button:hover .mark {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+.popover {
+  max-width: min(var(--help-popover-max-width), calc(100vw - 2 * var(--space-16)));
+  padding: var(--space-12) var(--space-14);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font-size: var(--text-14);
+  line-height: 1.45;
+}
+
+/* Junto al «?» donde el navegador sabe anclarlo; si no, queda centrado, como lo muestra por defecto. */
+@supports (position-area: block-end) {
+  .popover {
+    inset: auto;
+    margin: var(--space-6) 0;
+    position-area: block-end span-inline-end;
+    position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+  }
+}

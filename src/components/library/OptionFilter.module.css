@@ -80,3 +80,8 @@
     color: var(--color-text-muted);
   }
 }
+
+.optionWithHelp {
+  display: inline-flex;
+  align-items: center;
+}

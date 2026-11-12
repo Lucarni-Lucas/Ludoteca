@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AddGameScreen } from "@/app/(app)/add/add-game-screen";
 import { AddResultAction } from "@/components/game/AddResultAction";
@@ -17,6 +17,18 @@ const { addFromIgdbAction, addManualGameAction, uploadCoverAction } = vi.hoisted
 }));
 
 vi.mock("@/app/(app)/add/actions", () => ({ addFromIgdbAction, addManualGameAction, uploadCoverAction }));
+
+beforeAll(() => {
+  // La barra del puntaje usa Radix Slider, que lo necesita, y jsdom no lo implementa.
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe(): void {}
+      unobserve(): void {}
+      disconnect(): void {}
+    },
+  );
+});
 
 const GROUPS = groupStatuses(STATUSES);
 const STORES = [{ id: "itch", name: "itch.io", slug: "itch-io" }];
@@ -36,6 +48,14 @@ describe("AddGameScreen", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe(): void {}
+        unobserve(): void {}
+        disconnect(): void {}
+      },
+    );
   });
 
   function renderScreen() {
@@ -85,8 +105,9 @@ describe("AddGameScreen", () => {
     await user.type(input, "hades");
 
     await user.click(await screen.findByRole("button", { name: "Agregar" }));
+    await user.click(within(screen.getByRole("dialog", { name: "Agregar «Hades»" })).getByRole("button", { name: "Guardar juego" }));
 
-    expect(addFromIgdbAction).toHaveBeenCalledWith(1);
+    expect(addFromIgdbAction).toHaveBeenCalledWith(1, { copies: [], statusId: "", score: null });
     expect(await screen.findByRole("link", { name: "Agregado" })).toHaveAttribute("href", "/games/juego");
   });
 
@@ -98,8 +119,9 @@ describe("AddGameScreen", () => {
     await user.type(input, "hades");
 
     await user.click(await screen.findByRole("button", { name: "Agregar" }));
+    await user.click(within(screen.getByRole("dialog", { name: "Agregar «Hades»" })).getByRole("button", { name: "Guardar juego" }));
 
-    expect(await screen.findByText("No pudimos agregarlo.")).toBeInTheDocument();
+    expect(await within(screen.getByRole("dialog")).findByText("No pudimos agregarlo.")).toBeInTheDocument();
   });
 });
 
@@ -155,10 +177,11 @@ describe("ManualGameForm", () => {
   it("empieza con los valores vacíos, no con los del prototipo", () => {
     renderForm();
 
-    expect(screen.getByRole("combobox", { name: "Dónde lo tenés" })).toHaveValue("");
-    expect(screen.getByRole("button", { name: "Todavía no lo tengo" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("spinbutton", { name: "Año" })).toHaveValue(null);
+    expect(screen.getByText("Todavía no lo tenés")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Agregar una copia" })).toBeInTheDocument();
+    expect(screen.getByRole("spinbutton", { name: "Año de lanzamiento" })).toHaveValue(null);
     expect(screen.getByRole("combobox", { name: "Estado" })).toHaveDisplayValue("Según las copias");
+    expect(screen.getByText("Sin puntaje", { selector: "output" })).toBeInTheDocument();
   });
 
   it("manda lo que se cargó", async () => {
@@ -166,12 +189,16 @@ describe("ManualGameForm", () => {
     const { onSubmit } = renderForm();
 
     await user.type(screen.getByRole("textbox", { name: "Título" }), "Cartas del Faro");
-    await user.selectOptions(screen.getByRole("combobox", { name: "Dónde lo tenés" }), "itch.io");
+    await user.click(screen.getByRole("button", { name: "Agregar una copia" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Tienda" }), "itch.io");
     await user.click(screen.getByRole("button", { name: "Gratis" }));
     await user.click(screen.getByRole("button", { name: "Guardar juego" }));
 
     expect(onSubmit).toHaveBeenCalledWith(
-      expect.objectContaining({ title: "Cartas del Faro", storeId: "itch", kind: "free", otherStoreName: "" }),
+      expect.objectContaining({
+        title: "Cartas del Faro",
+        copies: [{ storeId: "itch", kind: "free", otherStoreName: "", familyOwner: "", kindDetail: "" }],
+      }),
     );
   });
 
@@ -179,24 +206,31 @@ describe("ManualGameForm", () => {
     const user = userEvent.setup();
     const { onSubmit } = renderForm();
 
-    await user.selectOptions(screen.getByRole("combobox", { name: "Dónde lo tenés" }), "Otra");
+    await user.click(screen.getByRole("button", { name: "Agregar una copia" }));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Tienda" }), "Otra");
     await user.type(screen.getByRole("textbox", { name: "Nombre de la tienda" }), "Humble Store");
     await user.click(screen.getByRole("button", { name: "Guardar juego" }));
 
-    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ storeId: "", otherStoreName: "Humble Store" }));
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ copies: [expect.objectContaining({ storeId: "", otherStoreName: "Humble Store" })] }),
+    );
   });
 
   it("con «Familia» pregunta de quién es", async () => {
     const user = userEvent.setup();
     renderForm();
+    await user.click(screen.getByRole("button", { name: "Agregar una copia" }));
 
     await user.click(screen.getByRole("button", { name: "Familia" }));
 
     expect(screen.getByRole("textbox", { name: "De quién es" })).toBeInTheDocument();
   });
 
-  it("no pregunta de quién es en otro tipo", () => {
+  it("no pregunta de quién es en otro tipo", async () => {
+    const user = userEvent.setup();
     renderForm();
+
+    await user.click(screen.getByRole("button", { name: "Agregar una copia" }));
 
     expect(screen.queryByRole("textbox", { name: "De quién es" })).not.toBeInTheDocument();
   });
@@ -256,5 +290,169 @@ describe("ManualGameForm", () => {
     renderForm({ pending });
 
     expect(screen.getByRole("button", { name: "Guardar juego" })).toBeDisabled();
+  });
+});
+
+describe("ManualGameForm con varias copias", () => {
+  function renderForm() {
+    const onSubmit = vi.fn();
+    render(
+      <ManualGameForm
+        stores={STORES}
+        statusGroups={GROUPS}
+        pending={false}
+        errorMessage={null}
+        uploading={false}
+        uploadError={null}
+        onUploadCover={vi.fn(async () => undefined)}
+        onSubmit={onSubmit}
+      />,
+    );
+    return onSubmit;
+  }
+
+  it("con una copia, el botón pasa a «Agregar otra copia»", async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    await user.click(screen.getByRole("button", { name: "Agregar una copia" }));
+
+    expect(screen.getByRole("button", { name: "Agregar otra copia" })).toBeInTheDocument();
+    expect(screen.queryByText("Todavía no lo tenés")).not.toBeInTheDocument();
+  });
+
+  it("Quitar una fila antes de guardar", async () => {
+    const user = userEvent.setup();
+    const onSubmit = renderForm();
+    await user.type(screen.getByRole("textbox", { name: "Título" }), "Cartas del Faro");
+    await user.click(screen.getByRole("button", { name: "Agregar una copia" }));
+    await user.selectOptions(within(screen.getByRole("group", { name: "Copia 1" })).getByRole("combobox", { name: "Tienda" }), "itch.io");
+    await user.click(screen.getByRole("button", { name: "Agregar otra copia" }));
+
+    await user.click(screen.getByRole("button", { name: "Quitar la copia 2" }));
+    await user.click(screen.getByRole("button", { name: "Guardar juego" }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ copies: [expect.objectContaining({ storeId: "itch", kind: "purchased" })] }),
+    );
+  });
+
+  it("quitar la fila del medio no le pasa sus datos a la siguiente", async () => {
+    const user = userEvent.setup();
+    const onSubmit = renderForm();
+    await user.click(screen.getByRole("button", { name: "Agregar una copia" }));
+    await user.click(screen.getByRole("button", { name: "Agregar otra copia" }));
+    await user.click(within(screen.getByRole("group", { name: "Copia 2" })).getByRole("button", { name: "Gratis" }));
+
+    await user.click(screen.getByRole("button", { name: "Quitar la copia 1" }));
+    await user.click(screen.getByRole("button", { name: "Guardar juego" }));
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ copies: [expect.objectContaining({ kind: "free" })] }));
+  });
+
+  it("una copia Otro pide qué es, como dato opcional", async () => {
+    const user = userEvent.setup();
+    const onSubmit = renderForm();
+    await user.click(screen.getByRole("button", { name: "Agregar una copia" }));
+    await user.click(screen.getByRole("button", { name: "Otro" }));
+
+    await user.type(screen.getByRole("textbox", { name: "Qué es" }), "Regalo");
+    await user.click(screen.getByRole("button", { name: "Guardar juego" }));
+
+    expect(screen.getByRole("textbox", { name: "Qué es" })).toHaveAttribute("placeholder", "opcional");
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ copies: [expect.objectContaining({ kind: "other", kindDetail: "Regalo" })] }),
+    );
+  });
+
+  it("manda el puntaje elegido", async () => {
+    const user = userEvent.setup();
+    const onSubmit = renderForm();
+    await user.type(screen.getByRole("textbox", { name: "Título" }), "Hades");
+
+    await user.type(screen.getByRole("textbox", { name: "Puntaje" }), "9.5");
+    await user.click(screen.getByRole("button", { name: "Guardar juego" }));
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ score: 9.5 }));
+  });
+
+  it("Link de la página", () => {
+    renderForm();
+
+    const optional = ["Link a la página del juego", "Año de lanzamiento", "Duración (h)"].map(
+      (name) => screen.getByLabelText(name).getAttribute("placeholder"),
+    );
+
+    expect(optional).toEqual(["opcional", "opcional", "opcional"]);
+  });
+
+  it("Título obligatorio", () => {
+    renderForm();
+
+    const title = screen.getByRole("textbox", { name: "Título" });
+
+    expect(title).not.toHaveAttribute("placeholder", "opcional");
+  });
+});
+
+describe("AddGameScreen con el formulario de IGDB", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe(): void {}
+        unobserve(): void {}
+        disconnect(): void {}
+      },
+    );
+  });
+
+  async function openDialog() {
+    const user = userEvent.setup();
+    mockSearch([result({ kind: "new" })]);
+    render(<AddGameScreen stores={STORES} statusGroups={GROUPS} />);
+    await user.type(screen.getByRole("searchbox", { name: "Buscar juego" }), "hades");
+    await user.click(await screen.findByRole("button", { name: "Agregar" }));
+    return { user, dialog: screen.getByRole("dialog", { name: "Agregar «Hades»" }) };
+  }
+
+  it("arranca sin copias, en «Según las copias» y sin puntaje", async () => {
+    const { dialog } = await openDialog();
+
+    const view = within(dialog);
+
+    expect(view.getByText("Todavía no lo tenés")).toBeInTheDocument();
+    expect(view.getByRole("combobox", { name: "Estado" })).toHaveDisplayValue("Según las copias");
+    expect(view.getByText("Sin puntaje", { selector: "output" })).toBeInTheDocument();
+    expect(view.queryByRole("textbox", { name: "Título" })).not.toBeInTheDocument();
+  });
+
+  it("manda las copias y el puntaje, y deja el resultado en «Agregado»", async () => {
+    addFromIgdbAction.mockResolvedValue({ ok: true, data: { kind: "added", gameId: "hades" } });
+    const { user, dialog } = await openDialog();
+    const view = within(dialog);
+    await user.click(view.getByRole("button", { name: "Agregar una copia" }));
+    await user.selectOptions(view.getByRole("combobox", { name: "Tienda" }), "itch.io");
+    await user.type(view.getByRole("textbox", { name: "Puntaje" }), "9.5");
+
+    await user.click(view.getByRole("button", { name: "Guardar juego" }));
+
+    expect(addFromIgdbAction).toHaveBeenCalledWith(1, {
+      copies: [{ storeId: "itch", otherStoreName: "", kind: "purchased", familyOwner: "", kindDetail: "" }],
+      statusId: "",
+      score: 9.5,
+    });
+    expect(await screen.findByRole("link", { name: "Agregado" })).toHaveAttribute("href", "/games/hades");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("cancelar no agrega nada", async () => {
+    const { user, dialog } = await openDialog();
+
+    await user.click(within(dialog).getByRole("button", { name: "Cancelar" }));
+
+    expect(addFromIgdbAction).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Agregar" })).toBeInTheDocument();
   });
 });

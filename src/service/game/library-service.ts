@@ -3,7 +3,7 @@ import type { IgdbGameData } from "@/model/game/catalog";
 import { GameNotFoundError } from "@/model/game/errors";
 import type { GameCorrections, LibraryGame } from "@/model/game/library-game";
 import { planGameRemoval, type GameRemovalPlan } from "@/model/game/removal";
-import { normalizeScore } from "@/model/game/score";
+import { normalizeOptionalScore } from "@/model/game/score";
 import { StatusNotFoundError } from "@/model/status/errors";
 import { planStatusChange, type Status, type StatusChangePlan } from "@/model/status/status";
 
@@ -93,7 +93,7 @@ export function createLibraryService({
     },
 
     async setScore(userId, gameId, score) {
-      const normalized = score === null ? null : normalizeScore(score);
+      const normalized = normalizeOptionalScore(score);
 
       await getGame(userId, gameId);
       await gameRepo.updateScore(userId, gameId, normalized);

@@ -5,7 +5,7 @@ import {
   INTERNAL_ERROR_MESSAGE,
   toActionResult,
 } from "@/shared/action-result";
-import { AppError, InvalidRequestError } from "@/shared/app-error";
+import { AppError, DatabaseUnavailableError, InvalidRequestError } from "@/shared/app-error";
 import { logger } from "@/shared/logger";
 
 class GameCaseError extends AppError {
@@ -77,6 +77,63 @@ describe("toActionResult", () => {
     vi.spyOn(logger, "error").mockImplementation(() => undefined);
 
     const result = await toActionResult(() => Promise.reject("texto suelto"));
+
+    expect(result).toEqual({
+      ok: false,
+      error: { code: INTERNAL_ERROR_CODE, message: INTERNAL_ERROR_MESSAGE },
+    });
+  });
+});
+
+describe("toActionResult con la base que no responde", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("encuentra el error de la base aunque Drizzle lo envuelva", async () => {
+    vi.spyOn(logger, "warn").mockImplementation(() => undefined);
+    const wrapped = new Error("Failed query: select 1", {
+      cause: new DatabaseUnavailableError({ cause: new Error("Query read timeout") }),
+    });
+
+    const result = await toActionResult(() => Promise.reject(wrapped));
+
+    expect(result).toEqual({
+      ok: false,
+      error: { code: "DATABASE_UNAVAILABLE", message: "No pudimos guardar el cambio. Probá de nuevo." },
+    });
+  });
+
+  it("registra la caída como aviso y no como error interno", async () => {
+    const warn = vi.spyOn(logger, "warn").mockImplementation(() => undefined);
+    const error = vi.spyOn(logger, "error").mockImplementation(() => undefined);
+
+    await toActionResult(() => Promise.reject(new DatabaseUnavailableError()));
+
+    expect(warn).toHaveBeenCalledOnce();
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it("reconoce el error de la base aunque venga de otra copia del módulo, como pasa entre bundles de Next", async () => {
+    vi.spyOn(logger, "warn").mockImplementation(() => undefined);
+    vi.resetModules();
+    const otherCopy = await import("@/shared/app-error");
+    const fromOtherBundle = new otherCopy.DatabaseUnavailableError();
+
+    const result = await toActionResult(() => Promise.reject(new Error("Failed query", { cause: fromOtherBundle })));
+
+    expect(fromOtherBundle).not.toBeInstanceOf(DatabaseUnavailableError);
+    expect(result).toEqual({
+      ok: false,
+      error: { code: "DATABASE_UNAVAILABLE", message: "No pudimos guardar el cambio. Probá de nuevo." },
+    });
+  });
+
+  it("sigue dando el mensaje genérico si lo envuelto no es un error de la app", async () => {
+    vi.spyOn(logger, "error").mockImplementation(() => undefined);
+    const wrapped = new Error("Failed query", { cause: new Error("syntax error at or near") });
+
+    const result = await toActionResult(() => Promise.reject(wrapped));
 
     expect(result).toEqual({
       ok: false,

@@ -1,4 +1,4 @@
-// Cada etapa suma lo que usa: las sesiones llegan con `06-diario-y-estados-propios`.
+// Cada etapa suma lo que usa: las sesiones llegan con `07-diario-y-estados-propios`.
 export const JOURNAL_ENTRY_KINDS = ["status_change"] as const;
 
 export type JournalEntryKind = (typeof JOURNAL_ENTRY_KINDS)[number];

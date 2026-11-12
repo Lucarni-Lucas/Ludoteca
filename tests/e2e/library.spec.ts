@@ -1,7 +1,16 @@
 import { expect, test } from "@playwright/test";
 
 import { expectTabOrderAndVisibleFocus, measureInteractive } from "./support/accessibility.ts";
-import { addCopy, addFromIgdb, gameCard, openManualForm, resultRow, searchBox } from "./support/library.ts";
+import {
+  addCopy,
+  addFromIgdb,
+  gameCard,
+  openIgdbForm,
+  openManualForm,
+  resultRow,
+  saveIgdbForm,
+  searchBox,
+} from "./support/library.ts";
 import { signInAsNewAccount } from "./support/session.ts";
 
 const MIN_TOUCH_TARGET_PX = 44;
@@ -249,7 +258,7 @@ test.describe("accesibilidad de las pantallas con datos", () => {
     await page.goto(gamePath);
 
     for (const opener of ["Cambiar estado", "Agregar otra copia", "Ya no lo tengo", "Quitar de la biblioteca"]) {
-      await page.getByRole("button", { name: opener }).click();
+      await page.getByRole("button", { name: opener, exact: true }).click();
       const dialog = page.getByRole("dialog");
       await expect(dialog).toBeVisible();
 
@@ -269,5 +278,59 @@ test.describe("accesibilidad de las pantallas con datos", () => {
       await page.keyboard.press("Escape");
       await expect(dialog).toBeHidden();
     }
+  });
+});
+
+test.describe("agregar con copias y puntaje", () => {
+  const CIVILIZATION = "Sid Meier's Civilization VI";
+
+  test("Agregar con dos copias", async ({ page }) => {
+    await signInAsNewAccount(page);
+    const dialog = await openIgdbForm(page, "sid meier", CIVILIZATION);
+    await dialog.getByRole("button", { name: "Agregar una copia" }).click();
+    const first = dialog.getByRole("group", { name: "Copia 1" });
+    await first.getByRole("combobox", { name: "Tienda" }).selectOption({ label: "Epic Games" });
+    await first.getByRole("button", { name: "Gratis", exact: true }).click();
+    await dialog.getByRole("button", { name: "Agregar otra copia" }).click();
+    await dialog.getByRole("group", { name: "Copia 2" }).getByRole("combobox", { name: "Tienda" }).selectOption({ label: "Steam" });
+
+    await saveIgdbForm(page, dialog, CIVILIZATION);
+
+    await page.goto("/library");
+    const card = gameCard(page, CIVILIZATION);
+    await expect(card.getByText("Epic Games · Gratis")).toBeVisible();
+    await expect(card.getByText("Steam", { exact: true })).toBeVisible();
+    await expect(card.getByText("Pendiente")).toBeVisible();
+  });
+
+  test("Agregar con puntaje", async ({ page }) => {
+    await signInAsNewAccount(page);
+    const dialog = await openIgdbForm(page, "hades", "Hades");
+    await dialog.getByRole("textbox", { name: "Puntaje" }).fill("9.5");
+
+    const gamePath = await saveIgdbForm(page, dialog, "Hades");
+
+    await page.goto(gamePath);
+    await expect(page.getByRole("textbox", { name: "Puntaje" })).toHaveValue("9.5");
+  });
+
+  test("la ventana de alta cumple la zona táctil y no se sale de la pantalla", { tag: "@mobile" }, async ({ page }) => {
+    await signInAsNewAccount(page);
+    await page.setViewportSize(NARROW_VIEWPORT);
+    const dialog = await openIgdbForm(page, "hades", "Hades");
+    await dialog.getByRole("button", { name: "Agregar una copia" }).click();
+    await dialog.getByRole("button", { name: "Otro", exact: true }).click();
+
+    const boxes = await dialog.locator("a:visible, button:visible, input:visible, select:visible").evaluateAll((elements) =>
+      elements.map((element) => {
+        const { left, right, width, height } = element.getBoundingClientRect();
+        return { label: element.getAttribute("aria-label") ?? element.textContent ?? "", left, right, width, height };
+      }),
+    );
+    const tooSmall = boxes.filter(({ width, height }) => width < MIN_TOUCH_TARGET_PX || height < MIN_TOUCH_TARGET_PX);
+    const outside = boxes.filter(({ left, right }) => left < 0 || right > NARROW_VIEWPORT.width);
+
+    expect(tooSmall).toEqual([]);
+    expect(outside).toEqual([]);
   });
 });

@@ -1,31 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useId, useState } from "react";
 
-import { CopyKindPicker } from "@/components/copy/CopyKindPicker";
-import { OTHER_STORE, StoreSelect } from "@/components/copy/StoreSelect";
+import { CopyRowsEditor } from "@/components/copy/CopyRowsEditor";
 import { StatusSelect } from "@/components/status/StatusSelect";
 import controls from "@/components/ui/controls.module.css";
-import type { CopyKind } from "@/model/copy/copy";
+import { HELP } from "@/components/ui/help-texts";
+import { HelpTip } from "@/components/ui/HelpTip";
+import { type EntryValues, useEntryForm } from "@/hooks/use-entry-form";
 import type { StatusGroupView } from "@/model/status/status";
 import type { Store } from "@/model/store/store";
 
 import { CoverField } from "./CoverField";
 import styles from "./ManualGameForm.module.css";
+import { ScoreInput } from "./ScoreInput";
 
-export type ManualGameValues = Readonly<{
-  title: string;
-  coverUrl: string;
-  pageUrl: string;
-  storeId: string;
-  otherStoreName: string;
-  kind: CopyKind | null;
-  familyOwner: string;
-  year: string;
-  estimatedHours: string;
-  statusId: string;
-}>;
+export type ManualGameValues = EntryValues &
+  Readonly<{
+    title: string;
+    coverUrl: string;
+    pageUrl: string;
+    year: string;
+    estimatedHours: string;
+  }>;
 
 type ManualGameFormProps = Readonly<{
   stores: readonly Store[];
@@ -51,13 +49,10 @@ export function ManualGameForm({
   const [title, setTitle] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [pageUrl, setPageUrl] = useState("");
-  const [storeId, setStoreId] = useState("");
-  const [otherStoreName, setOtherStoreName] = useState("");
-  const [kind, setKind] = useState<CopyKind | null>(null);
-  const [familyOwner, setFamilyOwner] = useState("");
   const [year, setYear] = useState("");
   const [estimatedHours, setEstimatedHours] = useState("");
-  const [statusId, setStatusId] = useState("");
+  const entry = useEntryForm();
+  const yearId = useId();
 
   async function handleUpload(file: File): Promise<void> {
     const url = await onUploadCover(file);
@@ -69,18 +64,7 @@ export function ManualGameForm({
 
   function handleSubmit(event: FormEvent): void {
     event.preventDefault();
-    onSubmit({
-      title,
-      coverUrl,
-      pageUrl,
-      storeId: storeId === OTHER_STORE ? "" : storeId,
-      otherStoreName: storeId === OTHER_STORE ? otherStoreName : "",
-      kind,
-      familyOwner,
-      year,
-      estimatedHours,
-      statusId,
-    });
+    onSubmit({ title, coverUrl, pageUrl, year, estimatedHours, ...entry.values() });
   }
 
   return (
@@ -104,54 +88,41 @@ export function ManualGameForm({
         />
       </label>
 
-      <div className={styles.twoColumns}>
-        <div className={styles.column}>
-          <StoreSelect
-            label="Dónde lo tenés"
-            stores={stores}
-            value={storeId}
-            otherName={otherStoreName}
-            onChange={setStoreId}
-            onOtherNameChange={setOtherStoreName}
-          />
-        </div>
-        <label className={controls.field}>
-          Link a la página del juego
-          <input
-            className={controls.input}
-            type="url"
-            placeholder="https://…"
-            value={pageUrl}
-            onChange={(event) => setPageUrl(event.target.value)}
-          />
-        </label>
-      </div>
+      <label className={controls.field}>
+        Link a la página del juego
+        <input
+          className={controls.input}
+          type="url"
+          placeholder="opcional"
+          value={pageUrl}
+          onChange={(event) => setPageUrl(event.target.value)}
+        />
+      </label>
 
-      <CopyKindPicker value={kind} onChange={setKind} allowNone />
-
-      {kind === "family" ? (
-        <label className={controls.field}>
-          De quién es
-          <input
-            className={controls.input}
-            type="text"
-            value={familyOwner}
-            onChange={(event) => setFamilyOwner(event.target.value)}
-          />
-        </label>
-      ) : null}
+      <CopyRowsEditor
+        stores={stores}
+        rows={entry.copyRows.rows}
+        onAdd={entry.copyRows.add}
+        onChange={entry.copyRows.update}
+        onRemove={entry.copyRows.remove}
+      />
 
       <div className={styles.threeColumns}>
-        <label className={controls.field}>
-          Año
+        <div className={controls.field}>
+          <span className={styles.labelWithHelp}>
+            <label htmlFor={yearId}>Año de lanzamiento</label>
+            <HelpTip help={HELP.releaseYear} />
+          </span>
           <input
+            id={yearId}
             className={`${controls.input} ${controls.number}`}
             type="number"
             inputMode="numeric"
+            placeholder="opcional"
             value={year}
             onChange={(event) => setYear(event.target.value)}
           />
-        </label>
+        </div>
         <label className={controls.field}>
           Duración (h)
           <input
@@ -166,9 +137,16 @@ export function ManualGameForm({
         </label>
         <label className={`${controls.field} ${styles.status}`}>
           Estado
-          <StatusSelect className={controls.select} groups={statusGroups} value={statusId} onChange={setStatusId} />
+          <StatusSelect
+            className={controls.select}
+            groups={statusGroups}
+            value={entry.statusId}
+            onChange={entry.setStatusId}
+          />
         </label>
       </div>
+
+      <ScoreInput value={entry.score} onChange={entry.setScore} />
 
       <p className={controls.hint}>
         Queda marcado como «agregado a mano». Si algún día aparece en IGDB, lo podés vincular sin perder tu puntaje ni

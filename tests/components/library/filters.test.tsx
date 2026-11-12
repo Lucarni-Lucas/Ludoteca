@@ -312,3 +312,21 @@ describe("SelectionBar", () => {
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 });
+
+describe("FilterPanel con copias de tipo Otro", () => {
+  it("ofrece el tipo «Otro» en «Cómo lo tenés», con su cantidad", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const games = [
+      buildGame({ id: "a", copies: [buildCopy({ kind: "other", kindDetail: "Regalo" })] }),
+      buildGame({ id: "b", copies: [buildCopy({ kind: "other" })] }),
+    ];
+    render(
+      <FilterPanel filters={NO_FILTERS} counts={countLibraryOptions(games, false)} stores={listStoreOptions(games)} onChange={onChange} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Otro 2" }));
+
+    expect(onChange).toHaveBeenLastCalledWith({ kinds: ["other"] });
+  });
+});

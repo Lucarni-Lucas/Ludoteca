@@ -8,6 +8,9 @@ import { getStatusService } from "@/service/status/instance";
 
 import { GameScreen } from "./game-screen";
 
+// Usa la base: corta mucho antes de los 300 s por defecto de Vercel (design.md §17).
+export const maxDuration = 20;
+
 type GamePageProps = Readonly<{
   params: Promise<{ id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;

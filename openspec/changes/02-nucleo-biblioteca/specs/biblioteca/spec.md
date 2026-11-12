@@ -16,11 +16,15 @@ En pantallas de 768 px o más, el sistema SHALL mostrar la biblioteca como grill
 - **THEN** ve una lista con el título, el estado, las horas y las tiendas de cada juego
 
 ### Requirement: Copias en la tarjeta
-Cada tarjeta SHALL mostrar sus copias como etiquetas: solo la tienda si la copia es Comprado, tienda y tipo en los demás casos, y tachada si ya no la tiene. Un juego en «Quiero jugarlo» sin copias muestra «Sin comprar».
+Cada tarjeta SHALL mostrar sus copias como etiquetas: solo la tienda si la copia es Comprado; tienda y detalle si es Otro con detalle; tienda y tipo en los demás casos; y tachada si ya no la tiene. Un juego en «Quiero jugarlo» sin copias muestra «Sin comprar».
 
 #### Scenario: Copia de suscripción
 - **WHEN** un juego tiene una copia Suscripción en Game Pass
 - **THEN** su etiqueta dice «Game Pass · Suscripción»
+
+#### Scenario: Copia de otro tipo
+- **WHEN** Celeste tiene una copia Otro en Steam con el detalle «Regalo»
+- **THEN** su etiqueta dice «Steam · Regalo»
 
 #### Scenario: Juego sin copias
 - **WHEN** un juego en «Quiero jugarlo» no tiene copias
@@ -85,7 +89,11 @@ El sistema SHALL filtrar por puntaje con «desde» y «hasta» entre 0.0 y 10.0.
 - **THEN** ve solo los juegos con puntaje de 9.0 o más
 
 ### Requirement: Filtro por tienda y por tipo de copia
-El sistema SHALL filtrar por tienda y por tipo de copia (Comprado, Gratis, Suscripción, Familia, Físico, Ya no lo tengo), con selección múltiple y la cantidad de juegos de cada opción.
+El sistema SHALL filtrar por tienda y por tipo de copia (Comprado, Gratis, Suscripción, Familia, Físico, Otro, Ya no lo tengo), con selección múltiple y la cantidad de juegos de cada opción.
+
+#### Scenario: Tipo Otro
+- **WHEN** el usuario elige el tipo «Otro»
+- **THEN** ve los juegos que tienen al menos una copia de tipo Otro, tengan detalle o no
 
 #### Scenario: Ya no lo tengo
 - **WHEN** el usuario elige el tipo «Ya no lo tengo»

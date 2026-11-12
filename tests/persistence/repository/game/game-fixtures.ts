@@ -66,5 +66,5 @@ export const MANUAL_DATA = {
 };
 
 export function entry(statuses: readonly Status[], name = "Pendiente") {
-  return { statusId: statusNamed(statuses, name).id, statusSince: TODAY, copy: null };
+  return { statusId: statusNamed(statuses, name).id, statusSince: TODAY, copies: [], score: null };
 }

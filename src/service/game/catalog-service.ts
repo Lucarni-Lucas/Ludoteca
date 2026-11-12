@@ -1,5 +1,4 @@
-import type { CopyKind } from "@/model/copy/copy";
-import { buildNewCopy, type NewCopy } from "@/model/copy/new-copy";
+import { buildNewCopy, type CopyRow, type NewCopy, validateCopyRows, type ValidCopyRow } from "@/model/copy/new-copy";
 import {
   type AddGameResult,
   markSearchResults,
@@ -10,21 +9,30 @@ import {
 import type { CatalogGameData, IgdbGameData, IgdbSearchResult } from "@/model/game/catalog";
 import { GameNotFoundError } from "@/model/game/errors";
 import { resolveInitialStatus } from "@/model/game/initial-status";
+import { validateReleaseYear } from "@/model/game/release-year";
+import { normalizeOptionalScore } from "@/model/game/score";
 import type { Status } from "@/model/status/status";
 import type { StoreChoice, StoreResolver } from "@/service/copy/store-resolver";
 
-export type ManualGameInput = Readonly<{
-  title: string;
-  year: number | null;
-  estimatedHours: number | null;
-  coverUrl: string | null;
-  pageUrl: string | null;
+export type NewCopyInput = CopyRow<StoreChoice>;
+
+/** Lo que tienen en común las dos variantes del formulario de alta: copias, estado y puntaje. */
+export type LibraryEntryInput = Readonly<{
   statusId: string | null;
-  store: StoreChoice | null;
-  kind: CopyKind | null;
-  acquiredOn: string | null;
-  familyOwner: string | null;
+  copies: readonly NewCopyInput[];
+  score: number | null;
 }>;
+
+export const EMPTY_ENTRY_INPUT: LibraryEntryInput = { statusId: null, copies: [], score: null };
+
+export type ManualGameInput = LibraryEntryInput &
+  Readonly<{
+    title: string;
+    year: number | null;
+    estimatedHours: number | null;
+    coverUrl: string | null;
+    pageUrl: string | null;
+  }>;
 
 type CatalogServiceDependencies = Readonly<{
   igdb: Readonly<{
@@ -43,9 +51,20 @@ type CatalogServiceDependencies = Readonly<{
 
 export type CatalogService = Readonly<{
   search(userId: string, text: string, signal?: AbortSignal): Promise<readonly MarkedSearchResult[]>;
-  addFromIgdb(userId: string, igdbId: number): Promise<AddGameResult>;
+  addFromIgdb(userId: string, igdbId: number, input: LibraryEntryInput): Promise<AddGameResult>;
   addManual(userId: string, input: ManualGameInput): Promise<string>;
 }>;
+
+type ValidEntry = Readonly<{
+  statusId: string | null;
+  rows: readonly ValidCopyRow<StoreChoice>[];
+  score: number | null;
+}>;
+
+/** Todo lo que se puede rechazar sin tocar la base va primero: así un error no deja una tienda «Otra» creada. */
+function validateEntry(input: LibraryEntryInput): ValidEntry {
+  return { statusId: input.statusId, rows: validateCopyRows(input.copies), score: normalizeOptionalScore(input.score) };
+}
 
 export function createCatalogService({
   igdb,
@@ -54,14 +73,25 @@ export function createCatalogService({
   storeResolver,
   clock,
 }: CatalogServiceDependencies): CatalogService {
-  /** Una copia necesita tienda y tipo: con uno solo de los dos no hay nada que guardar. */
-  async function resolveManualCopy(userId: string, input: ManualGameInput): Promise<NewCopy | null> {
-    if (input.store === null || input.kind === null) {
-      return null;
+  /** De a una: dos filas con la misma tienda «Otra» la crean una sola vez. */
+  async function resolveCopies(userId: string, rows: readonly ValidCopyRow<StoreChoice>[]): Promise<NewCopy[]> {
+    const copies: NewCopy[] = [];
+
+    for (const row of rows) {
+      const store = await storeResolver.resolve(userId, row.store);
+      copies.push(buildNewCopy(store.id, row));
     }
 
-    const store = await storeResolver.resolve(userId, input.store);
-    return buildNewCopy(store.id, { kind: input.kind, acquiredOn: input.acquiredOn, familyOwner: input.familyOwner });
+    return copies;
+  }
+
+  async function resolveEntry(userId: string, entry: ValidEntry, today: string): Promise<NewLibraryEntry> {
+    const statuses = await statusService.listStatuses(userId);
+    // El estado va antes que las tiendas: uno ajeno frena el alta sin crear nada.
+    const status = resolveInitialStatus(statuses, { chosenStatusId: entry.statusId, hasCopy: entry.rows.length > 0 });
+    const copies = await resolveCopies(userId, entry.rows);
+
+    return { statusId: status.id, statusSince: today, copies, score: entry.score };
   }
 
   return {
@@ -72,36 +102,34 @@ export function createCatalogService({
       return markSearchResults(results, owned);
     },
 
-    async addFromIgdb(userId, igdbId) {
+    async addFromIgdb(userId, igdbId, input) {
+      const entry = validateEntry(input);
       const data = await igdb.getGame(igdbId);
 
       if (!data) {
         throw new GameNotFoundError();
       }
 
-      const statuses = await statusService.listStatuses(userId);
-      const status = resolveInitialStatus(statuses, { chosenStatusId: null, hasCopy: false });
-
-      return gameRepo.addIgdbGame(userId, data, { statusId: status.id, statusSince: clock.today(), copy: null });
+      return gameRepo.addIgdbGame(userId, data, await resolveEntry(userId, entry, clock.today()));
     },
 
     async addManual(userId, input) {
-      const copy = await resolveManualCopy(userId, input);
-      const statuses = await statusService.listStatuses(userId);
-      const status = resolveInitialStatus(statuses, { chosenStatusId: input.statusId, hasCopy: copy !== null });
+      const today = clock.today();
+      const year = validateReleaseYear(input.year, today);
+      const entry = validateEntry(input);
 
       return gameRepo.addManualGame(
         userId,
         {
           title: input.title,
-          year: input.year,
+          year,
           developer: null,
           coverUrl: input.coverUrl,
           pageUrl: input.pageUrl,
           estimatedHours: input.estimatedHours,
           endless: false,
         },
-        { statusId: status.id, statusSince: clock.today(), copy },
+        await resolveEntry(userId, entry, today),
       );
     },
   };

@@ -147,6 +147,10 @@
 
   /* Medidas */
   --touch-target: 44px;
+  --help-mark-size: 20px;
+  /* El círculo del input nativo de Chromium que usan los lienzos. */
+  --score-thumb-size: 16px;
+  --help-popover-max-width: 320px;
   --status-badge-height: 24px;
   --bottom-nav-item-height: 52px;
   --bottom-nav-clearance: 96px;

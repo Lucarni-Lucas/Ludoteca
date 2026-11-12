@@ -164,3 +164,41 @@ describe("marcar «Ya no lo tengo»", () => {
     expect(copyRepo.recover).toHaveBeenCalledWith(USER_ID, "copia");
   });
 });
+
+describe("addCopy de tipo Otro", () => {
+  const GIFT = { store: { storeId: "steam" }, kind: "other" as const, acquiredOn: null, familyOwner: null, kindDetail: "Regalo" };
+
+  it("Regalo de un juego deseado", async () => {
+    const game = buildGame({ id: "silksong", title: "Hollow Knight: Silksong", status: statusByKey("wishlist") });
+    const { service, copyRepo } = buildService([game]);
+
+    const result = await service.addCopy(USER_ID, "silksong", GIFT);
+
+    expect(result.notice).toBe("Hollow Knight: Silksong pasó a «Pendiente»");
+    expect((copyRepo.addCopy.mock.calls[0] as unknown[])[2]).toMatchObject({ kind: "other", kindDetail: "Regalo" });
+    expect((copyRepo.addCopy.mock.calls[0] as unknown[])[3]).toMatchObject({ statusId: "backlog" });
+  });
+
+  it("Otro sin detalle", async () => {
+    const { service, copyRepo } = buildService();
+
+    await service.addCopy(USER_ID, "juego", { ...GIFT, kindDetail: null });
+
+    expect(copyRepo.addCopy).toHaveBeenCalledWith(
+      USER_ID,
+      "juego",
+      { storeId: "steam", kind: "other", acquiredOn: null, familyOwner: null },
+      null,
+    );
+  });
+
+  it("Detalle demasiado largo", async () => {
+    const { service, copyRepo, storeRepo } = buildService();
+
+    const adding = service.addCopy(USER_ID, "juego", { ...GIFT, store: { otherName: "Humble Store" }, kindDetail: "a".repeat(41) });
+
+    await expect(adding).rejects.toThrow("El detalle puede tener hasta 40 caracteres");
+    expect(copyRepo.addCopy).not.toHaveBeenCalled();
+    expect(storeRepo.insertOwn).not.toHaveBeenCalled();
+  });
+});

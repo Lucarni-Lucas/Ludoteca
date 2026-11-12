@@ -4,19 +4,6 @@
   gap: var(--space-22);
 }
 
-.twoColumns {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
-  gap: var(--space-12);
-}
-
-.column {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-  min-width: 0;
-}
-
 .threeColumns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -58,4 +45,10 @@
   .status {
     grid-column: auto;
   }
+}
+
+.labelWithHelp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
 }

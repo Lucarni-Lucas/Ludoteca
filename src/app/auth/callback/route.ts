@@ -5,6 +5,9 @@ import { getAccountService } from "@/service/account/instance";
 
 import { resolveAuthCallback } from "./resolve-auth-callback";
 
+// Usa la base: corta mucho antes de los 300 s por defecto de Vercel (design.md §17).
+export const maxDuration = 20;
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const location = await resolveAuthCallback(request.nextUrl.searchParams, {
     exchangeCode: completeCodeExchange,

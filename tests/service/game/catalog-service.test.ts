@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { GameNotFoundError } from "@/model/game/errors";
+import { GameNotFoundError, ScoreOutOfRangeError } from "@/model/game/errors";
 import { StatusNotFoundError } from "@/model/status/errors";
 import { StoreNotFoundError } from "@/model/store/errors";
-import { createCatalogService, type ManualGameInput } from "@/service/game/catalog-service";
+import {
+  createCatalogService,
+  EMPTY_ENTRY_INPUT,
+  type ManualGameInput,
+  type NewCopyInput,
+} from "@/service/game/catalog-service";
 
 import {
   clock,
@@ -37,12 +42,12 @@ const MANUAL: ManualGameInput = {
   estimatedHours: null,
   coverUrl: null,
   pageUrl: null,
-  statusId: null,
-  store: null,
-  kind: null,
-  acquiredOn: null,
-  familyOwner: null,
+  ...EMPTY_ENTRY_INPUT,
 };
+
+function copyRow(store: NewCopyInput["store"], kind: NewCopyInput["kind"]): NewCopyInput {
+  return { store, kind, acquiredOn: null, familyOwner: null };
+}
 
 describe("search", () => {
   it("Otro usuario busca el juego", async () => {
@@ -100,12 +105,13 @@ describe("addFromIgdb", () => {
     const gameRepo = createFakeGameRepo();
     const service = buildService({ igdb, gameRepo });
 
-    await service.addFromIgdb(USER_ID, 1);
+    await service.addFromIgdb(USER_ID, 1, EMPTY_ENTRY_INPUT);
 
     expect(gameRepo.addIgdbGame).toHaveBeenCalledWith(USER_ID, igdbData(1, "Hades"), {
       statusId: "wishlist",
       statusSince: TODAY,
-      copy: null,
+      copies: [],
+      score: null,
     });
   });
 
@@ -115,7 +121,7 @@ describe("addFromIgdb", () => {
     gameRepo.addIgdbGame.mockResolvedValue({ kind: "already_in_library", gameId: "civ" });
     const service = buildService({ igdb, gameRepo });
 
-    const result = await service.addFromIgdb(USER_ID, 1);
+    const result = await service.addFromIgdb(USER_ID, 1, EMPTY_ENTRY_INPUT);
 
     expect(result).toEqual({ kind: "already_in_library", gameId: "civ" });
   });
@@ -126,7 +132,7 @@ describe("addFromIgdb", () => {
     const gameRepo = createFakeGameRepo();
     const service = buildService({ igdb, gameRepo });
 
-    await service.addFromIgdb(USER_ID, 7);
+    await service.addFromIgdb(USER_ID, 7, EMPTY_ENTRY_INPUT);
 
     expect(gameRepo.addIgdbGame.mock.calls[0][1]).toMatchObject({ igdbId: 42, title: "Civilization VI" });
   });
@@ -134,7 +140,7 @@ describe("addFromIgdb", () => {
   it("rechaza un juego que IGDB no encuentra", async () => {
     const service = buildService();
 
-    const add = service.addFromIgdb(USER_ID, 999);
+    const add = service.addFromIgdb(USER_ID, 999, EMPTY_ENTRY_INPUT);
 
     await expect(add).rejects.toBeInstanceOf(GameNotFoundError);
   });
@@ -145,12 +151,13 @@ describe("addManual", () => {
     const gameRepo = createFakeGameRepo();
     const service = buildService({ gameRepo });
 
-    await service.addManual(USER_ID, { ...MANUAL, store: { storeId: "itch" }, kind: "free" });
+    await service.addManual(USER_ID, { ...MANUAL, copies: [copyRow({ storeId: "itch" }, "free")] });
 
     expect(gameRepo.addManualGame.mock.calls[0][2]).toEqual({
       statusId: "backlog",
       statusSince: TODAY,
-      copy: { storeId: "itch", kind: "free", acquiredOn: null, familyOwner: null },
+      copies: [{ storeId: "itch", kind: "free", acquiredOn: null, familyOwner: null }],
+      score: null,
     });
   });
 
@@ -161,19 +168,7 @@ describe("addManual", () => {
     await service.addManual(USER_ID, MANUAL);
 
     expect(gameRepo.addManualGame.mock.calls[0][2].statusId).toBe("wishlist");
-    expect(gameRepo.addManualGame.mock.calls[0][2].copy).toBeNull();
-  });
-
-  it.each([
-    { description: "tienda sin tipo", partial: { store: { storeId: "itch" } } },
-    { description: "tipo sin tienda", partial: { kind: "free" as const } },
-  ])("con $description no crea una copia", async ({ partial }) => {
-    const gameRepo = createFakeGameRepo();
-    const service = buildService({ gameRepo });
-
-    await service.addManual(USER_ID, { ...MANUAL, ...partial });
-
-    expect(gameRepo.addManualGame.mock.calls[0][2].copy).toBeNull();
+    expect(gameRepo.addManualGame.mock.calls[0][2].copies).toEqual([]);
   });
 
   it("con tienda «Otra» crea la tienda propia", async () => {
@@ -181,10 +176,10 @@ describe("addManual", () => {
     const gameRepo = createFakeGameRepo();
     const service = buildService({ gameRepo, storeResolver: fakeStoreResolver(storeRepo) });
 
-    await service.addManual(USER_ID, { ...MANUAL, store: { otherName: "Humble Store" }, kind: "purchased" });
+    await service.addManual(USER_ID, { ...MANUAL, copies: [copyRow({ otherName: "Humble Store" }, "purchased")] });
 
     expect(storeRepo.insertOwn).toHaveBeenCalledWith(USER_ID, "Humble Store", "humble-store");
-    expect(gameRepo.addManualGame.mock.calls[0][2].copy?.storeId).toBe("propia-humble-store");
+    expect(gameRepo.addManualGame.mock.calls[0][2].copies[0]?.storeId).toBe("propia-humble-store");
   });
 
   it("respeta el estado elegido", async () => {
@@ -207,8 +202,139 @@ describe("addManual", () => {
   it("rechaza una tienda ajena", async () => {
     const service = buildService();
 
-    const add = service.addManual(USER_ID, { ...MANUAL, store: { storeId: "ajena" }, kind: "free" });
+    const add = service.addManual(USER_ID, { ...MANUAL, copies: [copyRow({ storeId: "ajena" }, "free")] });
 
     await expect(add).rejects.toBeInstanceOf(StoreNotFoundError);
+  });
+});
+
+describe("addManual con el año de lanzamiento", () => {
+  it("Año negativo", async () => {
+    const storeRepo = createFakeStoreRepo();
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ gameRepo, storeResolver: fakeStoreResolver(storeRepo) });
+
+    const add = service.addManual(USER_ID, {
+      ...MANUAL,
+      year: -2017,
+      copies: [copyRow({ otherName: "Humble Store" }, "purchased")],
+    });
+
+    await expect(add).rejects.toThrow("Poné un año entre 1950 y 2027");
+    expect(gameRepo.addManualGame).not.toHaveBeenCalled();
+    expect(storeRepo.insertOwn).not.toHaveBeenCalled();
+  });
+
+  it("Año que viene", async () => {
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ gameRepo });
+
+    await service.addManual(USER_ID, { ...MANUAL, year: 2027 });
+
+    expect(gameRepo.addManualGame.mock.calls[0][1].year).toBe(2027);
+  });
+
+  it("Sin año", async () => {
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ gameRepo });
+
+    await service.addManual(USER_ID, MANUAL);
+
+    expect(gameRepo.addManualGame.mock.calls[0][1].year).toBeNull();
+  });
+});
+
+describe("agregar con varias copias y puntaje", () => {
+  it("Agregar con dos copias", async () => {
+    const igdb = createFakeIgdb([], new Map([[1, igdbData(1, "Civilization VI")]]));
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ igdb, gameRepo });
+    const copies = [copyRow({ storeId: "itch" }, "free"), copyRow({ storeId: "steam" }, "purchased")];
+
+    await service.addFromIgdb(USER_ID, 1, { ...EMPTY_ENTRY_INPUT, copies });
+
+    const entry = gameRepo.addIgdbGame.mock.calls[0][2];
+    expect(entry.statusId).toBe("backlog");
+    expect(entry.copies).toEqual([
+      { storeId: "itch", kind: "free", acquiredOn: null, familyOwner: null },
+      { storeId: "steam", kind: "purchased", acquiredOn: null, familyOwner: null },
+    ]);
+  });
+
+  it("Sin copias", async () => {
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ gameRepo });
+
+    await service.addManual(USER_ID, { ...MANUAL, copies: [] });
+
+    expect(gameRepo.addManualGame.mock.calls[0][2].copies).toEqual([]);
+  });
+
+  it("Fila incompleta", async () => {
+    const storeRepo = createFakeStoreRepo();
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ gameRepo, storeResolver: fakeStoreResolver(storeRepo) });
+    const copies = [copyRow({ otherName: "Humble Store" }, "purchased"), copyRow(null, "free")];
+
+    const add = service.addManual(USER_ID, { ...MANUAL, copies });
+
+    await expect(add).rejects.toThrow("Elegí la tienda de cada copia");
+    expect(gameRepo.addManualGame).not.toHaveBeenCalled();
+    expect(storeRepo.insertOwn).not.toHaveBeenCalled();
+  });
+
+  it("dos filas con la misma tienda «Otra» la crean una sola vez", async () => {
+    const storeRepo = createFakeStoreRepo();
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ gameRepo, storeResolver: fakeStoreResolver(storeRepo) });
+    const copies = [copyRow({ otherName: "Humble Store" }, "purchased"), copyRow({ otherName: "humble store" }, "free")];
+
+    await service.addManual(USER_ID, { ...MANUAL, copies });
+
+    expect(storeRepo.insertOwn).toHaveBeenCalledTimes(1);
+    expect(gameRepo.addManualGame.mock.calls[0][2].copies.map(({ storeId }) => storeId)).toEqual([
+      "propia-humble-store",
+      "propia-humble-store",
+    ]);
+  });
+
+  it("Agregar con puntaje", async () => {
+    const igdb = createFakeIgdb([], new Map([[1, igdbData(1, "Hades")]]));
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ igdb, gameRepo });
+
+    await service.addFromIgdb(USER_ID, 1, { ...EMPTY_ENTRY_INPUT, score: 9.5 });
+
+    expect(gameRepo.addIgdbGame.mock.calls[0][2].score).toBe(9.5);
+  });
+
+  it("Agregar sin tocar el puntaje", async () => {
+    const igdb = createFakeIgdb([], new Map([[1, igdbData(1, "Outer Wilds")]]));
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ igdb, gameRepo });
+
+    await service.addFromIgdb(USER_ID, 1, EMPTY_ENTRY_INPUT);
+
+    expect(gameRepo.addIgdbGame.mock.calls[0][2].score).toBeNull();
+  });
+
+  it("rechaza un puntaje fuera de rango sin consultar IGDB", async () => {
+    const igdb = createFakeIgdb([], new Map([[1, igdbData(1, "Hades")]]));
+    const service = buildService({ igdb });
+
+    const add = service.addFromIgdb(USER_ID, 1, { ...EMPTY_ENTRY_INPUT, score: 11 });
+
+    await expect(add).rejects.toBeInstanceOf(ScoreOutOfRangeError);
+    expect(igdb.getGame).not.toHaveBeenCalled();
+  });
+
+  it("guarda el detalle de una copia Otro", async () => {
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ gameRepo });
+    const gift = { ...copyRow({ storeId: "steam" }, "other"), kindDetail: "Regalo" };
+
+    await service.addManual(USER_ID, { ...MANUAL, copies: [gift] });
+
+    expect(gameRepo.addManualGame.mock.calls[0][2].copies[0]).toMatchObject({ kind: "other", kindDetail: "Regalo" });
   });
 });

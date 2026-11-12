@@ -4,19 +4,11 @@ import { useState } from "react";
 
 import controls from "@/components/ui/controls.module.css";
 import { Modal } from "@/components/ui/Modal";
-import type { CopyKind } from "@/model/copy/copy";
 import type { Store } from "@/model/store/store";
 
-import { CopyKindPicker } from "./CopyKindPicker";
-import { OTHER_STORE, StoreSelect } from "./StoreSelect";
+import { type CopyRowDraft, CopyRowFields, EMPTY_COPY_ROW, toCopyRowValues } from "./CopyRowFields";
 
-export type NewCopyValues = Readonly<{
-  storeId: string;
-  otherStoreName: string;
-  kind: CopyKind;
-  acquiredOn: string;
-  familyOwner: string;
-}>;
+export type NewCopyValues = CopyRowDraft & Readonly<{ acquiredOn: string }>;
 
 type CopyDialogProps = Readonly<{
   open: boolean;
@@ -28,21 +20,8 @@ type CopyDialogProps = Readonly<{
 }>;
 
 export function CopyDialog({ open, onOpenChange, stores, pending, errorMessage, onSave }: CopyDialogProps) {
-  const [storeId, setStoreId] = useState("");
-  const [otherStoreName, setOtherStoreName] = useState("");
-  const [kind, setKind] = useState<CopyKind>("purchased");
+  const [row, setRow] = useState<CopyRowDraft>(EMPTY_COPY_ROW);
   const [acquiredOn, setAcquiredOn] = useState("");
-  const [familyOwner, setFamilyOwner] = useState("");
-
-  function save(): void {
-    onSave({
-      storeId: storeId === OTHER_STORE ? "" : storeId,
-      otherStoreName: storeId === OTHER_STORE ? otherStoreName : "",
-      kind,
-      acquiredOn,
-      familyOwner,
-    });
-  }
 
   return (
     <Modal
@@ -54,32 +33,18 @@ export function CopyDialog({ open, onOpenChange, stores, pending, errorMessage, 
           <button type="button" className={controls.secondary} onClick={() => onOpenChange(false)}>
             Cancelar
           </button>
-          <button type="button" className={controls.primary} disabled={pending} onClick={save}>
+          <button
+            type="button"
+            className={controls.primary}
+            disabled={pending}
+            onClick={() => onSave({ ...toCopyRowValues(row), acquiredOn })}
+          >
             Guardar copia
           </button>
         </>
       }
     >
-      <StoreSelect
-        label="Tienda"
-        stores={stores}
-        value={storeId}
-        otherName={otherStoreName}
-        onChange={setStoreId}
-        onOtherNameChange={setOtherStoreName}
-      />
-      <CopyKindPicker value={kind} onChange={(next) => setKind(next ?? "purchased")} />
-      {kind === "family" ? (
-        <label className={controls.field}>
-          De quién es
-          <input
-            className={controls.input}
-            type="text"
-            value={familyOwner}
-            onChange={(event) => setFamilyOwner(event.target.value)}
-          />
-        </label>
-      ) : null}
+      <CopyRowFields stores={stores} value={row} onChange={(changes) => setRow((current) => ({ ...current, ...changes }))} />
       <label className={controls.field}>
         Cuándo lo conseguiste (opcional)
         <input

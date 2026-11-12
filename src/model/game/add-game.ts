@@ -4,10 +4,12 @@ import { isManual, type LibraryGame } from "@/model/game/library-game";
 import { GameNotFromIgdbError, GameNotManualError } from "@/model/game/errors";
 import { WISHLIST_KEY } from "@/model/status/status";
 
+/** Un juego se agrega entero, con sus copias y su puntaje, en una sola transacción. */
 export type NewLibraryEntry = Readonly<{
   statusId: string;
   statusSince: string;
-  copy: NewCopy | null;
+  copies: readonly NewCopy[];
+  score: number | null;
 }>;
 
 /** «Ya lo tenés» no es un fallo: la pantalla ofrece agregar una copia al juego existente. */

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-const DEFAULT_DATABASE_POOL_MAX = 3;
+// Supavisor reparte estas conexiones: una pantalla trabada no deja sin lugar al resto (design.md §17).
+const DEFAULT_DATABASE_POOL_MAX = 10;
 
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),

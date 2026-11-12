@@ -3,9 +3,10 @@
 import { useState } from "react";
 
 import controls from "@/components/ui/controls.module.css";
+import { HELP } from "@/components/ui/help-texts";
 import { Modal } from "@/components/ui/Modal";
 import { Toggle } from "@/components/ui/Toggle";
-import { effectiveCover, effectiveEndless, type LibraryGame } from "@/model/game/library-game";
+import { effectiveCover, effectiveEndless, formatHours, type LibraryGame } from "@/model/game/library-game";
 
 import { CoverField } from "./CoverField";
 
@@ -80,7 +81,7 @@ export function EditGameDialog({
         onCoverUrlChange={setCoverUrl}
         onUpload={(file) => void handleUpload(file)}
       />
-      <Toggle label="Sin fin" checked={endless} onCheckedChange={setEndless} />
+      <Toggle label="Sin fin" help={HELP.endless} checked={endless} onCheckedChange={setEndless} />
       <label className={controls.field}>
         Duración (h)
         <input
@@ -89,11 +90,14 @@ export function EditGameDialog({
           inputMode="decimal"
           min="0"
           disabled={endless}
-          placeholder={game.catalog.estimatedHours?.toString() ?? "opcional"}
+          placeholder="opcional"
           value={endless ? "" : estimatedHours}
           onChange={(event) => setEstimatedHours(event.target.value)}
         />
       </label>
+      {game.catalog.estimatedHours === null ? null : (
+        <p className={controls.hint}>IGDB: unas {formatHours(game.catalog.estimatedHours)} h</p>
+      )}
       {errorMessage ? <p className={controls.error}>{errorMessage}</p> : null}
     </Modal>
   );

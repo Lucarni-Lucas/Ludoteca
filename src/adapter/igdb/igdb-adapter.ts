@@ -13,6 +13,14 @@ const HTTP_TOO_MANY_REQUESTS = 429;
 const SEARCH_LIMIT = 10;
 // Juegos que se pueden tener: principal, expansión independiente, remake, remaster, expandido y port.
 const OWNABLE_GAME_TYPES = "(0,4,8,9,10,11)";
+// Una edición («Platinum Edition») viene como bundle, pero tiene version_parent: se guarda como su juego base.
+const SEARCH_FILTER = `(game_type = ${OWNABLE_GAME_TYPES} | version_parent != null)`;
+/**
+ * `search` de IGDB busca palabras enteras: con «hol» no encuentra «Hollow Knight» (verificado contra IGDB real).
+ * Hasta este largo se busca por el comienzo del nombre, ordenado por popularidad.
+ */
+const MAX_PREFIX_SEARCH_LENGTH = 3;
+const SEARCH_FIELDS = "fields name,first_release_date,cover.image_id,version_parent;";
 
 const GAME_FIELDS = [
   "name",
@@ -39,6 +47,22 @@ type IgdbAdapterDependencies = Readonly<{
 /** Las comillas del texto no pueden cerrar la consulta de Apicalypse. */
 function escapeSearchText(text: string): string {
   return text.replaceAll("\\", String.raw`\\`).replaceAll('"', String.raw`\"`);
+}
+
+function searchBody(text: string): string {
+  const escaped = escapeSearchText(text);
+  const limit = `limit ${SEARCH_LIMIT};`;
+
+  if (Array.from(text).length <= MAX_PREFIX_SEARCH_LENGTH) {
+    return [
+      SEARCH_FIELDS,
+      `where name ~ "${escaped}"* & ${SEARCH_FILTER};`,
+      "sort total_rating_count desc;",
+      limit,
+    ].join(" ");
+  }
+
+  return [`search "${escaped}";`, SEARCH_FIELDS, `where ${SEARCH_FILTER};`, limit].join(" ");
 }
 
 function toProviderError(error: unknown): Error {
@@ -125,14 +149,7 @@ export function createIgdbAdapter({
 
   return {
     async search(text, signal) {
-      const body = [
-        `search "${escapeSearchText(text)}";`,
-        "fields name,first_release_date,cover.image_id,version_parent;",
-        `where game_type = ${OWNABLE_GAME_TYPES};`,
-        `limit ${SEARCH_LIMIT};`,
-      ].join(" ");
-
-      const games = await query<IgdbSearchGameDto>("games", body, signal);
+      const games = await query<IgdbSearchGameDto>("games", searchBody(text), signal);
       return games.map(toSearchResult);
     },
 

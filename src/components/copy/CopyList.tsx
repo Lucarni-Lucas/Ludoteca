@@ -1,4 +1,6 @@
 import controls from "@/components/ui/controls.module.css";
+import { HELP } from "@/components/ui/help-texts";
+import { HelpTip } from "@/components/ui/HelpTip";
 import { PlusIcon } from "@/components/ui/icons";
 import { type Copy, copyDetailLabel, isLost, LOST_REASON_LABELS } from "@/model/copy/copy";
 import { formatMonthYear } from "@/model/game/date-format";
@@ -53,9 +55,12 @@ export function CopyList({ copies, onAdd, onMarkLost, onRecover, onRemove }: Cop
                 Recuperar
               </button>
             ) : (
-              <button type="button" className={controls.ghost} onClick={() => onMarkLost(copy)}>
-                Ya no lo tengo
-              </button>
+              <>
+                <button type="button" className={controls.ghost} onClick={() => onMarkLost(copy)}>
+                  Ya no lo tengo
+                </button>
+                <HelpTip help={HELP.lost} />
+              </>
             )}
             <button
               type="button"

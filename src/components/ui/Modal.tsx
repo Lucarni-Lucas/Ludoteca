@@ -3,6 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { type ReactNode, useRef } from "react";
 
+import { OPEN_HELP_SELECTOR } from "./HelpTip";
 import { CloseIcon } from "./icons";
 import styles from "./Modal.module.css";
 
@@ -36,12 +37,25 @@ export function Modal({
 }: ModalProps) {
   // Radix solo devuelve el foco a un Dialog.Trigger, y estas ventanas se abren desde afuera.
   const opener = useRef<HTMLElement | null>(null);
+  const content = useRef<HTMLDivElement | null>(null);
+
+  // Radix escucha Escape en todo el documento: con una ayuda «?» abierta, Escape cierra solo la ayuda.
+  function closeOpenHelp(event: KeyboardEvent): void {
+    const help = content.current?.querySelector<HTMLElement>(OPEN_HELP_SELECTOR);
+
+    if (help) {
+      event.preventDefault();
+      help.hidePopover();
+    }
+  }
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className={styles.overlay} />
         <Dialog.Content
+          ref={content}
+          onEscapeKeyDown={closeOpenHelp}
           className={`${styles.content} ${fullScreen ? styles.fullScreen : ""} ${wide ? styles.wide : ""}`}
           onOpenAutoFocus={() => {
             opener.current = document.activeElement as HTMLElement | null;

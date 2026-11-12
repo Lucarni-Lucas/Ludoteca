@@ -11,15 +11,19 @@ import { type ActionFailure, type ActionResult, toActionResult } from "@/shared/
 import { InvalidRequestError } from "@/shared/app-error";
 import { parseInput } from "@/shared/parse-input";
 
-import { type ManualGameFormValues, manualGameInputSchema } from "./manual-game-schema";
+import { type EntryFormValues, entryInputSchema, type ManualGameFormValues, manualGameInputSchema } from "./manual-game-schema";
 
 const igdbIdSchema = z.number().int().positive();
 
-export async function addFromIgdbAction(igdbId: number): Promise<ActionResult<AddGameResult>> {
+export async function addFromIgdbAction(igdbId: number, values: EntryFormValues): Promise<ActionResult<AddGameResult>> {
   const user = await requireSessionUser();
 
   return toActionResult(async () => {
-    const result = await getCatalogService().addFromIgdb(user.id, parseInput(igdbIdSchema, igdbId));
+    const result = await getCatalogService().addFromIgdb(
+      user.id,
+      parseInput(igdbIdSchema, igdbId),
+      parseInput(entryInputSchema, values),
+    );
 
     revalidatePath("/library");
     return result;

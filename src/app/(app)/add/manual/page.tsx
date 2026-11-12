@@ -6,6 +6,9 @@ import { getStatusService } from "@/service/status/instance";
 import { ManualGameSection } from "../manual-game-section";
 import styles from "./page.module.css";
 
+// Usa la base: corta mucho antes de los 300 s por defecto de Vercel (design.md §17).
+export const maxDuration = 20;
+
 export default async function ManualGamePage() {
   const user = await requireSessionUser();
   const [stores, statusGroups] = await Promise.all([

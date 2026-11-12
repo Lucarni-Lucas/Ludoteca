@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
-const INTERACTIVE = ["a:visible", "button:visible", "input:visible", "select:visible"];
+// La barra del puntaje es un span con role="slider": también recibe el foco y se toca.
+const INTERACTIVE = ["a:visible", "button:visible", "input:visible", "select:visible", "[role=\"slider\"]:visible"];
 
 type Box = Readonly<{ label: string; left: number; right: number; width: number; height: number }>;
 

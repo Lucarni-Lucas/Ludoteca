@@ -125,3 +125,52 @@ describe("createCopyRepository", () => {
     expect(game?.copies[0].lostAt).toBeNull();
   });
 });
+
+describe("createCopyRepository con copias de tipo Otro", () => {
+  let database: TestDatabase;
+  let repositories: Repositories;
+  let gameId: string;
+  let storeId: string;
+
+  beforeEach(async () => {
+    database = await createTestDatabase();
+    repositories = createRepositories(database);
+    const statuses = await seedStatuses(repositories, USER_A);
+    ({ gameId } = await repositories.games.addIgdbGame(USER_A, igdbData(2, "Celeste"), entry(statuses)));
+    storeId = (await steamOf(repositories, USER_A)).id;
+  });
+
+  afterEach(async () => {
+    await database.client.close();
+  });
+
+  it("guarda el tipo Otro con su detalle, con la migración nueva", async () => {
+    const gift = { storeId, kind: "other" as const, acquiredOn: null, familyOwner: null, kindDetail: "Regalo" };
+
+    await repositories.copies.addCopy(USER_A, gameId, gift, null);
+
+    const [saved] = (await repositories.games.findById(USER_A, gameId))?.copies ?? [];
+    expect(saved).toMatchObject({ kind: "other", kindDetail: "Regalo" });
+  });
+
+  it("una copia Otro sin detalle no trae detalle", async () => {
+    const other = { storeId, kind: "other" as const, acquiredOn: null, familyOwner: null };
+
+    await repositories.copies.addCopy(USER_A, gameId, other, null);
+
+    const [saved] = (await repositories.games.findById(USER_A, gameId))?.copies ?? [];
+    expect(saved.kind).toBe("other");
+    expect(saved.kindDetail).toBeUndefined();
+  });
+
+  it("marcarla «Ya no lo tengo» conserva su detalle", async () => {
+    const gift = { storeId, kind: "other" as const, acquiredOn: null, familyOwner: null, kindDetail: "Regalo" };
+    await repositories.copies.addCopy(USER_A, gameId, gift, null);
+    const [added] = (await repositories.games.findById(USER_A, gameId))?.copies ?? [];
+
+    await repositories.copies.markLost(USER_A, added.id, markCopyLost(TODAY, "other"));
+
+    const [lost] = (await repositories.games.findById(USER_A, gameId))?.copies ?? [];
+    expect(lost).toMatchObject({ kind: "other", kindDetail: "Regalo", lostAt: TODAY, lostReason: "other" });
+  });
+});

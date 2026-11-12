@@ -39,3 +39,11 @@ export class GameNotFromIgdbError extends AppError {
     super("Este juego no viene de IGDB.");
   }
 }
+
+export class ReleaseYearOutOfRangeError extends AppError {
+  readonly code = "RELEASE_YEAR_OUT_OF_RANGE";
+
+  constructor(range: Readonly<{ min: number; max: number }>) {
+    super(`Poné un año entre ${range.min} y ${range.max}`);
+  }
+}

@@ -66,7 +66,7 @@ export function CoverField({ title, coverUrl, uploading, uploadError, onCoverUrl
           <input
             className={controls.input}
             type="url"
-            placeholder="https://…"
+            placeholder="opcional"
             value={coverUrl}
             onChange={(event) => onCoverUrlChange(event.target.value)}
           />

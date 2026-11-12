@@ -9,6 +9,8 @@ import { ScoreControl } from "@/components/game/ScoreControl";
 import { BackLink } from "@/components/layout/BackLink";
 import { StatusCard } from "@/components/status/StatusCard";
 import { StatusDialog } from "@/components/status/StatusDialog";
+import { HELP } from "@/components/ui/help-texts";
+import { HelpTip } from "@/components/ui/HelpTip";
 import { useServerAction } from "@/hooks/use-server-action";
 import { effectiveCover, isManual, type LibraryGame } from "@/model/game/library-game";
 import type { StatusGroupView } from "@/model/status/status";
@@ -84,7 +86,12 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
           <div className={styles.titles}>
             <h1 className={styles.title}>{game.title}</h1>
             <p className={styles.meta}>{metaText(game)}</p>
-            {isManual(game) ? <span className={styles.badge}>A MANO</span> : null}
+            {isManual(game) ? (
+              <span className={styles.badgeWithHelp}>
+                <span className={styles.badge}>A MANO</span>
+                <HelpTip help={HELP.manual} />
+              </span>
+            ) : null}
             <GameHeaderFacts game={game} onEdit={() => setEditOpen(true)} />
           </div>
 

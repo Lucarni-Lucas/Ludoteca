@@ -8,17 +8,29 @@ export function resultRow(page: Page, title: string): Locator {
   return page.getByRole("listitem").filter({ has: page.getByText(title, { exact: true }) });
 }
 
-/** Agrega un juego del servidor falso de IGDB y devuelve la ruta de su ficha. */
-export async function addFromIgdb(page: Page, query: string, title: string): Promise<string> {
+/** Abre el formulario de alta de un juego del servidor falso de IGDB y devuelve la ventana. */
+export async function openIgdbForm(page: Page, query: string, title: string): Promise<Locator> {
   await page.goto("/add");
   await searchBox(page).fill(query);
+  await resultRow(page, title).getByRole("button", { name: "Agregar" }).click();
 
-  const row = resultRow(page, title);
-  await row.getByRole("button", { name: "Agregar" }).click();
+  const dialog = page.getByRole("dialog", { name: `Agregar «${title}»` });
+  await expect(dialog).toBeVisible();
+  return dialog;
+}
 
-  const added = row.getByRole("link", { name: "Agregado" });
+/** Guarda el formulario de alta abierto y devuelve la ruta de la ficha del juego. */
+export async function saveIgdbForm(page: Page, dialog: Locator, title: string): Promise<string> {
+  await dialog.getByRole("button", { name: "Guardar juego" }).click();
+
+  const added = resultRow(page, title).getByRole("link", { name: "Agregado" });
   await expect(added).toBeVisible();
   return (await added.getAttribute("href")) ?? "";
+}
+
+/** Agrega un juego del servidor falso de IGDB sin tocar el formulario y devuelve la ruta de su ficha. */
+export async function addFromIgdb(page: Page, query: string, title: string): Promise<string> {
+  return saveIgdbForm(page, await openIgdbForm(page, query, title), title);
 }
 
 export async function addCopy(page: Page, gamePath: string, store: string, kind: string): Promise<void> {

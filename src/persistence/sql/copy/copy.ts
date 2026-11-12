@@ -24,6 +24,8 @@ export const copy = pgTable(
     acquiredOn: date("acquired_on", { mode: "string" }),
     playtimeMinutes: integer("playtime_minutes"),
     familyOwner: text("family_owner"),
+    // Vacío salvo en una copia Otro; el tope de 40 caracteres lo aplica el modelo.
+    kindDetail: text("kind_detail"),
     lostAt: date("lost_at", { mode: "string" }),
     lostReason: lostReasonEnum("lost_reason"),
     ...timestamps(),

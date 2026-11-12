@@ -14,6 +14,7 @@ export function toCopy(row: CopyRow, storeName: string): Copy {
     acquiredOn: row.acquiredOn,
     playtimeMinutes: row.playtimeMinutes,
     familyOwner: row.familyOwner,
+    kindDetail: row.kindDetail ?? undefined,
     lostAt: row.lostAt,
     lostReason: row.lostReason,
   };
@@ -27,5 +28,6 @@ export function toNewCopyRow(userId: string, libraryGameId: string, value: NewCo
     kind: value.kind,
     acquiredOn: value.acquiredOn,
     familyOwner: value.familyOwner,
+    kindDetail: value.kindDetail ?? null,
   };
 }

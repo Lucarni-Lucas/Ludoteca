@@ -9,8 +9,8 @@ context: |
   Restricción dura: costo cero, solo planes gratis.
   Stack: Next.js (App Router) + TypeScript estricto en Vercel Hobby; Supabase (Postgres, Auth, Storage); Drizzle ORM; Zod; CSS Modules + tokens; Radix sin estilos; Vitest, React Testing Library, MSW, PGlite y Playwright.
   Arquitectura: app/ → service/ → persistence/repository/ → base de datos; las APIs externas solo por adapter/<proveedor>/; las reglas de negocio son funciones puras en model/. Cada repositorio filtra por el usuario de la sesión.
-  Interfaz en español rioplatense con voseo; código en inglés.
-  Las etapas se implementan en orden (01 a 08) y cada una se archiva antes de la siguiente.
+  Interfaz en español rioplatense con voseo y en inglés (desde 03-idiomas, con catálogos de mensajes); código en inglés.
+  Las etapas se implementan en orden (01 a 09) y cada una se archiva antes de la siguiente.
   Fuentes: docs/decisiones.md (decisiones y supuestos; manda sobre la idea), docs/ludoteca-idea.md (idea original), design/*.dc.html (diseño: 1440 px PC, 390 px celu), CLAUDE.md (convenciones y definición de terminado).
 
 rules:
@@ -21,6 +21,7 @@ rules:
     - Cada requisito describe un solo comportamiento observable y tiene al menos un escenario.
     - Los escenarios usan ejemplos concretos, con juegos reales.
     - Nada de nombres de tablas, librerías ni funciones en las specs.
+    - Los escenarios citan los textos en español; la versión en inglés se define al implementar.
   design:
     - Respetá las capas y el árbol de carpetas de CLAUDE.md; si hace falta una carpeta nueva, proponela.
     - Nombrá las pantallas de design/ que se implementan y en qué difieren del diseño.
@@ -28,6 +29,7 @@ rules:
   tasks:
     - Cada tarea incluye sus tests; cada escenario de las specs tiene al menos un test con su mismo nombre.
     - Tareas chicas, que se terminen en una sentada y dejen la app funcionando.
+    - Desde 03-idiomas, cada texto nuevo de la interfaz entra en los dos catálogos dentro de la misma tarea.
     - La última tarea es verificar la definición de terminado de CLAUDE.md.
 
 operations:

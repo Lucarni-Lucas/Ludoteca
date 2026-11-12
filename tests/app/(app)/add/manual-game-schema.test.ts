@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { type ManualGameFormValues, manualGameInputSchema } from "@/app/(app)/add/manual-game-schema";
+import {
+  type CopyRowFormValues,
+  entryInputSchema,
+  type ManualGameFormValues,
+  manualGameInputSchema,
+} from "@/app/(app)/add/manual-game-schema";
 import { InvalidRequestError } from "@/shared/app-error";
 import { parseInput } from "@/shared/parse-input";
 
@@ -8,14 +13,14 @@ const EMPTY: ManualGameFormValues = {
   title: "Cartas del Faro",
   coverUrl: "",
   pageUrl: "",
-  storeId: "",
-  otherStoreName: "",
-  kind: null,
-  familyOwner: "",
   year: "",
   estimatedHours: "",
+  copies: [],
   statusId: "",
+  score: null,
 };
+
+const ROW: CopyRowFormValues = { storeId: "", otherStoreName: "", kind: "purchased", familyOwner: "", kindDetail: "" };
 
 const STORE_ID = "00000000-0000-4000-8000-000000000001";
 
@@ -40,10 +45,8 @@ describe("manualGameInputSchema", () => {
       coverUrl: null,
       pageUrl: null,
       statusId: null,
-      store: null,
-      kind: null,
-      acquiredOn: null,
-      familyOwner: null,
+      copies: [],
+      score: null,
     });
   });
 
@@ -65,20 +68,20 @@ describe("manualGameInputSchema", () => {
   });
 
   it("elige la tienda de la lista", () => {
-    const values = { ...EMPTY, storeId: STORE_ID, kind: "free" as const };
+    const values = { ...EMPTY, copies: [{ ...ROW, storeId: STORE_ID, kind: "free" as const }] };
 
     const input = parseInput(manualGameInputSchema, values);
 
-    expect(input.store).toEqual({ storeId: STORE_ID });
-    expect(input.kind).toBe("free");
+    expect(input.copies[0]?.store).toEqual({ storeId: STORE_ID });
+    expect(input.copies[0]?.kind).toBe("free");
   });
 
   it("prefiere la tienda escrita a mano", () => {
-    const values = { ...EMPTY, otherStoreName: " Humble Store ", kind: "purchased" as const };
+    const values = { ...EMPTY, copies: [{ ...ROW, otherStoreName: " Humble Store " }] };
 
     const input = parseInput(manualGameInputSchema, values);
 
-    expect(input.store).toEqual({ otherName: "Humble Store" });
+    expect(input.copies[0]?.store).toEqual({ otherName: "Humble Store" });
   });
 
   it("acepta un link https", () => {
@@ -101,7 +104,6 @@ describe("manualGameInputSchema", () => {
   );
 
   it.each([
-    { field: "year", value: "1200", message: "Revisá el año" },
     { field: "year", value: "2025.5", message: "Revisá el año" },
     { field: "estimatedHours", value: "-1", message: "Revisá la duración" },
   ])("rechaza $field = $value", ({ field, value, message }) => {
@@ -114,10 +116,58 @@ describe("manualGameInputSchema", () => {
   });
 
   it("rechaza un id de tienda mal formado", () => {
-    const values = { ...EMPTY, storeId: "steam", kind: "free" as const };
+    const values = { ...EMPTY, copies: [{ ...ROW, storeId: "steam", kind: "free" as const }] };
 
     const parse = () => parseInput(manualGameInputSchema, values);
 
     expect(parse).toThrow(InvalidRequestError);
+  });
+});
+
+describe("manualGameInputSchema y el año de lanzamiento", () => {
+  it("deja el rango del año al modelo y solo pide un entero", () => {
+    const values = { ...EMPTY, year: "-2017" };
+
+    const input = parseInput(manualGameInputSchema, values);
+
+    expect(input.year).toBe(-2017);
+  });
+});
+
+describe("las copias y el puntaje del alta", () => {
+  it("deja sin tienda una fila sin elegir, para que el modelo la frene", () => {
+    const values = { ...EMPTY, copies: [{ ...ROW, kind: "free" as const }] };
+
+    const input = parseInput(manualGameInputSchema, values);
+
+    expect(input.copies).toEqual([{ store: null, kind: "free", acquiredOn: null, familyOwner: null, kindDetail: null }]);
+  });
+
+  it("recorta el detalle de una copia Otro y deja su tope al modelo", () => {
+    const values = { ...EMPTY, copies: [{ ...ROW, storeId: STORE_ID, kind: "other" as const, kindDetail: "  Regalo  " }] };
+
+    const input = parseInput(manualGameInputSchema, values);
+
+    expect(input.copies[0]?.kindDetail).toBe("Regalo");
+  });
+
+  it("pasa el puntaje tal cual", () => {
+    const values = { ...EMPTY, score: 9.5 };
+
+    const input = parseInput(manualGameInputSchema, values);
+
+    expect(input.score).toBe(9.5);
+  });
+
+  it("el alta desde IGDB usa el mismo esquema de copias, estado y puntaje", () => {
+    const values = { copies: [{ ...ROW, storeId: STORE_ID }], statusId: "", score: null };
+
+    const input = parseInput(entryInputSchema, values);
+
+    expect(input).toEqual({
+      statusId: null,
+      copies: [{ store: { storeId: STORE_ID }, kind: "purchased", acquiredOn: null, familyOwner: null, kindDetail: null }],
+      score: null,
+    });
   });
 });

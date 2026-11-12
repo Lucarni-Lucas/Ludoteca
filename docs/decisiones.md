@@ -1,6 +1,6 @@
 # Ludoteca: decisiones
 
-Lo que se decidió en la etapa técnica (5 y 6 de noviembre de 2026), sobre lo que plantea [`ludoteca-idea.md`](ludoteca-idea.md).
+Lo que se decidió en la etapa técnica (5 y 6 de noviembre de 2026), sobre lo que plantea [`ludoteca-idea.md`](ludoteca-idea.md). El 11 de noviembre se sumaron los idiomas, el tipo de copia «Otro», el formulario de agregar con varias copias y puntaje, las notas del diario y las etiquetas del puntaje opcionales, a partir de la prueba de `02-nucleo-biblioteca`.
 
 - Si algo de este documento contradice la idea, **manda este documento**.
 - El comportamiento de la app está escrito como cambios de OpenSpec en [`openspec/changes/`](../openspec/changes/). Cuando un cambio se archiva, sus specs pasan a [`openspec/specs/`](../openspec/specs/) y desde ahí son la fuente de verdad.
@@ -14,7 +14,7 @@ Lo que se decidió en la etapa técnica (5 y 6 de noviembre de 2026), sobre lo q
 
 - Descartados: Spec Kit (genera demasiado markdown por cada función) y SpecDD (proyecto muy nuevo, con muy pocos ejemplos).
 - Flujo por cambio: `/opsx:explore` (charlar decisiones) → `/opsx:propose` (propuesta, specs, diseño y tareas) → `/opsx:apply` (implementar) → `/opsx:archive` (pasar las specs a `openspec/specs/`).
-- **Todo el producto ya está escrito como 8 cambios**, cada uno con su `proposal.md` y sus specs. Al arrancar una etapa se corre `/opsx:propose <nombre-del-cambio>`: detecta que el cambio existe y genera lo que falta (`design.md` y `tasks.md`) mirando el código que haya en ese momento.
+- **Todo el producto ya está escrito como 9 cambios**, cada uno con su `proposal.md` y sus specs. Al arrancar una etapa se corre `/opsx:propose <nombre-del-cambio>`: detecta que el cambio existe y genera lo que falta (`design.md` y `tasks.md`) mirando el código que haya en ese momento.
 - `openspec/specs/` arranca vacío: describe lo que la app ya hace, no lo que falta.
 - Los artefactos van en español. Los títulos estructurales de OpenSpec y las palabras clave (SHALL, MUST, WHEN, THEN) quedan en inglés, porque el validador las necesita.
 - Cada escenario de una spec tiene al menos un test.
@@ -26,18 +26,20 @@ Lo que se decidió en la etapa técnica (5 y 6 de noviembre de 2026), sobre lo q
 |---|---|---|
 | 1 | `01-base` | Login, navegación de PC y celu, tokens de diseño, deploy. |
 | 2 | `02-nucleo-biblioteca` | Juegos (de IGDB o a mano), copias, estados, biblioteca con filtros y orden, puntaje, «Sin interés». |
-| 3 | `03-importacion` | Importar IGN, Playnite y la cuenta de Steam, con pantalla de revisión. |
-| 4 | `04-tiendas-y-steam` | Pantalla de Tiendas, sincronización diaria con Steam y familia de Steam. |
-| 5 | `05-lo-tengo` | «¿Lo tengo?», aviso de duplicados y «dónde comprarlo». |
-| 6 | `06-diario-y-estados-propios` | Diario y sesiones, horas jugadas, formulario de pausa y abandono, estados y motivos editables, reseña y etiquetas. |
-| 7 | `07-pwa` | App instalable y lectura sin conexión. |
-| 8 | `08-suscripciones-y-avisos` | Suscripciones, totales por moneda, avisos por notificación y mail. |
+| 3 | `03-idiomas` | Interfaz en español rioplatense y en inglés, con el idioma según el navegador o elegido en Ajustes. |
+| 4 | `04-importacion` | Importar IGN, Playnite y la cuenta de Steam, con pantalla de revisión. |
+| 5 | `05-tiendas-y-steam` | Pantalla de Tiendas, sincronización diaria con Steam y familia de Steam. |
+| 6 | `06-lo-tengo` | «¿Lo tengo?», aviso de duplicados y «dónde comprarlo». |
+| 7 | `07-diario-y-estados-propios` | Diario con sesiones y notas, horas jugadas, formulario de pausa y abandono, estados y motivos editables, reseña, etiquetas y etiquetas del puntaje. |
+| 8 | `08-pwa` | App instalable y lectura sin conexión. |
+| 9 | `09-suscripciones-y-avisos` | Suscripciones, totales por moneda, avisos por notificación y mail. |
 
-Este orden cambia el de la charla en tres puntos:
+Este orden cambia el de la charla en cuatro puntos:
 
 - La importación va antes que «¿Lo tengo?», porque sin tus juegos cargados «¿Lo tengo?» no sirve.
-- La primera conexión con Steam entra por la importación, con su revisión. Así no se cargan cientos de juegos sin revisar, y la revisión puede usar las horas de Steam para detectar los juegos que nunca abriste. La sincronización diaria viene después, en `04-tiendas-y-steam`.
+- La primera conexión con Steam entra por la importación, con su revisión. Así no se cargan cientos de juegos sin revisar, y la revisión puede usar las horas de Steam para detectar los juegos que nunca abriste. La sincronización diaria viene después, en `05-tiendas-y-steam`.
 - Las notificaciones necesitan la app instalable, así que la PWA va antes que los avisos.
+- Los idiomas van apenas termina el núcleo: con dos etapas hechas, pasar los textos a catálogos es barato, y desde ahí cada pantalla nueva nace en los dos idiomas.
 
 ---
 
@@ -52,7 +54,9 @@ Todo con planes gratis.
 | Acceso a la base | Drizzle ORM: tablas con tipos y migraciones SQL generadas. |
 | Login | Supabase Auth. |
 | Archivos (portadas subidas) | Supabase Storage. |
+| Conexión a la base | Transaction pooler de Supabase con `pg` (node-postgres) y `attachDatabasePool` de Vercel, que cierra las conexiones ociosas antes de que la función se suspenda. Pool chico y global, inactividad de 5 s y tiempos máximos de conexión y de consulta: ninguna consulta espera para siempre. |
 | Validación en el borde | Zod. |
+| Idiomas | next-intl, sin prefijo de idioma en las URL: el idioma sale de la cuenta o, si no hay, del navegador. Un catálogo de mensajes por idioma (español rioplatense e inglés). |
 | Estilos | CSS Modules + `tokens.css`. Radix sin estilos para la ventana emergente, la barra del puntaje y los interruptores (solo aporta teclado y foco). Sin Tailwind ni librerías de componentes con diseño propio. |
 | Tests | Vitest + React Testing Library + MSW. PGlite (Postgres en memoria, sin Docker) para los tests de repositorios. Playwright para los e2e, a 390 y 1440 px. |
 | Calidad | ESLint estricto + `eslint-plugin-sonarjs`. SonarQube Cloud con el repo público: menos de 10 issues. |
@@ -107,7 +111,8 @@ library_game        de cada usuario
   correcciones propias: estimated_hours, endless, cover_url
 
 copy                cómo lo tenés (de 0 a n por juego)
-  library_game_id, store_id, kind: purchased | free | subscription | family | physical,
+  library_game_id, store_id, kind: purchased | free | subscription | family | physical | other,
+  kind_detail (texto corto, solo para other: ej. «Regalo»),
   store_game_id (ej. el appid de Steam), origin: sync | import | manual,
   acquired_on, playtime_minutes (lo que dice la tienda), family_owner,
   subscription_id, intentional_duplicate,
@@ -123,7 +128,7 @@ status              estados de cada usuario
 reason              motivos para pausar o dejar: name, position, archived
 
 journal_entry       el diario
-  library_game_id, kind: session | status_change, occurred_on, note,
+  library_game_id, kind: session | note | status_change, occurred_on, note,
   duration_minutes (sesión),
   from_status_id, to_status_id, hours, progress_pct, reached (cambio de estado)
 journal_entry_reason  muchos a muchos con reason
@@ -133,7 +138,8 @@ price_seen          dónde comprarlo: library_game_id, store_id, url, price, cur
 subscription        name, price, currency, period_months, renews,
                     next_charge_on, expires_on, started_on, ended_on
 
-user_settings       días de aviso, canal y avisos prendidos
+user_settings       idioma, etiquetas del puntaje prendidas, días de aviso, canal y avisos prendidos
+score_label         nombre propio de la etiqueta de un rango del puntaje: user_id, range_start, name
 push_subscription   una por dispositivo
 notification_log    avisos ya mandados (para que el cron no los repita)
 store_connection    cuenta de Steam (SteamID) y última sincronización
@@ -166,11 +172,16 @@ import_batch, import_item   importación: fila original, cruce con IGDB, sugeren
 | Juegos que tenés pero nunca vas a jugar | Marca **«Sin interés»** (no es un estado). No aparecen en la biblioteca, no suman a pendientes ni a estadísticas, se pueden ver con un filtro y siguen contando para «¿Lo tengo?». Se puede marcar de a muchos juegos a la vez. |
 | «Ya no lo tengo» | Marca de la copia, con motivo (salí de la familia, terminó la suscripción, lo vendí u otro). En los filtros sigue apareciendo como «Ya no lo tengo». |
 | Comprar algo de «Quiero jugarlo» | Al agregarle una copia propia, el juego pasa solo a «Pendiente» y te avisa. |
-| Puntaje | Puede quedar vacío; vacío no es 0.0. Etiquetas: 0.0–1.9 Horrible, 2.0–2.9 Muy malo, 3.0–3.9 Malo, 4.0–4.9 Flojo, 5.0–5.9 Regular, 6.0–6.9 Pasable, 7.0–7.9 Bueno, 8.0–8.9 Muy bueno, 9.0–9.9 Excelente, 10.0 Obra maestra. |
+| Puntaje | Puede quedar vacío; vacío no es 0.0. Se muestra solo el número. Las etiquetas por rango (0.0–1.9 Horrible, 2.0–2.9 Muy malo, 3.0–3.9 Malo, 4.0–4.9 Flojo, 5.0–5.9 Regular, 6.0–6.9 Pasable, 7.0–7.9 Bueno, 8.0–8.9 Muy bueno, 9.0–9.9 Excelente, 10.0 Obra maestra) se prenden en Ajustes, apagadas por defecto, con rangos fijos y nombres editables (`07`). |
+| Tipo de copia «Otro» | Para lo que no entra en los demás tipos, con un detalle opcional (ej. «Regalo»). Cuenta como propio, igual que Comprado, Gratis y Físico. |
+| Formulario de agregar | Varias copias, una fila por copia con «Agregar otra copia»; puntaje opcional; «Año de lanzamiento» opcional, entre 1950 y el año que viene; los campos opcionales lo dicen. Nota opcional desde `07`. |
+| Ayuda «?» | Junto a los términos propios: Sin interés, Año de lanzamiento, Familia, Otro, A mano, Ya no lo tengo y Sin fin. |
+| Notas del diario | Entradas con fecha y texto, sin duración. El diario va de la entrada más nueva a la más vieja (`07`). |
+| Idiomas | Español rioplatense e inglés (`03`). Por defecto, español si el navegador está en español y si no inglés; se cambia en Ajustes. |
 | Filtros en PC | Todos permiten elegir varias opciones, y se suma el rango de puntaje (como en el celu). |
 | Estadísticas | Oculta en el menú hasta que exista. |
 | Celu | Se agrega un acceso a Ajustes. |
-| Revisión de importación | Pantalla nueva. No está en el lienzo y se define en la spec de `03-importacion`. |
+| Revisión de importación | Pantalla nueva. No está en el lienzo y se define en la spec de `04-importacion`. |
 | GOG y Microsoft Store | No se sincronizan solas en la v1 (el diseño las mostraba como sincronizadas). GOG entra por la importación de Playnite; Microsoft Store se carga a mano. |
 | Fecha en que conseguiste un juego | Opcional: ni Steam ni Playnite la informan. |
 | Monedas | Código ISO libre; ARS y USD como sugerencias. Los totales se agrupan por código. |
@@ -224,6 +235,9 @@ Decisiones chicas que tomé para poder escribir las specs. Si alguna no te cierr
 - **Búsquedas recientes de «¿Lo tengo?»:** se guardan en el dispositivo, no en la base.
 - **«Fue a propósito»** en el aviso de duplicado marca como intencional la copia más nueva.
 - **Sin conexión:** se puede leer todo, pero las acciones que guardan cambios quedan deshabilitadas, con un aviso.
+- **Detalle de una copia «Otro»:** hasta 40 caracteres.
+- **Nombre propio de una etiqueta del puntaje:** hasta 20 caracteres; vacío vuelve al nombre por defecto.
+- **Base que no responde:** la pantalla avisa y ofrece «Reintentar» en menos de 15 segundos.
 
 ---
 
@@ -237,7 +251,8 @@ También queda para después sincronizar solas Epic, GOG o Xbox. Cada una sería
 
 ## 9. Se resuelve dentro de cada cambio, con `/opsx:explore`
 
-- El endpoint de los gratis de Epic y cada cuánto consultarlo (etapa 8).
-- El formato exacto del export de Playnite (etapa 3).
-- El diseño visual de la pantalla de revisión de importación (etapa 3).
-- Cómo detectar «solo multijugador» en IGDB (etapa 3).
+- El endpoint de los gratis de Epic y cada cuánto consultarlo (etapa 9).
+- El formato exacto del export de Playnite (etapa 4).
+- El diseño visual de la pantalla de revisión de importación (etapa 4).
+- Cómo detectar «solo multijugador» en IGDB (etapa 4).
+- Cómo mostrar en el idioma elegido los nombres por defecto que hoy se guardan en la base, sin pisar los que renombre el usuario (etapa 3).

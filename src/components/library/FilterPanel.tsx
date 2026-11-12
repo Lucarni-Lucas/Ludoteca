@@ -1,3 +1,4 @@
+import { HELP, type HelpText } from "@/components/ui/help-texts";
 import { Toggle } from "@/components/ui/Toggle";
 import { COPY_KIND_LABELS, COPY_KINDS } from "@/model/copy/copy";
 import {
@@ -15,6 +16,7 @@ import { RangeFilter } from "./RangeFilter";
 
 const KIND_LABELS: Readonly<Record<CopyKindFilter, string>> = { ...COPY_KIND_LABELS, [LOST_KIND]: "Ya no lo tengo" };
 const KIND_FILTERS: readonly CopyKindFilter[] = [...COPY_KINDS, LOST_KIND];
+const KIND_HELP: Partial<Record<CopyKindFilter, HelpText>> = { family: HELP.family, other: HELP.other, [LOST_KIND]: HELP.lost };
 const NO_TOP = "sin tope";
 
 export type FilterPanelProps = Readonly<{
@@ -63,12 +65,18 @@ export function FilterPanel({ filters, counts, stores, onChange }: FilterPanelPr
       />
       <OptionFilter
         title="Cómo lo tenés"
-        options={KIND_FILTERS.map((kind) => ({ id: kind, label: KIND_LABELS[kind], count: counts.kinds[kind] }))}
+        options={KIND_FILTERS.map((kind) => ({
+          id: kind,
+          label: KIND_LABELS[kind],
+          count: counts.kinds[kind],
+          help: KIND_HELP[kind],
+        }))}
         selected={filters.kinds}
         onToggle={(id) => onChange({ kinds: toggleOption(filters.kinds, id as CopyKindFilter) })}
       />
       <Toggle
         label="Mostrar sin interés"
+        help={HELP.notInterested}
         checked={filters.showNotInterested}
         onCheckedChange={(showNotInterested) => onChange({ showNotInterested })}
       />

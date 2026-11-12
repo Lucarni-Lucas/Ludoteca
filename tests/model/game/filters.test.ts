@@ -270,3 +270,23 @@ describe("hasActiveFilters", () => {
     expect(active).toBe(true);
   });
 });
+
+describe("filtro por tipo Otro", () => {
+  it("Tipo Otro", () => {
+    const gift = buildGame({ title: "Celeste", copies: [buildCopy({ kind: "other", kindDetail: "Regalo" })] });
+    const other = buildGame({ title: "Hades", copies: [buildCopy({ kind: "other" })] });
+    const purchased = buildGame({ title: "Outer Wilds", copies: [buildCopy()] });
+
+    const result = titles([gift, other, purchased], { kinds: ["other"] });
+
+    expect(result).toEqual(["Celeste", "Hades"]);
+  });
+
+  it("una copia Otro perdida no cuenta como Otro", () => {
+    const lost = buildGame({ title: "Celeste", copies: [buildCopy({ kind: "other", lostAt: "2026-01-01" })] });
+
+    const result = titles([lost], { kinds: ["other"] });
+
+    expect(result).toEqual([]);
+  });
+});

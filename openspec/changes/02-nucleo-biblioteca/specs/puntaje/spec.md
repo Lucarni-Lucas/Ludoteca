@@ -1,6 +1,6 @@
 ## Purpose
 
-Permitir que el usuario puntúe cada juego de 0.0 a 10.0 con un decimal y mostrar una etiqueta de texto según el rango.
+Permitir que el usuario puntúe cada juego de 0.0 a 10.0 con un decimal, al agregarlo o después.
 
 ## ADDED Requirements
 
@@ -13,22 +13,18 @@ El puntaje SHALL ir de 0.0 a 10.0 con un decimal y es opcional. Un juego sin pun
 
 #### Scenario: Puntaje cero
 - **WHEN** el usuario le pone 0.0 a un juego
-- **THEN** el juego muestra «0.0 · Horrible»
+- **THEN** el juego muestra «0.0»
 
 #### Scenario: Más de un decimal
 - **WHEN** el usuario escribe 9.35
 - **THEN** el puntaje se guarda como 9.4
 
-### Requirement: Etiqueta por rango
-El sistema SHALL mostrar junto al puntaje la etiqueta de su rango: 0.0–1.9 Horrible, 2.0–2.9 Muy malo, 3.0–3.9 Malo, 4.0–4.9 Flojo, 5.0–5.9 Regular, 6.0–6.9 Pasable, 7.0–7.9 Bueno, 8.0–8.9 Muy bueno, 9.0–9.9 Excelente y 10.0 Obra maestra.
+### Requirement: Cómo se muestra el puntaje
+El sistema SHALL mostrar el puntaje con su número y un decimal, sin una etiqueta de texto al lado.
 
-#### Scenario: Excelente
+#### Scenario: Puntaje alto
 - **WHEN** un juego tiene 9.8
-- **THEN** su etiqueta es «Excelente»
-
-#### Scenario: Obra maestra
-- **WHEN** un juego tiene 10.0
-- **THEN** su etiqueta es «Obra maestra»
+- **THEN** su tarjeta y su ficha muestran «9.8», sin «Excelente» ni otra etiqueta
 
 ### Requirement: Controles del puntaje
 El sistema SHALL permitir cargar el puntaje con un número grande, una barra deslizable y botones de −0.1 y +0.1 que no pasan de 0.0 ni de 10.0.
@@ -36,6 +32,17 @@ El sistema SHALL permitir cargar el puntaje con un número grande, una barra des
 #### Scenario: Tope superior
 - **WHEN** el puntaje es 10.0 y el usuario toca +0.1
 - **THEN** el puntaje sigue en 10.0
+
+### Requirement: Puntaje al agregar
+El formulario para agregar un juego, desde IGDB o a mano, SHALL permitir cargarle el puntaje con los mismos controles de la ficha. El puntaje es opcional y el formulario arranca sin puntaje.
+
+#### Scenario: Agregar con puntaje
+- **WHEN** el usuario agrega Hades desde IGDB con 9.5 de puntaje
+- **THEN** Hades aparece en su biblioteca con 9.5
+
+#### Scenario: Agregar sin tocar el puntaje
+- **WHEN** el usuario agrega Outer Wilds sin tocar el puntaje
+- **THEN** Outer Wilds queda sin puntaje, no con 0.0
 
 ### Requirement: Quitar el puntaje
 El sistema SHALL permitir dejar un juego sin puntaje después de haberlo puntuado.

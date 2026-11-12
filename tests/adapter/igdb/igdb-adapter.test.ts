@@ -98,7 +98,7 @@ describe("search", () => {
 
     expect(seen[0].clientId).toBe("cliente");
     expect(seen[0].authorization).toBe("Bearer token-guardado");
-    expect(seen[0].body).toContain("where game_type = (0,4,8,9,10,11);");
+    expect(seen[0].body).toContain("where (game_type = (0,4,8,9,10,11) | version_parent != null);");
   });
 
   it.each([
@@ -331,5 +331,72 @@ describe("getGame", () => {
     const game = await adapterWith().getGame(999);
 
     expect(game).toBeNull();
+  });
+});
+
+describe("search con textos cortos", () => {
+  function captureBodies(): string[] {
+    const bodies: string[] = [];
+    server.use(
+      http.post(GAMES, async ({ request }) => {
+        bodies.push(await request.text());
+        return HttpResponse.json([]);
+      }),
+    );
+    return bodies;
+  }
+
+  it("Sugerencias desde tres letras", async () => {
+    const bodies = captureBodies();
+
+    await adapterWith().search("hol");
+
+    expect(bodies[0]).toContain('where name ~ "hol"* & (game_type = (0,4,8,9,10,11) | version_parent != null);');
+    expect(bodies[0]).toContain("sort total_rating_count desc;");
+    expect(bodies[0]).not.toContain("search ");
+  });
+
+  it("con dos letras también busca por el comienzo del nombre", async () => {
+    const bodies = captureBodies();
+
+    await adapterWith().search("ho");
+
+    expect(bodies[0]).toContain('where name ~ "ho"*');
+  });
+
+  it("desde cuatro letras usa la búsqueda de IGDB", async () => {
+    const bodies = captureBodies();
+
+    await adapterWith().search("holl");
+
+    expect(bodies[0]).toContain('search "holl";');
+    expect(bodies[0]).not.toContain("name ~");
+  });
+
+  it("escapa las comillas también en la búsqueda por prefijo", async () => {
+    const bodies = captureBodies();
+
+    await adapterWith().search('h"o');
+
+    expect(bodies[0]).toContain(String.raw`where name ~ "h\"o"*`);
+  });
+});
+
+describe("search con ediciones", () => {
+  it("Agregar una edición", async () => {
+    const bodies: string[] = [];
+    server.use(
+      http.post(GAMES, async ({ request }) => {
+        bodies.push(await request.text());
+        return HttpResponse.json([{ id: 136199, name: "Sid Meier's Civilization VI: Platinum Edition", version_parent: 19130 }]);
+      }),
+    );
+
+    const results = await adapterWith().search("civilization vi platinum");
+
+    expect(bodies[0]).toContain("version_parent != null");
+    expect(results).toEqual([
+      { igdbId: 136199, baseIgdbId: 19130, title: "Sid Meier's Civilization VI: Platinum Edition", year: null, coverUrl: null },
+    ]);
   });
 });

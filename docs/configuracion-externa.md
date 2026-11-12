@@ -16,12 +16,13 @@ Revisado el 6 de noviembre de 2026. Los paneles cambian seguido: si algo no coin
 | Etapa | Qué hacés vos | Cuándo |
 |---|---|---|
 | `01-base` | Supabase, Google, Vercel y SonarQube Cloud | Supabase y Google antes del `/opsx:apply`; Vercel y SonarQube cuando llegues a las tareas 9.x |
-| `02-nucleo-biblioteca` | App de Twitch para IGDB y bucket `covers` de Storage | Cuando llegues a la sección 16 de las tareas |
-| `03-importacion` | Clave de Steam, privacidad del perfil y export de Playnite | Antes del `/opsx:propose`, porque el diseño necesita ver el formato real |
-| `04-tiendas-y-steam` | Un secreto para el cron | Cuando lo pida la tarea |
-| `05`, `06` | Nada | — |
-| `07-pwa` | Nada; al final, instalar la app en el celu para probarla | Al terminar |
-| `08-suscripciones-y-avisos` | Cuenta de Resend | Antes del `/opsx:apply` |
+| `02-nucleo-biblioteca` | App de Twitch para IGDB, bucket `covers` de Storage y tiempos máximos de la base | Cuando llegues a la sección 21 de las tareas |
+| `03-idiomas` | Nada | — |
+| `04-importacion` | Clave de Steam, privacidad del perfil y export de Playnite | Antes del `/opsx:propose`, porque el diseño necesita ver el formato real |
+| `05-tiendas-y-steam` | Un secreto para el cron | Cuando lo pida la tarea |
+| `06`, `07` | Nada | — |
+| `08-pwa` | Nada; al final, instalar la app en el celu para probarla | Al terminar |
+| `09-suscripciones-y-avisos` | Cuenta de Resend | Antes del `/opsx:apply` |
 
 ---
 
@@ -157,13 +158,58 @@ Las portadas que subís se guardan en Supabase Storage.
 2. En **Project Settings › API Keys**, copiá la **secret key** (`sb_secret_…`).
 3. Cargala como `SUPABASE_SECRET_KEY` en `.env.local` y en Vercel (Production y Preview). Va solo en el servidor, nunca en una variable `NEXT_PUBLIC_`.
 
-Twitch y Storage se piden recién en la sección 16 de `openspec/changes/02-nucleo-biblioteca/tasks.md`: sin esas credenciales, la implementación y los tests avanzan igual, porque usan servidores falsos.
+### Tiempos máximos de la base
+
+La app corta del lado del cliente: 5 s para conectarse y 8 s por consulta. Eso alcanza para que la pantalla avise, pero una consulta cortada puede seguir corriendo en la base. Para que la base también la corte, hace falta configurarlo en el rol: el transaction pooler (puerto 6543) descarta lo que la app manda al conectarse, así que `statement_timeout` no puede ir en el código.
+
+1. En Supabase, **SQL Editor**, corré:
+
+   ```sql
+   alter role postgres set statement_timeout = '8s';
+   alter role postgres set idle_in_transaction_session_timeout = '15s';
+   ```
+
+2. Verificalo **a través del pooler**, con la `DATABASE_URL` de `.env.local`, desde la carpeta del proyecto:
+
+   ```bash
+   node --env-file=.env.local -e "const { Client } = require('pg'); const c = new Client({ connectionString: process.env.DATABASE_URL }); c.connect().then(() => c.query('show statement_timeout')).then((r) => { console.log(r.rows[0].statement_timeout); return c.end(); })"
+   ```
+
+   Tiene que imprimir `8s`. El valor del rol vale para las sesiones nuevas: si imprime otro, puede ser una conexión que el pooler ya tenía abierta. Esperá unos minutos y repetí.
+
+Para saber: el SQL Editor corre con el mismo rol, así que también corta sus consultas a los 8 s. Si una consulta tuya necesita más, subilo solo para esa sesión con `set statement_timeout = '60s';`. Para sacar los dos tiempos: `alter role postgres reset statement_timeout;` y `alter role postgres reset idle_in_transaction_session_timeout;`.
+
+Twitch, Storage y los tiempos de la base se piden recién en la sección 21 de `openspec/changes/02-nucleo-biblioteca/tasks.md`: sin eso, la implementación y los tests avanzan igual, porque usan servidores falsos.
+
+### Si la app se queda cargando
+
+Si una pantalla con datos de la base se queda cargando (y las que no usan la base, como Suscripciones, andan), mirá qué está haciendo la base **mientras pasa**. En Supabase, **SQL Editor**, corré:
+
+```sql
+select pid, usename, application_name, state, wait_event_type, wait_event,
+       now() - xact_start as transaccion_hace, now() - query_start as consulta_hace,
+       left(query, 120) as consulta
+from pg_stat_activity
+where datname = current_database() and pid <> pg_backend_pid() and state <> 'idle'
+order by xact_start nulls last;
+```
+
+- Una fila en **`idle in transaction`** con varios segundos o minutos en `transaccion_hace` es una transacción que quedó abierta y puede estar trabando al resto.
+- Filas con `wait_event_type` = **`Lock`** están esperando a otra.
+
+Sacale una captura (**sin** datos sensibles) y pasásela a Claude. Para destrabar en el momento, `select pg_terminate_backend(<pid>);` con el `pid` de la fila trabada. No cortes conexiones que no sean de la app.
 
 ---
 
-## Etapa 03-importacion
+## Etapa 03-idiomas
 
-Hacé esto **antes del `/opsx:propose 03-importacion`**: el diseño del importador necesita ver archivos reales.
+Nada externo.
+
+---
+
+## Etapa 04-importacion
+
+Hacé esto **antes del `/opsx:propose 04-importacion`**: el diseño del importador necesita ver archivos reales.
 
 ### Clave de la Steam Web API
 
@@ -196,7 +242,7 @@ Tené a mano el link de tu perfil o tu SteamID64: lo vas a pegar en Ludoteca al 
 
 ---
 
-## Etapa 04-tiendas-y-steam
+## Etapa 05-tiendas-y-steam
 
 ### Secreto del cron
 
@@ -213,13 +259,13 @@ Para saber:
 
 ---
 
-## Etapas 05, 06 y 07
+## Etapas 06, 07 y 08
 
-Nada externo. Al terminar la `07-pwa`, instalá la app en el celu para probarla: en Android, desde Chrome, «Instalar app»; en iPhone, desde Safari, «Agregar a inicio».
+Nada externo. Al terminar la `08-pwa`, instalá la app en el celu para probarla: en Android, desde Chrome, «Instalar app»; en iPhone, desde Safari, «Agregar a inicio».
 
 ---
 
-## Etapa 08-suscripciones-y-avisos
+## Etapa 09-suscripciones-y-avisos
 
 ### Resend, para los mails
 
@@ -230,7 +276,7 @@ Nada externo. Al terminar la `07-pwa`, instalá la app en el celu para probarla:
 ### Notificaciones
 
 - Las claves de las notificaciones (VAPID) las genera Claude Code con un comando. La **privada** la cargás en Vercel como secreta; la pública puede ir en una variable `NEXT_PUBLIC_`.
-- En iPhone, las notificaciones solo funcionan con la app instalada (etapa 07).
+- En iPhone, las notificaciones solo funcionan con la app instalada (etapa 08).
 - Los juegos gratis de Epic salen de una dirección pública: no hace falta cuenta.
 
 ---
@@ -245,10 +291,10 @@ Nada externo. Al terminar la `07-pwa`, instalá la app en el celu para probarla:
 | Client ID y secret de Google | 01 | No | No | **No**: van solo en Supabase |
 | Client ID y secret de Twitch | 02 | Sí | Sí | **No** |
 | Secret key de Supabase | 02 | Sí | Sí | **No** |
-| Clave de la Steam Web API | 03 | Sí | Sí | **No** |
-| `CRON_SECRET` | 04 | No hace falta | Sí (Production) | **No** |
-| API key de Resend | 08 | Sí | Sí | **No** |
-| Clave privada VAPID | 08 | Sí | Sí | **No** |
+| Clave de la Steam Web API | 04 | Sí | Sí | **No** |
+| `CRON_SECRET` | 05 | No hace falta | Sí (Production) | **No** |
+| API key de Resend | 09 | Sí | Sí | **No** |
+| Clave privada VAPID | 09 | Sí | Sí | **No** |
 
 ## Fuentes
 
@@ -260,6 +306,8 @@ Nada externo. Al terminar la `07-pwa`, instalá la app en el celu para probarla:
 - [Supabase: auth hooks](https://supabase.com/docs/guides/auth/auth-hooks)
 - [Supabase: URLs de redirección](https://supabase.com/docs/guides/auth/redirect-urls)
 - [Vercel: región de las funciones](https://vercel.com/docs/functions/configuring-functions/region)
+- [Vercel: conexiones a la base con Fluid compute](https://vercel.com/guides/connection-pooling-with-functions)
+- [Postgres: `pg_stat_activity`](https://www.postgresql.org/docs/current/monitoring-stats.html#MONITORING-PG-STAT-ACTIVITY-VIEW)
 - [Vercel: manejo de cron jobs y `CRON_SECRET`](https://vercel.com/docs/cron-jobs/manage-cron-jobs)
 - [SonarQube Cloud: empezar con GitHub](https://docs.sonarsource.com/sonarqube-cloud/getting-started/github/)
 - [Generar claves de IGDB en Twitch (guía de RomM)](https://docs.romm.app/3.9.0/Getting-Started/Generate-API-Keys/)

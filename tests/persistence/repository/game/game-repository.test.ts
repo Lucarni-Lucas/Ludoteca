@@ -141,7 +141,7 @@ describe("createGameRepository", () => {
       const steam = await steamOf(repositories, USER_A);
       const withCopy = {
         ...entry(statusesA),
-        copy: { storeId: steam.id, kind: "free" as const, acquiredOn: "2026-01-02", familyOwner: null },
+        copies: [{ storeId: steam.id, kind: "free" as const, acquiredOn: "2026-01-02", familyOwner: null }],
       };
 
       const result = await repositories.games.addIgdbGame(USER_A, igdbData(1, "Hades"), withCopy);
@@ -155,7 +155,7 @@ describe("createGameRepository", () => {
     it("si falla la copia no queda el juego", async () => {
       const broken = {
         ...entry(statusesA),
-        copy: { storeId: MISSING_ID, kind: "purchased" as const, acquiredOn: null, familyOwner: null },
+        copies: [{ storeId: MISSING_ID, kind: "purchased" as const, acquiredOn: null, familyOwner: null }],
       };
 
       const add = repositories.games.addIgdbGame(USER_A, igdbData(1, "Hades"), broken);
@@ -451,5 +451,73 @@ describe("createGameRepository", () => {
       await expect(removal).rejects.toThrow();
       expect(await repositories.games.findById(USER_A, gameId)).not.toBeNull();
     });
+  });
+});
+
+describe("createGameRepository al agregar con varias copias y puntaje", () => {
+  let database: TestDatabase;
+  let repositories: Repositories;
+  let statuses: readonly Status[];
+
+  beforeEach(async () => {
+    database = await createTestDatabase();
+    repositories = createRepositories(database);
+    statuses = await seedStatuses(repositories, USER_A);
+  });
+
+  afterEach(async () => {
+    await database.client.close();
+  });
+
+  async function storeIdOf(slug: string): Promise<string> {
+    const stores = await repositories.stores.listAvailable(USER_A);
+    return stores.find((store) => store.slug === slug)?.id ?? "";
+  }
+
+  it("Agregar con dos copias", async () => {
+    const copies = [
+      { storeId: await storeIdOf("epic-games"), kind: "free" as const, acquiredOn: null, familyOwner: null },
+      { storeId: await storeIdOf("steam"), kind: "purchased" as const, acquiredOn: null, familyOwner: null },
+    ];
+
+    const { gameId } = await repositories.games.addIgdbGame(USER_A, igdbData(5, "Civilization VI"), {
+      ...entry(statuses),
+      copies,
+    });
+
+    const game = await repositories.games.findById(USER_A, gameId);
+    expect(game?.status.name).toBe("Pendiente");
+    expect(game?.copies.map(({ storeName, kind }) => `${storeName} ${kind}`).toSorted()).toEqual([
+      "Epic Games free",
+      "Steam purchased",
+    ]);
+  });
+
+  it("si falla una de las copias no queda nada del juego", async () => {
+    const copies = [
+      { storeId: await storeIdOf("steam"), kind: "purchased" as const, acquiredOn: null, familyOwner: null },
+      { storeId: MISSING_ID, kind: "free" as const, acquiredOn: null, familyOwner: null },
+    ];
+
+    const add = repositories.games.addManualGame(USER_A, MANUAL_DATA, { ...entry(statuses), copies });
+
+    await expect(add).rejects.toThrow();
+    expect(await repositories.games.listLibrary(USER_A)).toEqual([]);
+  });
+
+  it("Agregar con puntaje", async () => {
+    const withScore = { ...entry(statuses), score: 9.5 };
+
+    const { gameId } = await repositories.games.addIgdbGame(USER_A, igdbData(6, "Hades"), withScore);
+
+    expect((await repositories.games.findById(USER_A, gameId))?.score).toBe(9.5);
+  });
+
+  it("Agregar sin tocar el puntaje", async () => {
+    const withoutScore = entry(statuses);
+
+    const gameId = await repositories.games.addManualGame(USER_A, MANUAL_DATA, withoutScore);
+
+    expect((await repositories.games.findById(USER_A, gameId))?.score).toBeNull();
   });
 });
