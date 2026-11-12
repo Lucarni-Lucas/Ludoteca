@@ -7,7 +7,7 @@ Las categorías clásicas son rígidas: el usuario quiere nombrar sus propios es
 ## What Changes
 
 - Diario de cada juego: sesiones (fecha, duración y nota), notas sueltas (fecha y texto) y cambios de estado, con la entrada más nueva arriba. Nota opcional también desde el formulario de agregar.
-- Regla única de horas jugadas: total a mano, o lo que informen las tiendas, o la suma de las sesiones.
+- Regla única de horas jugadas: total a mano (se carga desde `02-nucleo-biblioteca`), o lo que informen las tiendas, o la suma de las sesiones.
 - Estados editables (renombrar, color, orden, ocultar, crear) dentro de los grupos fijos, y motivos editables.
 - Formulario opcional al pausar o dejar un juego: horas, progreso, hasta dónde llegó, motivos y nota.
 - Reseña y etiquetas libres.

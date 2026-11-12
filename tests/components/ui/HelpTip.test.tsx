@@ -92,3 +92,14 @@ describe("HelpTip", () => {
     expect(helpButtons).toHaveLength(2);
   });
 });
+
+describe("HelpTip de la duración", () => {
+  it("Ayuda de la duración", () => {
+    render(<HelpTip help={HELP.duration} />);
+
+    expectHelp(
+      "Duración",
+      "Cuánto se tarda en promedio en terminarlo, según IGDB o lo que cargues vos. No son tus horas jugadas.",
+    );
+  });
+});

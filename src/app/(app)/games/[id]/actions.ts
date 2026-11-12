@@ -10,7 +10,7 @@ import { toCorrections } from "@/model/game/library-game";
 import { requireSessionUser } from "@/security/session";
 import type { AddCopyResult } from "@/service/copy/copy-service";
 import { getCopyService } from "@/service/copy/instance";
-import { getLibraryService } from "@/service/game/instance";
+import { getLibraryService, getPlayedHoursService } from "@/service/game/instance";
 import { type ActionFailure, type ActionResult, toActionResult } from "@/shared/action-result";
 import { parseInput } from "@/shared/parse-input";
 
@@ -23,6 +23,7 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const idSchema = z.uuid();
 const statusIdSchema = z.uuid();
 const scoreSchema = z.number().nullable();
+const playedHoursSchema = z.number({ error: "Poné las horas jugadas, de 0 en adelante" }).nullable();
 
 function blankToNull(value: unknown): unknown {
   return typeof value === "string" && value.trim() === "" ? null : value;
@@ -91,6 +92,12 @@ export async function setScoreAction(gameId: string, score: number | null): Prom
     revalidatePath("/library");
     return saved;
   });
+}
+
+export async function setPlayedHoursAction(gameId: string, hours: number | null): Promise<ActionResult<number | null>> {
+  return runGameAction(gameId, (userId, id) =>
+    getPlayedHoursService().setPlayedHours(userId, id, parseInput(playedHoursSchema, hours)),
+  );
 }
 
 export async function addCopyAction(gameId: string, values: AddCopyFormValues): Promise<ActionResult<AddCopyResult>> {

@@ -171,3 +171,29 @@ describe("las copias y el puntaje del alta", () => {
     });
   });
 });
+
+describe("las horas jugadas del alta", () => {
+  it("convierte las horas a número", () => {
+    const values = { ...EMPTY, playedHours: "12.5" };
+
+    const input = parseInput(manualGameInputSchema, values);
+
+    expect(input.playedHours).toBe(12.5);
+  });
+
+  it("vacío no manda horas", () => {
+    const values = { ...EMPTY, playedHours: "  " };
+
+    const input = parseInput(manualGameInputSchema, values);
+
+    expect(input).not.toHaveProperty("playedHours");
+  });
+
+  it("rechaza algo que no es un número con el mensaje de la spec", () => {
+    const values = { ...EMPTY, playedHours: "muchas" };
+
+    const parse = () => parseInput(manualGameInputSchema, values);
+
+    expect(parse).toThrow(new InvalidRequestError("Poné las horas jugadas, de 0 en adelante"));
+  });
+});

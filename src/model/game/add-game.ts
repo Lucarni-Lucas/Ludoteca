@@ -10,6 +10,8 @@ export type NewLibraryEntry = Readonly<{
   statusSince: string;
   copies: readonly NewCopy[];
   score: number | null;
+  /** Solo si el usuario cargó un total de horas al agregarlo. */
+  playedMinutes?: number;
 }>;
 
 /** «Ya lo tenés» no es un fallo: la pantalla ofrece agregar una copia al juego existente. */

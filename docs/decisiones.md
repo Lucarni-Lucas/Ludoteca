@@ -25,7 +25,7 @@ Lo que se decidió en la etapa técnica (5 y 6 de noviembre de 2026), sobre lo q
 | # | Cambio | Qué deja andando |
 |---|---|---|
 | 1 | `01-base` | Login, navegación de PC y celu, tokens de diseño, deploy. |
-| 2 | `02-nucleo-biblioteca` | Juegos (de IGDB o a mano), copias, estados, biblioteca con filtros y orden, puntaje, «Sin interés». |
+| 2 | `02-nucleo-biblioteca` | Juegos (de IGDB o a mano), copias, estados, biblioteca con filtros y orden, puntaje, horas jugadas a mano, «Sin interés». |
 | 3 | `03-idiomas` | Interfaz en español rioplatense y en inglés, con el idioma según el navegador o elegido en Ajustes. |
 | 4 | `04-importacion` | Importar IGN, Playnite y la cuenta de Steam, con pantalla de revisión. |
 | 5 | `05-tiendas-y-steam` | Pantalla de Tiendas, sincronización diaria con Steam y familia de Steam. |
@@ -174,8 +174,8 @@ import_batch, import_item   importación: fila original, cruce con IGDB, sugeren
 | Comprar algo de «Quiero jugarlo» | Al agregarle una copia propia, el juego pasa solo a «Pendiente» y te avisa. |
 | Puntaje | Puede quedar vacío; vacío no es 0.0. Se muestra solo el número. Las etiquetas por rango (0.0–1.9 Horrible, 2.0–2.9 Muy malo, 3.0–3.9 Malo, 4.0–4.9 Flojo, 5.0–5.9 Regular, 6.0–6.9 Pasable, 7.0–7.9 Bueno, 8.0–8.9 Muy bueno, 9.0–9.9 Excelente, 10.0 Obra maestra) se prenden en Ajustes, apagadas por defecto, con rangos fijos y nombres editables (`07`). |
 | Tipo de copia «Otro» | Para lo que no entra en los demás tipos, con un detalle opcional (ej. «Regalo»). Cuenta como propio, igual que Comprado, Gratis y Físico. |
-| Formulario de agregar | Varias copias, una fila por copia con «Agregar otra copia»; puntaje opcional; «Año de lanzamiento» opcional, entre 1950 y el año que viene; los campos opcionales lo dicen. Nota opcional desde `07`. |
-| Ayuda «?» | Junto a los términos propios: Sin interés, Año de lanzamiento, Familia, Otro, A mano, Ya no lo tengo y Sin fin. |
+| Formulario de agregar | Varias copias, una fila por copia con «Agregar otra copia»; puntaje y horas jugadas opcionales; «Año de lanzamiento» opcional, entre 1950 y el año que viene; los campos opcionales lo dicen. Nota opcional desde `07`. |
+| Ayuda «?» | Junto a los términos propios: Sin interés, Año de lanzamiento, Duración, Familia, Otro, A mano, Ya no lo tengo y Sin fin. |
 | Notas del diario | Entradas con fecha y texto, sin duración. El diario va de la entrada más nueva a la más vieja (`07`). |
 | Idiomas | Español rioplatense e inglés (`03`). Por defecto, español si el navegador está en español y si no inglés; se cambia en Ajustes. |
 | Filtros en PC | Todos permiten elegir varias opciones, y se suma el rango de puntaje (como en el celu). |

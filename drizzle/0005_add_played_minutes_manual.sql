@@ -1,0 +1,1 @@
+ALTER TABLE "library_game" ADD COLUMN "played_minutes_manual" integer;

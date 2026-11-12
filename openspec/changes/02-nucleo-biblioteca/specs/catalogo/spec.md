@@ -163,6 +163,25 @@ Si un juego no tiene portada, el sistema SHALL mostrar un bloque de color con ha
 - **WHEN** se muestra «Cartas del Faro» sin portada
 - **THEN** se ve un bloque de color con «CF»
 
+### Requirement: Horas jugadas a mano
+El sistema SHALL permitir cargar, cambiar y borrar desde la ficha el total de horas jugadas de un juego, y cargarlo como dato opcional en el formulario para agregarlo, desde IGDB o a mano. Acepta horas enteras o con un decimal, de 0 en adelante. Mientras no haya un total a mano ni otra fuente de horas, el juego muestra 0 h.
+
+#### Scenario: Cargar las horas en la ficha
+- **WHEN** el usuario carga 70 h en la ficha de Hades
+- **THEN** la ficha dice «Jugaste 70 h» y la tarjeta de la biblioteca también muestra 70 h
+
+#### Scenario: Agregar con horas jugadas
+- **WHEN** el usuario agrega Outer Wilds desde IGDB con 12.5 en «Horas jugadas»
+- **THEN** Outer Wilds aparece en su biblioteca con 12.5 h jugadas
+
+#### Scenario: Borrar las horas
+- **WHEN** el usuario borra el total de horas de Hades
+- **THEN** Hades vuelve a mostrar 0 h
+
+#### Scenario: Horas negativas
+- **WHEN** el usuario escribe -3 en «Horas jugadas»
+- **THEN** ve «Poné las horas jugadas, de 0 en adelante» y no se guarda nada
+
 ### Requirement: Correcciones propias
 El sistema SHALL permitir que cada usuario corrija la duración estimada, la marca «sin fin» y la portada de un juego. La corrección MUST verse solo en su biblioteca y prevalece sobre el dato del catálogo.
 

@@ -3,6 +3,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
+import pg from "pg";
 
 import { createTestDatabase } from "../../persistence/pglite.ts";
 import { startStallablePooler } from "../../persistence/support/stallable-pooler.ts";
@@ -28,12 +29,18 @@ const socketServer = new PGLiteSocketServer({ db: client, port: DB_INTERNAL_PORT
 await socketServer.start();
 const pooler = await startStallablePooler(DB_INTERNAL_PORT, DB_PORT);
 
+// Las órdenes de los tests entran por el pooler, como la app. pglite-socket le pide turno a PGlite por mensaje,
+// no por transacción: una consulta directa a PGlite podía caer dentro de una transacción abierta de la app y
+// desaparecer con su rollback, y la cuenta nueva quedaba sin habilitar.
+const control = new pg.Client({ connectionString: `postgresql://postgres:postgres@127.0.0.1:${DB_PORT}/postgres` });
+await control.connect();
+
 function reply(response: ServerResponse, status: number, body = ""): void {
   response.writeHead(status, body ? { "content-type": "application/json" } : {});
   response.end(body);
 }
 
-/** Cada test nuevo usa una cuenta propia. Esto convive con la app porque PGlite serializa sus consultas. */
+/** Cada test nuevo usa una cuenta propia. Va por el pooler, que no la mezcla con una transacción de la app. */
 function allowAccount(url: URL, response: ServerResponse): void {
   const email = url.searchParams.get("email") ?? "";
 
@@ -42,7 +49,7 @@ function allowAccount(url: URL, response: ServerResponse): void {
     return;
   }
 
-  client
+  control
     .query("insert into allowed_email (email) values ($1) on conflict do nothing", [email])
     .then(() => reply(response, HTTP_NO_CONTENT))
     .catch((error: unknown) => reply(response, HTTP_SERVER_ERROR, JSON.stringify({ error: String(error) })));

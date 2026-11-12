@@ -456,3 +456,53 @@ describe("AddGameScreen con el formulario de IGDB", () => {
     expect(screen.getByRole("button", { name: "Agregar" })).toBeInTheDocument();
   });
 });
+
+describe("formularios de alta con horas jugadas", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe(): void {}
+        unobserve(): void {}
+        disconnect(): void {}
+      },
+    );
+  });
+
+  it("Agregar con horas jugadas", async () => {
+    const user = userEvent.setup();
+    mockSearch([result({ kind: "new" })]);
+    addFromIgdbAction.mockResolvedValue({ ok: true, data: { kind: "added", gameId: "hades" } });
+    render(<AddGameScreen stores={STORES} statusGroups={GROUPS} />);
+    await user.type(screen.getByRole("searchbox", { name: "Buscar juego" }), "hades");
+    await user.click(await screen.findByRole("button", { name: "Agregar" }));
+    const dialog = within(screen.getByRole("dialog", { name: "Agregar «Hades»" }));
+
+    await user.type(dialog.getByRole("spinbutton", { name: "Horas jugadas" }), "12.5");
+    await user.click(dialog.getByRole("button", { name: "Guardar juego" }));
+
+    expect(addFromIgdbAction).toHaveBeenCalledWith(1, expect.objectContaining({ playedHours: "12.5" }));
+  });
+
+  it("el formulario a mano tiene «Horas jugadas» opcional y la ayuda de «Duración»", () => {
+    render(
+      <ManualGameForm
+        stores={STORES}
+        statusGroups={GROUPS}
+        pending={false}
+        errorMessage={null}
+        uploading={false}
+        uploadError={null}
+        onUploadCover={vi.fn(async () => undefined)}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    const played = screen.getByRole("spinbutton", { name: "Horas jugadas" });
+
+    expect(played).toHaveAttribute("placeholder", "opcional");
+    expect(screen.getByRole("spinbutton", { name: "Duración (h)" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Qué es «Duración»" })).toBeInTheDocument();
+  });
+});

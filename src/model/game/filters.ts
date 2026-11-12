@@ -1,5 +1,5 @@
 import { type CopyKind, isLost } from "@/model/copy/copy";
-import { effectiveHours, type LibraryGame, playedHours } from "@/model/game/library-game";
+import { effectiveHours, hasPlayedHours, type LibraryGame, playedHours } from "@/model/game/library-game";
 import { normalizeText } from "@/model/game/normalize-text";
 import type { StatusGroup } from "@/model/status/status-group";
 
@@ -95,7 +95,7 @@ function matchesTitle(game: LibraryGame, title: string): boolean {
 }
 
 function playedValue(game: LibraryGame): number | null {
-  return game.copies.length === 0 ? null : playedHours(game);
+  return hasPlayedHours(game) ? playedHours(game) : null;
 }
 
 export function visibleGames(games: readonly LibraryGame[], showNotInterested: boolean): readonly LibraryGame[] {

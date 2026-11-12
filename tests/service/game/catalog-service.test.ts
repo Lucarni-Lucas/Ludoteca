@@ -338,3 +338,36 @@ describe("agregar con varias copias y puntaje", () => {
     expect(gameRepo.addManualGame.mock.calls[0][2].copies[0]).toMatchObject({ kind: "other", kindDetail: "Regalo" });
   });
 });
+
+describe("agregar con horas jugadas", () => {
+  it("Agregar con horas jugadas", async () => {
+    const igdb = createFakeIgdb([], new Map([[1, igdbData(1, "Outer Wilds")]]));
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ igdb, gameRepo });
+
+    await service.addFromIgdb(USER_ID, 1, { ...EMPTY_ENTRY_INPUT, playedHours: 12.5 });
+
+    expect(gameRepo.addIgdbGame.mock.calls[0][2].playedMinutes).toBe(750);
+  });
+
+  it("sin horas no carga un total a mano", async () => {
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ gameRepo });
+
+    await service.addManual(USER_ID, MANUAL);
+
+    expect(gameRepo.addManualGame.mock.calls[0][2]).not.toHaveProperty("playedMinutes");
+  });
+
+  it("Horas negativas al agregar no guardan nada", async () => {
+    const igdb = createFakeIgdb([], new Map([[1, igdbData(1, "Outer Wilds")]]));
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ igdb, gameRepo });
+
+    const add = service.addFromIgdb(USER_ID, 1, { ...EMPTY_ENTRY_INPUT, playedHours: -3 });
+
+    await expect(add).rejects.toThrow("Poné las horas jugadas, de 0 en adelante");
+    expect(igdb.getGame).not.toHaveBeenCalled();
+    expect(gameRepo.addIgdbGame).not.toHaveBeenCalled();
+  });
+});

@@ -9,6 +9,7 @@ const MAX_URL_LENGTH = 2048;
 // Un tope de forma, para que un pedido no traiga miles de filas; nadie tiene tantas copias de un juego.
 const MAX_COPIES_PER_GAME = 30;
 const NOT_HTTPS_MESSAGE = "El link tiene que empezar con https://";
+const PLAYED_HOURS_MESSAGE = "Poné las horas jugadas, de 0 en adelante";
 
 function emptyToNull(value: unknown): unknown {
   if (typeof value !== "string") {
@@ -42,6 +43,8 @@ const entryShape = {
   statusId: optional(z.uuid()),
   // El rango lo valida el modelo; acá solo la forma.
   score: z.number().nullable(),
+  // Igual que el puntaje: el rango y el redondeo son del modelo.
+  playedHours: optional(z.coerce.number({ error: PLAYED_HOURS_MESSAGE })).optional(),
 };
 
 const manualGameSchema = z.object({
@@ -69,6 +72,7 @@ export type EntryFormValues = Readonly<{
   copies: readonly CopyRowFormValues[];
   statusId: string;
   score: number | null;
+  playedHours?: string;
 }>;
 
 export type ManualGameFormValues = EntryFormValues &
@@ -102,7 +106,13 @@ function toCopyInput(row: CopyRowOutput): NewCopyInput {
 }
 
 function toEntryInput(input: z.output<z.ZodObject<typeof entryShape>>): LibraryEntryInput {
-  return { statusId: input.statusId, copies: input.copies.map(toCopyInput), score: input.score };
+  return {
+    statusId: input.statusId,
+    copies: input.copies.map(toCopyInput),
+    score: input.score,
+    // Vacío no viaja: es «sin total a mano».
+    ...(input.playedHours == null ? {} : { playedHours: input.playedHours }),
+  };
 }
 
 export const entryInputSchema = z.object(entryShape).transform(toEntryInput);

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { CopyChips } from "@/components/copy/CopyChips";
 import { StatusBadge } from "@/components/status/StatusBadge";
 import { ClockIcon } from "@/components/ui/icons";
-import { effectiveCover, formatHours, type LibraryGame, playedHours } from "@/model/game/library-game";
+import { effectiveCover, formatHours, hasPlayedHours, type LibraryGame, playedHours } from "@/model/game/library-game";
 import { formatScore } from "@/model/game/score";
 import { isWishlist } from "@/model/status/status";
 
@@ -20,7 +20,7 @@ type GameCardProps = Readonly<{
 }>;
 
 function playedText(game: LibraryGame): string | null {
-  if (game.copies.length === 0) {
+  if (!hasPlayedHours(game)) {
     return null;
   }
 

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import controls from "@/components/ui/controls.module.css";
 import { HELP } from "@/components/ui/help-texts";
+import { HelpTip } from "@/components/ui/HelpTip";
 import { Modal } from "@/components/ui/Modal";
 import { Toggle } from "@/components/ui/Toggle";
 import { effectiveCover, effectiveEndless, formatHours, type LibraryGame } from "@/model/game/library-game";
@@ -42,6 +43,7 @@ export function EditGameDialog({
   const [estimatedHours, setEstimatedHours] = useState(game.corrections.estimatedHours?.toString() ?? "");
   const [endless, setEndless] = useState(effectiveEndless(game));
   const [coverUrl, setCoverUrl] = useState(game.corrections.coverUrl ?? "");
+  const durationId = useId();
 
   async function handleUpload(file: File): Promise<void> {
     const url = await onUploadCover(file);
@@ -82,9 +84,13 @@ export function EditGameDialog({
         onUpload={(file) => void handleUpload(file)}
       />
       <Toggle label="Sin fin" help={HELP.endless} checked={endless} onCheckedChange={setEndless} />
-      <label className={controls.field}>
-        Duración (h)
+      <div className={controls.field}>
+        <span className={controls.labelWithHelp}>
+          <label htmlFor={durationId}>Duración (h)</label>
+          <HelpTip help={HELP.duration} />
+        </span>
         <input
+          id={durationId}
           className={`${controls.input} ${controls.number}`}
           type="number"
           inputMode="decimal"
@@ -94,7 +100,7 @@ export function EditGameDialog({
           value={endless ? "" : estimatedHours}
           onChange={(event) => setEstimatedHours(event.target.value)}
         />
-      </label>
+      </div>
       {game.catalog.estimatedHours === null ? null : (
         <p className={controls.hint}>IGDB: unas {formatHours(game.catalog.estimatedHours)} h</p>
       )}

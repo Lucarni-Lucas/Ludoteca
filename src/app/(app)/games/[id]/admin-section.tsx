@@ -64,15 +64,17 @@ export function AdminSection({ game, onEdit }: AdminSectionProps) {
             Actualizar datos
           </button>
         )}
-        <button
-          type="button"
-          className={controls.secondary}
-          disabled={notInterested.pending}
-          onClick={() => void notInterested.run(game.id, !game.notInterested)}
-        >
-          {game.notInterested ? "Quitar «Sin interés»" : "Marcar sin interés"}
-        </button>
-        <HelpTip help={HELP.notInterested} />
+        <span className={controls.withHelp}>
+          <button
+            type="button"
+            className={controls.secondary}
+            disabled={notInterested.pending}
+            onClick={() => void notInterested.run(game.id, !game.notInterested)}
+          >
+            {game.notInterested ? "Quitar «Sin interés»" : "Marcar sin interés"}
+          </button>
+          <HelpTip help={HELP.notInterested} />
+        </span>
         <button type="button" className={controls.danger} onClick={() => setRemoveOpen(true)}>
           Quitar de la biblioteca
         </button>

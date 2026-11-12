@@ -46,7 +46,13 @@
   transform: translateX(calc(var(--touch-target) - var(--status-badge-height)));
 }
 
+/* El rótulo y su «?» van en línea: si el rótulo baja de renglón, el «?» sigue a la última palabra. */
+.text {
+  min-width: 0;
+}
+
 .label {
+  margin-right: var(--space-4);
   color: var(--color-text-soft);
   font-size: var(--text-14);
   cursor: pointer;

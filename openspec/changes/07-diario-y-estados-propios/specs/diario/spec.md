@@ -82,9 +82,6 @@ Las horas jugadas de un juego SHALL ser: el total cargado a mano si existe; si n
 - **WHEN** Stardew Valley solo tiene una copia física de Switch y sesiones de 2 h 10 min y 3 h 05 min
 - **THEN** Stardew Valley muestra 5 h 15 min
 
-### Requirement: Total a mano
-El sistema SHALL permitir cargar, cambiar y borrar el total de horas a mano de un juego. Al borrarlo, vuelve a aplicarse la regla de horas jugadas.
-
 #### Scenario: Borrar el total a mano
 - **WHEN** el usuario borra el total a mano de Hades
 - **THEN** Hades vuelve a mostrar las 64 h de Steam

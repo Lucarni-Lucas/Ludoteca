@@ -75,3 +75,10 @@
     display: flex;
   }
 }
+
+/* El término y su «?» van juntos (design.md §18). */
+.withHelp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}

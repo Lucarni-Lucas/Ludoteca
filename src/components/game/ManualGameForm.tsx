@@ -53,6 +53,7 @@ export function ManualGameForm({
   const [estimatedHours, setEstimatedHours] = useState("");
   const entry = useEntryForm();
   const yearId = useId();
+  const durationId = useId();
 
   async function handleUpload(file: File): Promise<void> {
     const url = await onUploadCover(file);
@@ -109,7 +110,7 @@ export function ManualGameForm({
 
       <div className={styles.threeColumns}>
         <div className={controls.field}>
-          <span className={styles.labelWithHelp}>
+          <span className={controls.labelWithHelp}>
             <label htmlFor={yearId}>Año de lanzamiento</label>
             <HelpTip help={HELP.releaseYear} />
           </span>
@@ -123,9 +124,13 @@ export function ManualGameForm({
             onChange={(event) => setYear(event.target.value)}
           />
         </div>
-        <label className={controls.field}>
-          Duración (h)
+        <div className={controls.field}>
+          <span className={controls.labelWithHelp}>
+            <label htmlFor={durationId}>Duración (h)</label>
+            <HelpTip help={HELP.duration} />
+          </span>
           <input
+            id={durationId}
             className={`${controls.input} ${controls.number}`}
             type="number"
             inputMode="decimal"
@@ -133,6 +138,18 @@ export function ManualGameForm({
             placeholder="opcional"
             value={estimatedHours}
             onChange={(event) => setEstimatedHours(event.target.value)}
+          />
+        </div>
+        <label className={controls.field}>
+          Horas jugadas
+          <input
+            className={`${controls.input} ${controls.number}`}
+            type="number"
+            inputMode="decimal"
+            min="0"
+            placeholder="opcional"
+            value={entry.playedHours}
+            onChange={(event) => entry.setPlayedHours(event.target.value)}
           />
         </label>
         <label className={`${controls.field} ${styles.status}`}>

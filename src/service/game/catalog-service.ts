@@ -10,6 +10,7 @@ import type { CatalogGameData, IgdbGameData, IgdbSearchResult } from "@/model/ga
 import { GameNotFoundError } from "@/model/game/errors";
 import { resolveInitialStatus } from "@/model/game/initial-status";
 import { validateReleaseYear } from "@/model/game/release-year";
+import { playedMinutesFromHours } from "@/model/game/played-hours";
 import { normalizeOptionalScore } from "@/model/game/score";
 import type { Status } from "@/model/status/status";
 import type { StoreChoice, StoreResolver } from "@/service/copy/store-resolver";
@@ -21,6 +22,8 @@ export type LibraryEntryInput = Readonly<{
   statusId: string | null;
   copies: readonly NewCopyInput[];
   score: number | null;
+  /** Opcional: vacío es «sin total a mano». */
+  playedHours?: number | null;
 }>;
 
 export const EMPTY_ENTRY_INPUT: LibraryEntryInput = { statusId: null, copies: [], score: null };
@@ -59,11 +62,17 @@ type ValidEntry = Readonly<{
   statusId: string | null;
   rows: readonly ValidCopyRow<StoreChoice>[];
   score: number | null;
+  playedMinutes: number | null;
 }>;
 
 /** Todo lo que se puede rechazar sin tocar la base va primero: así un error no deja una tienda «Otra» creada. */
 function validateEntry(input: LibraryEntryInput): ValidEntry {
-  return { statusId: input.statusId, rows: validateCopyRows(input.copies), score: normalizeOptionalScore(input.score) };
+  return {
+    statusId: input.statusId,
+    rows: validateCopyRows(input.copies),
+    score: normalizeOptionalScore(input.score),
+    playedMinutes: playedMinutesFromHours(input.playedHours ?? null),
+  };
 }
 
 export function createCatalogService({
@@ -91,7 +100,8 @@ export function createCatalogService({
     const status = resolveInitialStatus(statuses, { chosenStatusId: entry.statusId, hasCopy: entry.rows.length > 0 });
     const copies = await resolveCopies(userId, entry.rows);
 
-    return { statusId: status.id, statusSince: today, copies, score: entry.score };
+    const played = entry.playedMinutes === null ? {} : { playedMinutes: entry.playedMinutes };
+    return { statusId: status.id, statusSince: today, copies, score: entry.score, ...played };
   }
 
   return {

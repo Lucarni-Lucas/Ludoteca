@@ -1,4 +1,4 @@
-import { effectiveHours, type LibraryGame, playedHours } from "@/model/game/library-game";
+import { effectiveHours, hasPlayedHours, type LibraryGame, playedHours } from "@/model/game/library-game";
 import { normalizeText } from "@/model/game/normalize-text";
 
 export const LIBRARY_SORTS = ["recent", "score", "played", "duration", "title"] as const;
@@ -43,7 +43,7 @@ function compareText(left: string, right: string): number {
 const COMPARATORS: Readonly<Record<LibrarySort, Comparator>> = {
   recent: (a, b) => compareText(b.addedAt, a.addedAt),
   score: byNumber((game) => game.score, -1),
-  played: byNumber((game) => (game.copies.length === 0 ? null : playedHours(game)), -1),
+  played: byNumber((game) => (hasPlayedHours(game) ? playedHours(game) : null), -1),
   duration: byNumber(effectiveHours, 1),
   title: (a, b) => compareText(normalizeText(a.title), normalizeText(b.title)),
 };

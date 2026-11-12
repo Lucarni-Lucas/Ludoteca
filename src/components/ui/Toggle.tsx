@@ -29,10 +29,12 @@ export function Toggle({ label, checked, disabled, help, onCheckedChange }: Togg
       >
         <Switch.Thumb className={styles.thumb} />
       </Switch.Root>
-      <label htmlFor={id} className={styles.label}>
-        {label}
-      </label>
-      {help ? <HelpTip help={help} /> : null}
+      <span className={styles.text}>
+        <label htmlFor={id} className={styles.label}>
+          {label}
+        </label>
+        {help ? <HelpTip help={help} /> : null}
+      </span>
     </div>
   );
 }

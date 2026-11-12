@@ -521,3 +521,56 @@ describe("createGameRepository al agregar con varias copias y puntaje", () => {
     expect((await repositories.games.findById(USER_A, gameId))?.score).toBeNull();
   });
 });
+
+describe("createGameRepository con las horas jugadas a mano", () => {
+  let database: TestDatabase;
+  let repositories: Repositories;
+  let statuses: readonly Status[];
+
+  beforeEach(async () => {
+    database = await createTestDatabase();
+    repositories = createRepositories(database);
+    statuses = await seedStatuses(repositories, USER_A);
+    await seedStatuses(repositories, USER_B);
+  });
+
+  afterEach(async () => {
+    await database.client.close();
+  });
+
+  it("Agregar con horas jugadas", async () => {
+    const withHours = { ...entry(statuses), playedMinutes: 750 };
+
+    const { gameId } = await repositories.games.addIgdbGame(USER_A, igdbData(7, "Outer Wilds"), withHours);
+
+    expect((await repositories.games.findById(USER_A, gameId))?.manualPlayedMinutes).toBe(750);
+  });
+
+  it("un juego nuevo no tiene total a mano", async () => {
+    const plain = entry(statuses);
+
+    const gameId = await repositories.games.addManualGame(USER_A, MANUAL_DATA, plain);
+
+    expect((await repositories.games.findById(USER_A, gameId))?.manualPlayedMinutes).toBeNull();
+  });
+
+  it("carga, cambia y borra el total a mano", async () => {
+    const { gameId } = await repositories.games.addIgdbGame(USER_A, igdbData(8, "Hades"), entry(statuses));
+    await repositories.games.updatePlayedMinutes(USER_A, gameId, 4200);
+    const loaded = (await repositories.games.findById(USER_A, gameId))?.manualPlayedMinutes;
+
+    await repositories.games.updatePlayedMinutes(USER_A, gameId, null);
+
+    expect(loaded).toBe(4200);
+    expect((await repositories.games.findById(USER_A, gameId))?.manualPlayedMinutes).toBeNull();
+  });
+
+  it("el usuario A no ve ni cambia nada del B", async () => {
+    const { gameId } = await repositories.games.addIgdbGame(USER_A, igdbData(9, "Hades"), entry(statuses));
+
+    const change = repositories.games.updatePlayedMinutes(USER_B, gameId, 60);
+
+    await expect(change).rejects.toBeInstanceOf(GameNotFoundError);
+    expect((await repositories.games.findById(USER_A, gameId))?.manualPlayedMinutes).toBeNull();
+  });
+});

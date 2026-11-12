@@ -40,6 +40,14 @@ export class GameNotFromIgdbError extends AppError {
   }
 }
 
+export class PlayedHoursOutOfRangeError extends AppError {
+  readonly code = "PLAYED_HOURS_OUT_OF_RANGE";
+
+  constructor() {
+    super("Poné las horas jugadas, de 0 en adelante");
+  }
+}
+
 export class ReleaseYearOutOfRangeError extends AppError {
   readonly code = "RELEASE_YEAR_OUT_OF_RANGE";
 

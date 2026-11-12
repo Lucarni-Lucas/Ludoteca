@@ -48,6 +48,7 @@ export function buildGame(overrides: Partial<LibraryGame> = {}): LibraryGame {
     notInterested: false,
     addedAt: "2026-01-01T00:00:00.000Z",
     copies: [],
+    manualPlayedMinutes: null,
     ...overrides,
   };
 }

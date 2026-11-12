@@ -162,3 +162,12 @@
     background: var(--color-bg);
   }
 }
+
+/* El término y su «?» van juntos y ocupan un solo lugar en su fila (design.md §18). */
+/* En una columna angosta el rótulo baja de renglón y el «?» queda al lado, centrado: en línea no entraría. */
+.withHelp,
+.labelWithHelp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}

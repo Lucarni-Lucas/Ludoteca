@@ -13,6 +13,10 @@ export const HELP = {
     term: "Año de lanzamiento",
     text: "El año en que salió el juego, no el año en que lo conseguiste.",
   },
+  duration: {
+    term: "Duración",
+    text: "Cuánto se tarda en promedio en terminarlo, según IGDB o lo que cargues vos. No son tus horas jugadas.",
+  },
   family: {
     term: "Familia",
     text: "Te lo presta alguien de tu familia de Steam: lo podés jugar, pero no es tuyo.",

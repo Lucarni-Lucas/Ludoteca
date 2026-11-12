@@ -55,12 +55,12 @@ export function CopyList({ copies, onAdd, onMarkLost, onRecover, onRemove }: Cop
                 Recuperar
               </button>
             ) : (
-              <>
+              <span className={controls.withHelp}>
                 <button type="button" className={controls.ghost} onClick={() => onMarkLost(copy)}>
                   Ya no lo tengo
                 </button>
                 <HelpTip help={HELP.lost} />
-              </>
+              </span>
             )}
             <button
               type="button"

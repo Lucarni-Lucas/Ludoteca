@@ -81,7 +81,7 @@ Esta etapa suma IGDB y las portadas subidas. Sin estas variables la biblioteca s
 
 La app se conecta con `pg` y no espera para siempre: corta a los 5 s si no puede conectarse y a los 8 s si una consulta no responde, y avisa «No pudimos cargar tus datos. Probá de nuevo.» con «Reintentar». Para que la base también corte esas consultas, sus tiempos máximos van en el rol `postgres` (paso 3).
 
-**El orden importa: primero la migración y después el deploy**, porque el código nuevo consulta las tablas nuevas, el tipo de copia «Otro» y la columna `kind_detail`.
+**El orden importa: primero la migración y después el deploy**, porque el código nuevo consulta las tablas nuevas, el tipo de copia «Otro» y las columnas `kind_detail` y `played_minutes_manual`.
 
 1. Creá la app de Twitch y el bucket público `covers`, y copiá la secret key.
 2. Cargá las variables en `.env.local` y en Vercel (Production y Preview).
@@ -94,4 +94,4 @@ La app se conecta con `pg` y no espera para siempre: corta a los 5 s si no puede
 
 5. Desplegá. Los estados por defecto se crean solos la primera vez que cada usuario abre la biblioteca.
 
-Si hay que volver atrás, en Vercel se puede volver al deploy anterior: ignora las tablas nuevas, la columna `kind_detail` y el valor `other` (mientras no haya copias de tipo Otro), así que no hace falta revertir la migración.
+Si hay que volver atrás, en Vercel se puede volver al deploy anterior: ignora las tablas nuevas, las columnas `kind_detail` y `played_minutes_manual` y el valor `other` (mientras no haya copias de tipo Otro), así que no hace falta revertir la migración.

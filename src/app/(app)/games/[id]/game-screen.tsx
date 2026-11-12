@@ -5,6 +5,7 @@ import { useState } from "react";
 import { EditGameDialog, type EditGameValues } from "@/components/game/EditGameDialog";
 import { GameCover } from "@/components/game/GameCover";
 import { GameFacts, GameHeaderFacts } from "@/components/game/GameFacts";
+import { PlayedHoursDialog } from "@/components/game/PlayedHoursDialog";
 import { ScoreControl } from "@/components/game/ScoreControl";
 import { BackLink } from "@/components/layout/BackLink";
 import { StatusCard } from "@/components/status/StatusCard";
@@ -17,7 +18,7 @@ import type { StatusGroupView } from "@/model/status/status";
 import type { Store } from "@/model/store/store";
 
 import { uploadCoverAction } from "../../add/actions";
-import { changeStatusAction, setScoreAction, updateCorrectionsAction } from "./actions";
+import { changeStatusAction, setPlayedHoursAction, setScoreAction, updateCorrectionsAction } from "./actions";
 import { AdminSection } from "./admin-section";
 import { CopiesSection } from "./copies-section";
 import styles from "./page.module.css";
@@ -36,10 +37,20 @@ function metaText(game: LibraryGame): string {
 export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameScreenProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [playedOpen, setPlayedOpen] = useState(false);
+  const savePlayed = useServerAction(setPlayedHoursAction);
   const changeStatus = useServerAction(changeStatusAction);
   const setScore = useServerAction(setScoreAction);
   const saveCorrections = useServerAction(updateCorrectionsAction);
   const upload = useServerAction(uploadCoverAction);
+
+  async function savePlayedHours(hours: number | null): Promise<void> {
+    const result = await savePlayed.run(game.id, hours);
+
+    if (result.ok) {
+      setPlayedOpen(false);
+    }
+  }
 
   async function saveStatus(statusId: string): Promise<void> {
     const result = await changeStatus.run(game.id, statusId);
@@ -78,7 +89,7 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
             <CopiesSection gameId={game.id} copies={game.copies} stores={stores} openAddDialog={openCopyDialog} />
           </div>
           <div className={styles.facts}>
-            <GameFacts game={game} onEdit={() => setEditOpen(true)} />
+            <GameFacts game={game} onEdit={() => setEditOpen(true)} onEditPlayed={() => setPlayedOpen(true)} />
           </div>
         </div>
 
@@ -92,7 +103,7 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
                 <HelpTip help={HELP.manual} />
               </span>
             ) : null}
-            <GameHeaderFacts game={game} onEdit={() => setEditOpen(true)} />
+            <GameHeaderFacts game={game} onEdit={() => setEditOpen(true)} onEditPlayed={() => setPlayedOpen(true)} />
           </div>
 
           <div className={styles.cards}>
@@ -122,6 +133,17 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
           pending={changeStatus.pending}
           errorMessage={changeStatus.errorMessage}
           onSave={(statusId) => void saveStatus(statusId)}
+        />
+      ) : null}
+
+      {playedOpen ? (
+        <PlayedHoursDialog
+          open
+          onOpenChange={setPlayedOpen}
+          manualPlayedMinutes={game.manualPlayedMinutes}
+          pending={savePlayed.pending}
+          errorMessage={savePlayed.errorMessage}
+          onSave={(hours) => void savePlayedHours(hours)}
         />
       ) : null}
 

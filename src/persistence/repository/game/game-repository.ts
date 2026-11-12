@@ -34,6 +34,7 @@ export type GameRepository = Readonly<{
   applyStatusChange(userId: string, gameId: string, plan: StatusChangePlan): Promise<void>;
   updateCorrections(userId: string, gameId: string, corrections: GameCorrections): Promise<void>;
   updateScore(userId: string, gameId: string, score: number | null): Promise<void>;
+  updatePlayedMinutes(userId: string, gameId: string, minutes: number | null): Promise<void>;
   setNotInterested(userId: string, gameIds: readonly string[], notInterested: boolean): Promise<void>;
   linkToIgdb(userId: string, game: Pick<LibraryGame, "id" | "catalogGameId">, data: IgdbGameData): Promise<void>;
   updateCatalogFromIgdb(catalogGameId: string, data: IgdbGameData): Promise<void>;
@@ -93,7 +94,14 @@ async function insertLibraryEntry(
 ): Promise<string | null> {
   const [row] = await tx
     .insert(libraryGame)
-    .values({ userId, catalogGameId, statusId: entry.statusId, statusSince: entry.statusSince, score: entry.score })
+    .values({
+      userId,
+      catalogGameId,
+      statusId: entry.statusId,
+      statusSince: entry.statusSince,
+      score: entry.score,
+      playedMinutesManual: entry.playedMinutes ?? null,
+    })
     .onConflictDoNothing({ target: [libraryGame.userId, libraryGame.catalogGameId] })
     .returning({ id: libraryGame.id });
 
@@ -229,6 +237,10 @@ export function createGameRepository(db: Database): GameRepository {
 
     updateScore(userId, gameId, score) {
       return updateOwnGame(db, userId, gameId, { score });
+    },
+
+    updatePlayedMinutes(userId, gameId, minutes) {
+      return updateOwnGame(db, userId, gameId, { playedMinutesManual: minutes });
     },
 
     async setNotInterested(userId, gameIds, notInterested) {

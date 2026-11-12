@@ -2,7 +2,9 @@
   flex: none;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  /* El círculo queda pegado al término; la zona de 44 px se extiende hacia afuera (design.md §18). */
+  justify-content: flex-start;
+  vertical-align: middle;
   width: var(--touch-target);
   height: var(--touch-target);
   /* Ocupa 44 px para tocarlo, pero no agranda la línea en la que está. */

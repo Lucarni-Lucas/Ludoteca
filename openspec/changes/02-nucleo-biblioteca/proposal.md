@@ -9,13 +9,14 @@ Es el corazón de Ludoteca: tener los juegos en un solo lugar, con dónde los te
 - Buscar juegos en IGDB mientras escribís y agregarlos; cargar a mano los que no están; vincular después un juego cargado a mano con IGDB.
 - Catálogo compartido y biblioteca de cada usuario, con correcciones propias (duración, sin fin, portada).
 - Copias: varias por juego, con tienda, tipo (incluido «Otro», que cuenta como propio) y fecha opcional; marca «Ya no lo tengo» que conserva todo el historial.
-- Formulario de agregar con varias copias (una fila por copia, con «Agregar otra copia»), puntaje opcional y «Año de lanzamiento» validado. Los campos opcionales lo dicen.
+- Formulario de agregar con varias copias (una fila por copia, con «Agregar otra copia»), puntaje y horas jugadas opcionales y «Año de lanzamiento» validado. Los campos opcionales lo dicen.
+- Horas jugadas cargadas a mano desde la ficha. Las horas de Steam llegan en `05-tiendas-y-steam` y las de las sesiones del diario, en `07-diario-y-estados-propios`.
 - Estados en cuatro grupos fijos, con los estados por defecto (incluido el nuevo «Jugado») y el registro de cada cambio de estado.
 - Biblioteca en grilla (PC) y lista (celu), con filtros combinables de selección múltiple, rangos libres y orden.
 - Puntaje de 0.0 a 10.0, que se muestra solo con el número. Las etiquetas por rango pasan a `07-diario-y-estados-propios`, como opción de Ajustes.
 - Marca «Sin interés» para juegos que tenés pero no pensás jugar.
 - Quitar un juego de la biblioteca (por ejemplo, uno agregado por error), con confirmación y sin vuelta atrás.
-- Ayuda «?» junto a los términos propios de Ludoteca (Sin interés, Familia, Otro, A mano, Ya no lo tengo, Sin fin, Año de lanzamiento).
+- Ayuda «?» junto a los términos propios de Ludoteca (Sin interés, Familia, Otro, A mano, Ya no lo tengo, Sin fin, Año de lanzamiento, Duración).
 - Si la base de datos no responde, aviso con «Reintentar» en menos de 15 segundos, en lugar de quedarse cargando hasta el límite de Vercel.
 - Aislamiento entre usuarios: cada usuario ve y cambia solo sus datos. Viene de `01-base`, donde todavía no había datos de usuario para probarlo.
 

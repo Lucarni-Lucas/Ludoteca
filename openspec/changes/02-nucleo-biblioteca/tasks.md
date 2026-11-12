@@ -137,14 +137,38 @@ Los nombres entre comillas son escenarios de las specs: cada uno lleva un test c
 
 - [x] 21.1 Documentar en `README.md` las variables nuevas y el orden de puesta en marcha. Verificar: los comandos del workflow de CI pasan en local con valores de ejemplo.
 - [x] 21.2 Actualizar `README.md` y `docs/configuracion-externa.md`: `pg` y sus tiempos máximos, el paso de los tiempos del rol con su SQL y el comando para verificarlos a través del pooler, la migración nueva, y la referencia a «la sección 16 de estas tareas», que pasa a ser esta. Verificar: los comandos del workflow de CI pasan en local con valores de ejemplo.
-- [ ] 21.3 **[Usuario]** Crear la app de Twitch, el bucket `covers` y copiar la secret key, siguiendo `docs/configuracion-externa.md`, y cargar las variables en `.env.local` y en Vercel. Verificar: el panel de Supabase muestra el bucket público y Vercel, las variables.
-- [ ] 21.4 **[Usuario]** En el SQL Editor de Supabase, configurar los tiempos máximos del rol (§17): `alter role postgres set statement_timeout = '8s';` y `alter role postgres set idle_in_transaction_session_timeout = '15s';`. Verificar con el comando de 21.2, que pasa por el pooler: `show statement_timeout` devuelve `8s`.
-- [ ] 21.5 **[Usuario]** Correr `npm run db:migrate` contra Supabase, **antes** de desplegar. Verificar: las tablas nuevas aparecen en Supabase con RLS activa, están las 12 tiendas y `copy` tiene `kind_detail`.
-- [ ] 21.6 Prueba manual sobre el deploy, con tu sesión iniciada: buscar «hol» en IGDB real, agregar un juego, comprobar duración y portada, y subir una imagen. Después, repetir el caso del 11/11: marcar «Sin interés», volver, desmarcar y volver, varias veces y con pausas de algunos minutos. Verificar: aparece Hollow Knight, y en los logs de Vercel no hay «Task timed out». Si «hol» no lo trae, aplicar en el adapter el prefijo previsto en `design.md` (Risks), con su test MSW.
+- [x] 21.3 **[Usuario]** Crear la app de Twitch, el bucket `covers` y copiar la secret key, siguiendo `docs/configuracion-externa.md`, y cargar las variables en `.env.local` y en Vercel. Verificar: el panel de Supabase muestra el bucket público y Vercel, las variables.
+- [x] 21.4 **[Usuario]** En el SQL Editor de Supabase, configurar los tiempos máximos del rol (§17): `alter role postgres set statement_timeout = '8s';` y `alter role postgres set idle_in_transaction_session_timeout = '15s';`. Verificar con el comando de 21.2, que pasa por el pooler: `show statement_timeout` devuelve `8s`.
+- [x] 21.5 **[Usuario]** Correr `npm run db:migrate` contra Supabase, **antes** de desplegar. Verificar: las tablas nuevas aparecen en Supabase con RLS activa, están las 12 tiendas y `copy` tiene `kind_detail`.
+- [x] 21.6 Prueba manual sobre el deploy, con tu sesión iniciada: buscar «hol» en IGDB real, agregar un juego, comprobar duración y portada, y subir una imagen. Después, repetir el caso del 11/11: marcar «Sin interés», volver, desmarcar y volver, varias veces y con pausas de algunos minutos. Verificar: aparece Hollow Knight, y en los logs de Vercel no hay «Task timed out». Si «hol» no lo trae, aplicar en el adapter el prefijo previsto en `design.md` (Risks), con su test MSW.
 
-## 22. Verificación final
+## 22. Test que falla en CI
 
-- [ ] 22.1 Revisar la definición de terminado de `CLAUDE.md` completa: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` y `npm run test:e2e` sin errores; cada escenario de las specs con su test de igual nombre; pantallas comparadas con sus `.dc.html`; sin issues nuevos en SonarQube; y todas las tareas marcadas.
+- [ ] 22.1 Con el «sí» del usuario, hacer que «varias consultas y transacciones a la vez comparten la única conexión de PGlite» use los tiempos por defecto (`DATABASE_TIMEOUTS`) en lugar de los 300 ms, sin cambiar lo que verifica (§17). Verificar: pasa 20 veces seguidas con todos los núcleos ocupados por otros procesos, y en GitHub Actions.
+
+## 23. Horas jugadas a mano
+
+- [x] 23.1 Modelo (§20): `manualPlayedMinutes` en `LibraryGame`, `playedHours` con el total a mano primero, `played-hours.ts` con el rango, el redondeo a un decimal y `PlayedHoursOutOfRangeError`. Filtro y orden por horas incluyen un juego sin copias con total a mano. Con el «sí» del usuario, sumar `manualPlayedMinutes: null` al fixture `buildGame` de `tests/model/game/library-fixtures.ts`. Tests: "Horas negativas", el redondeo, el tope y el total a mano en el filtro y el orden. Verificar: `npm test`.
+- [x] 23.2 Persistencia: `played_minutes_manual` en `library_game`, con una migración nueva generada por drizzle-kit (§4); mapper; alta con el total en la misma transacción; método para cambiarlo y borrarlo. Tests contra PGlite con las migraciones reales, incluido «el usuario A no ve ni cambia nada del B». Verificar: `npm test`.
+- [x] 23.3 Servicio y acciones: `setPlayedHours` en el servicio de la biblioteca y `playedHours` en la entrada del alta, con Zod solo para la forma. Tests: "Agregar con horas jugadas", "Borrar las horas" y "Horas negativas" en el servicio. Verificar: `npm test`.
+- [x] 23.4 Interfaz: ventana «Horas jugadas» desde «Jugaste» en la ficha, con «Guardar» y «Borrar horas», y el campo opcional «Horas jugadas» en los dos formularios de alta. Tests de componente y e2e en los dos anchos: "Cargar las horas en la ficha", "Agregar con horas jugadas", "Borrar las horas" y "Horas negativas". Verificar: `npm test` y `npm run test:e2e` de esas pantallas.
+
+## 24. Ayuda de «Duración»
+
+- [x] 24.1 Sumar el texto de «Duración» al módulo de la ayuda y el «?» en «Duración (h)» del formulario a mano y de «Editar», y en «Duración» de la ficha (§18). Tests: "Ayuda de la duración" en componentes y en e2e, en los dos anchos. Verificar: `npm test` y el e2e.
+
+## 25. «?» pegado a su término
+
+- [x] 25.1 Aplicar la regla de §18 en todas las ubicaciones: el término y su «?» en un grupo que no se separa, con el círculo a 4 px del término y centrado en altura, sin romper las filas de botones ni de campos. Sumar un e2e que lo mida en cada ubicación, a 390 y a 1440 px, y revisar cada una contra una captura. Verificar: ese e2e y los que siguen pasando de zona táctil, 360 px y tabulador.
+
+## 26. Puesta en marcha de las horas a mano
+
+- [ ] 26.1 **[Usuario]** Correr `npm run db:migrate` contra Supabase, **antes** de desplegar. Verificar: `library_game` tiene `played_minutes_manual`.
+- [ ] 26.2 Prueba manual sobre el deploy: cargar, cambiar y borrar las horas de un juego desde la ficha, y agregar uno desde IGDB con horas. Verificar: la tarjeta muestra el total, y en los logs de Vercel no hay errores.
+
+## 27. Verificación final
+
+- [ ] 27.1 Revisar la definición de terminado de `CLAUDE.md` completa: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` y `npm run test:e2e` sin errores; cada escenario de las specs con su test de igual nombre; pantallas comparadas con sus `.dc.html`; sin issues nuevos en SonarQube; y todas las tareas marcadas.
 
 ## Workflow follow-up
 

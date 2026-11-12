@@ -11,6 +11,7 @@ import { createStoreResolver } from "@/service/copy/store-resolver";
 import { type CatalogService, createCatalogService } from "@/service/game/catalog-service";
 import { type CoverService, createCoverService } from "@/service/game/cover-service";
 import { createLibraryService, type LibraryService } from "@/service/game/library-service";
+import { createPlayedHoursService, type PlayedHoursService } from "@/service/game/played-hours-service";
 import { getStatusService } from "@/service/status/instance";
 import { clock } from "@/shared/clock";
 
@@ -21,6 +22,7 @@ let gameRepository: GameRepository | undefined;
 let catalogService: CatalogService | undefined;
 let libraryService: LibraryService | undefined;
 let coverService: CoverService | undefined;
+let playedHoursService: PlayedHoursService | undefined;
 
 function getIgdbAdapter(): IgdbAdapter {
   if (!igdbAdapter) {
@@ -62,6 +64,11 @@ export function getLibraryService(): LibraryService {
     clock,
   });
   return libraryService;
+}
+
+export function getPlayedHoursService(): PlayedHoursService {
+  playedHoursService ??= createPlayedHoursService({ gameRepo: getGameRepository() });
+  return playedHoursService;
 }
 
 export function getCoverService(): CoverService {

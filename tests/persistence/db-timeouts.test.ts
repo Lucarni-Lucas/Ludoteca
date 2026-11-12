@@ -152,10 +152,16 @@ describe("después de un fallo, la base vuelve a andar", () => {
 
   it("varias consultas y transacciones a la vez comparten la única conexión de PGlite", { timeout: PROXY_TEST_MS }, async () => {
     await setup();
+    // Verifica que se comparte la conexión, no los tiempos: con 300 ms, un CI cargado vence la espera en la fila (design.md §17).
+    const shared = createDatabase({
+      url: `postgresql://postgres:postgres@127.0.0.1:${proxy.port}/postgres`,
+      poolMax: POOL_MAX,
+      ...DATABASE_TIMEOUTS,
+    });
     const queries = Array.from({ length: 6 }, (_, index) =>
       index % 2 === 0
-        ? database.execute(sql`select ${index}::int as n`)
-        : database.transaction(async (tx) => {
+        ? shared.execute(sql`select ${index}::int as n`)
+        : shared.transaction(async (tx) => {
             await tx.execute(sql`select 1`);
             return tx.execute(sql`select ${index}::int as n`);
           }),

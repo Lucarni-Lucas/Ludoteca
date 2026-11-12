@@ -29,6 +29,8 @@ export type LibraryGame = Readonly<{
   notInterested: boolean;
   addedAt: string;
   copies: readonly Copy[];
+  /** El total que cargó el usuario; `null` si no cargó ninguno (design.md §20). */
+  manualPlayedMinutes: number | null;
 }>;
 
 type GameData = Pick<LibraryGame, "catalog" | "corrections">;
@@ -87,9 +89,18 @@ export function toCorrections(game: GameData, form: CorrectionsForm): GameCorrec
   };
 }
 
-export function playedHours(game: Pick<LibraryGame, "copies">): number {
-  const minutes = game.copies.reduce((total, copy) => total + (copy.playtimeMinutes ?? 0), 0);
+type PlayedData = Pick<LibraryGame, "copies" | "manualPlayedMinutes">;
+
+/** El total a mano manda; si no hay, lo que dicen las copias. `07` suma las sesiones del diario. */
+export function playedHours(game: PlayedData): number {
+  const minutes =
+    game.manualPlayedMinutes ?? game.copies.reduce((total, copy) => total + (copy.playtimeMinutes ?? 0), 0);
   return minutes / MINUTES_PER_HOUR;
+}
+
+/** Un juego sin copias ni total a mano no tiene horas que mostrar, filtrar ni ordenar. */
+export function hasPlayedHours(game: PlayedData): boolean {
+  return game.manualPlayedMinutes !== null || game.copies.length > 0;
 }
 
 export function isManual(game: Pick<LibraryGame, "source">): boolean {

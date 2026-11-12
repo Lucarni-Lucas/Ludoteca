@@ -70,6 +70,18 @@ export function IgdbAddDialog({
           onChange={entry.setStatusId}
         />
       </label>
+      <label className={controls.field}>
+        Horas jugadas
+        <input
+          className={`${controls.input} ${controls.number}`}
+          type="number"
+          inputMode="decimal"
+          min="0"
+          placeholder="opcional"
+          value={entry.playedHours}
+          onChange={(event) => entry.setPlayedHours(event.target.value)}
+        />
+      </label>
       <ScoreInput value={entry.score} onChange={entry.setScore} />
       {errorMessage ? <p className={controls.error}>{errorMessage}</p> : null}
     </Modal>

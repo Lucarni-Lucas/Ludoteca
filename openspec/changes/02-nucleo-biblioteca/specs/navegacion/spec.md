@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Ayuda de los términos propios
-Junto a los términos propios de Ludoteca, donde se eligen o se activan (formularios, ficha y filtros), el sistema SHALL mostrar un botón «?» que abre una explicación breve. Los términos son: Sin interés, Año de lanzamiento, Familia, Otro, A mano, Ya no lo tengo y Sin fin. La explicación se cierra tocando afuera, con Escape o tocando otra vez el «?».
+Junto a los términos propios de Ludoteca, donde se eligen o se activan (formularios, ficha y filtros), el sistema SHALL mostrar un botón «?» que abre una explicación breve. Los términos son: Sin interés, Año de lanzamiento, Duración, Familia, Otro, A mano, Ya no lo tengo y Sin fin. El «?» va pegado al término que explica, sin romper la fila de botones o campos donde está. La explicación se cierra tocando afuera, con Escape o tocando otra vez el «?».
 
 #### Scenario: Ayuda de «Sin interés»
 - **WHEN** el usuario toca el «?» junto a «Sin interés»
@@ -10,6 +10,10 @@ Junto a los términos propios de Ludoteca, donde se eligen o se activan (formula
 #### Scenario: Ayuda del año de lanzamiento
 - **WHEN** el usuario toca el «?» junto a «Año de lanzamiento»
 - **THEN** ve «El año en que salió el juego, no el año en que lo conseguiste.»
+
+#### Scenario: Ayuda de la duración
+- **WHEN** el usuario toca el «?» junto a «Duración (h)» en un formulario o junto a «Duración» en la ficha
+- **THEN** ve «Cuánto se tarda en promedio en terminarlo, según IGDB o lo que cargues vos. No son tus horas jugadas.»
 
 #### Scenario: Ayuda de «Familia»
 - **WHEN** el usuario toca el «?» junto al tipo «Familia»

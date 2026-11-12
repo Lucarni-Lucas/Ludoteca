@@ -26,6 +26,7 @@ const actions = vi.hoisted(() => ({
   linkToIgdbAction: vi.fn(),
   setGameNotInterestedAction: vi.fn(),
   removeFromLibraryAction: vi.fn(),
+  setPlayedHoursAction: vi.fn(),
 }));
 
 vi.mock("@/app/(app)/games/[id]/actions", () => actions);

@@ -1,4 +1,4 @@
-import { boolean, date, index, pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, index, integer, pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
 
 import { hoursColumn, primaryId, scoreColumn, timestamps } from "../columns";
 import { status } from "../status/status";
@@ -19,6 +19,8 @@ export const libraryGame = pgTable(
     statusSince: date("status_since", { mode: "string" }).notNull(),
     score: scoreColumn("score"),
     notInterested: boolean("not_interested").notNull().default(false),
+    // En minutos, como copy.playtime_minutes; vacío si no hay total a mano.
+    playedMinutesManual: integer("played_minutes_manual"),
     estimatedHours: hoursColumn("estimated_hours"),
     endless: boolean("endless"),
     coverUrl: text("cover_url"),
