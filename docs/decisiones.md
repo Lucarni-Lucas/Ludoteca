@@ -33,6 +33,7 @@ Lo que se decidió en la etapa técnica (5 y 6 de noviembre de 2026), sobre lo q
 | 7 | `07-diario-y-estados-propios` | Diario con sesiones y notas, horas jugadas, formulario de pausa y abandono, estados y motivos editables, reseña, etiquetas y etiquetas del puntaje. |
 | 8 | `08-pwa` | App instalable y lectura sin conexión. |
 | 9 | `09-suscripciones-y-avisos` | Suscripciones, totales por moneda, avisos por notificación y mail. |
+| 10 | `10-rediseno` | Rediseño de la interfaz y la navegación con todas las pantallas ya construidas, a partir de `docs/ux-pendientes.md` y de un diseño nuevo. Nombre visible, ícono y dirección nuevos; el proyecto y el repo siguen llamándose Ludoteca. El cambio se escribe cuando esté el diseño. |
 
 Este orden cambia el de la charla en cuatro puntos:
 

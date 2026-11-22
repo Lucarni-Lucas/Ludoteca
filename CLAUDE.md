@@ -12,6 +12,7 @@ Este archivo manda sobre la preferencia del agente, los tutoriales y el código 
 | Idea original del producto | `docs/ludoteca-idea.md` |
 | Cuentas, claves y paneles que configura el usuario en cada etapa | `docs/configuracion-externa.md` |
 | Diseño de referencia (1440 px PC, 390 px celu) | `design/*.dc.html`, cómo leerlos en `design/LEEME.md` |
+| Lo que no convence de la interfaz, para el rediseño | `docs/ux-pendientes.md` |
 | Comportamiento que falta construir | `openspec/changes/<nn-nombre>/` |
 | Comportamiento ya construido | `openspec/specs/` |
 
@@ -20,7 +21,7 @@ Este archivo manda sobre la preferencia del agente, los tutoriales y el código 
 - Spec-driven con OpenSpec. Cada etapa ya tiene su cambio con `proposal.md` y specs.
 - Para arrancar una etapa, `/opsx:propose <nn-nombre>`: genera `design.md` y `tasks.md` del cambio existente. Si hay algo para charlar antes, `/opsx:explore`.
 - Después `/opsx:apply` para implementar y `/opsx:archive` al terminar.
-- Las etapas se hacen en orden (01 → 09) y cada una se archiva antes de empezar la siguiente.
+- Las etapas se hacen en orden (01 → 10) y cada una se archiva antes de empezar la siguiente.
 
 ## Stack
 
@@ -111,6 +112,12 @@ Convenciones:
 - **No trabajamos con TDD.** Los tests se escriben junto con la implementación de cada tarea; al terminarla, existen y pasan.
 - No se testean detalles de estilo (colores, tamaños) salvo las zonas táctiles de 44 px.
 
+Qué tests se corren y cuándo:
+
+- **Durante una tarea:** solo los afectados por lo que se tocó. `npx vitest related <archivos tocados> --run` corre los tests que importan esos archivos, directa o indirectamente; `npx vitest run --changed` hace lo mismo con todo lo que no está commiteado. En e2e, solo los specs de las pantallas tocadas: `npx playwright test tests/e2e/<pantalla>.spec.ts`.
+- **Cuando lo tocado no se ve en los imports**, se amplía a mano: una migración o un cambio en `persistence/sql/` corre todos los tests de `tests/persistence/`; un cambio en `config/`, `shared/` o `styles/tokens.css`, toda la suite de Vitest.
+- **Suite completa** (`npm test` y `npm run test:e2e`): en la última tarea de cada etapa, antes de archivarla, y en el CI con cada push.
+
 **REGLA INNEGOCIABLE:** no se modifica ni se borra un test existente sin un «sí» explícito del usuario. Un test que falla se arregla arreglando el código, no el test. Mover un test de carpeta y ajustar solo sus imports no cuenta como modificarlo.
 
 ## V. Calidad
@@ -149,6 +156,8 @@ SonarQube Cloud con menos de 10 issues. El código se escribe así desde el prin
 - Estilos con CSS Modules. Colores, tipografías, espaciados y radios salen de `styles/tokens.css`, nunca de valores sueltos.
 - Los valores exactos (colores, tamaños, textos) se toman de `design/*.dc.html`. Esos archivos son referencia: no se importan desde `src/`.
 - Radix sin estilos solo para la ventana emergente, la barra deslizable y los interruptores. Otra primitiva se consulta antes.
+- Cada acción da una respuesta visible: si guarda, actualiza o no cambia nada, la pantalla lo dice («Datos actualizados», «Ya estaba al día»).
+- En una misma pantalla, dos controles no hacen lo mismo.
 - Accesible: todo lo que se acciona es un `button` o un link, con foco visible y zona táctil de al menos 44 px.
 - Usable desde 360 px de ancho, sin desplazamiento horizontal.
 
@@ -156,9 +165,9 @@ SonarQube Cloud con menos de 10 issues. El código se escribe así desde el prin
 
 Una tarea o un cambio están terminados cuando:
 
-1. `npm test` pasa, con casos felices y de borde, y cada escenario de la spec tiene su test.
+1. Los tests afectados pasan (ver «Qué tests se corren y cuándo»), con casos felices y de borde, y cada escenario de la spec tiene su test. Al cerrar la etapa, `npm test` completo.
 2. `npm run lint`, `npm run typecheck` y `npm run build` terminan sin errores.
-3. `npm run test:e2e` pasa para las pantallas tocadas, a 390 y a 1440 px.
+3. Los e2e de las pantallas tocadas pasan, a 390 y a 1440 px. Al cerrar la etapa, `npm run test:e2e` completo.
 4. Cada pantalla tocada se comparó con su `.dc.html` de `design/`.
 5. No aparecen issues nuevos en SonarQube.
 6. Las tareas de `tasks.md` están marcadas.

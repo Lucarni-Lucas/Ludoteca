@@ -10,7 +10,7 @@ context: |
   Stack: Next.js (App Router) + TypeScript estricto en Vercel Hobby; Supabase (Postgres, Auth, Storage); Drizzle ORM; Zod; CSS Modules + tokens; Radix sin estilos; Vitest, React Testing Library, MSW, PGlite y Playwright.
   Arquitectura: app/ → service/ → persistence/repository/ → base de datos; las APIs externas solo por adapter/<proveedor>/; las reglas de negocio son funciones puras en model/. Cada repositorio filtra por el usuario de la sesión.
   Interfaz en español rioplatense con voseo y en inglés (desde 03-idiomas, con catálogos de mensajes); código en inglés.
-  Las etapas se implementan en orden (01 a 09) y cada una se archiva antes de la siguiente.
+  Las etapas se implementan en orden (01 a 10) y cada una se archiva antes de la siguiente.
   Fuentes: docs/decisiones.md (decisiones y supuestos; manda sobre la idea), docs/ludoteca-idea.md (idea original), design/*.dc.html (diseño: 1440 px PC, 390 px celu), CLAUDE.md (convenciones y definición de terminado).
 
 rules:

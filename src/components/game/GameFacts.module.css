@@ -82,3 +82,12 @@
   align-items: center;
   gap: var(--space-4);
 }
+
+/*
+ * En la columna de rótulos el «?» ocupa solo su círculo: con sus 44 px, «Duración ?» ensanchaba la columna y corría
+ * los valores respecto del lienzo. La zona táctil sigue midiendo 44 px y cae sobre el espacio entre columnas y el
+ * texto del valor, donde no hay nada que tocar.
+ */
+.term.withHelp > button {
+  margin-inline-end: calc(var(--help-mark-size) - var(--touch-target));
+}

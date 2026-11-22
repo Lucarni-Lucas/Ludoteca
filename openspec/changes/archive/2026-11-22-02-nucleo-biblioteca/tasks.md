@@ -144,7 +144,7 @@ Los nombres entre comillas son escenarios de las specs: cada uno lleva un test c
 
 ## 22. Test que falla en CI
 
-- [ ] 22.1 Con el «sí» del usuario, hacer que «varias consultas y transacciones a la vez comparten la única conexión de PGlite» use los tiempos por defecto (`DATABASE_TIMEOUTS`) en lugar de los 300 ms, sin cambiar lo que verifica (§17). Verificar: pasa 20 veces seguidas con todos los núcleos ocupados por otros procesos, y en GitHub Actions.
+- [x] 22.1 Con el «sí» del usuario, hacer que «varias consultas y transacciones a la vez comparten la única conexión de PGlite» use los tiempos por defecto (`DATABASE_TIMEOUTS`) en lugar de los 300 ms, sin cambiar lo que verifica (§17). Verificar: pasa 20 veces seguidas con todos los núcleos ocupados por otros procesos, y en GitHub Actions.
 
 ## 23. Horas jugadas a mano
 
@@ -163,12 +163,12 @@ Los nombres entre comillas son escenarios de las specs: cada uno lleva un test c
 
 ## 26. Puesta en marcha de las horas a mano
 
-- [ ] 26.1 **[Usuario]** Correr `npm run db:migrate` contra Supabase, **antes** de desplegar. Verificar: `library_game` tiene `played_minutes_manual`.
-- [ ] 26.2 Prueba manual sobre el deploy: cargar, cambiar y borrar las horas de un juego desde la ficha, y agregar uno desde IGDB con horas. Verificar: la tarjeta muestra el total, y en los logs de Vercel no hay errores.
+- [x] 26.1 **[Usuario]** Correr `npm run db:migrate` contra Supabase, **antes** de desplegar. Verificar: `library_game` tiene `played_minutes_manual`.
+- [x] 26.2 Prueba manual sobre el deploy: cargar, cambiar y borrar las horas de un juego desde la ficha, y agregar uno desde IGDB con horas. Verificar: la tarjeta muestra el total, y en los logs de Vercel no hay errores.
 
 ## 27. Verificación final
 
-- [ ] 27.1 Revisar la definición de terminado de `CLAUDE.md` completa: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` y `npm run test:e2e` sin errores; cada escenario de las specs con su test de igual nombre; pantallas comparadas con sus `.dc.html`; sin issues nuevos en SonarQube; y todas las tareas marcadas.
+- [x] 27.1 Revisar la definición de terminado de `CLAUDE.md` completa: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` y `npm run test:e2e` sin errores; cada escenario de las specs con su test de igual nombre; pantallas comparadas con sus `.dc.html`; sin issues nuevos en SonarQube; y todas las tareas marcadas.
 
 ## Workflow follow-up
 
