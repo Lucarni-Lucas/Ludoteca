@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import type { ValidationKey } from "@/i18n/messages";
 import { COPY_KINDS, LOST_REASONS, type LostReason } from "@/model/copy/copy";
 import { GameNotFoundError } from "@/model/game/errors";
 import { toCorrections } from "@/model/game/library-game";
@@ -14,7 +15,7 @@ import { getLibraryService, getPlayedHoursService } from "@/service/game/instanc
 import { type ActionFailure, type ActionResult, toActionResult } from "@/shared/action-result";
 import { parseInput } from "@/shared/parse-input";
 
-import { httpsUrlSchema } from "../../add/manual-game-schema";
+import { httpsUrlSchema, PLAYED_HOURS_INVALID } from "../../add/manual-game-schema";
 
 const MAX_HOURS = 99_999.9;
 const MAX_TEXT_LENGTH = 200;
@@ -23,7 +24,9 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const idSchema = z.uuid();
 const statusIdSchema = z.uuid();
 const scoreSchema = z.number().nullable();
-const playedHoursSchema = z.number({ error: "Poné las horas jugadas, de 0 en adelante" }).nullable();
+const STORE_REQUIRED: ValidationKey = "storeRequired";
+
+const playedHoursSchema = z.number({ error: PLAYED_HOURS_INVALID }).nullable();
 
 function blankToNull(value: unknown): unknown {
   return typeof value === "string" && value.trim() === "" ? null : value;
@@ -41,7 +44,7 @@ const addCopySchema = z
     // Sin tope acá: lo pone el modelo, con el mensaje que pide la spec.
     kindDetail: z.preprocess(blankToNull, z.string().trim().nullable().optional()),
   })
-  .refine((copy) => copy.storeId !== null || copy.otherStoreName !== null, { error: "Elegí una tienda" });
+  .refine((copy) => copy.storeId !== null || copy.otherStoreName !== null, { error: STORE_REQUIRED });
 
 const correctionsSchema = z.object({
   estimatedHours: z.preprocess(blankToNull, z.coerce.number().min(0).max(MAX_HOURS).nullable()),

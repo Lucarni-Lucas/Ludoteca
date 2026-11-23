@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,6 +9,8 @@ import type { MarkedSearchResult } from "@/model/game/add-game";
 import { groupStatuses } from "@/model/status/status";
 
 import { STATUSES } from "./game-fixtures";
+
+import { renderWithIntl } from "../../i18n/render-with-intl";
 
 const { addFromIgdbAction, addManualGameAction, uploadCoverAction } = vi.hoisted(() => ({
   addFromIgdbAction: vi.fn(),
@@ -59,7 +61,7 @@ describe("AddGameScreen", () => {
   });
 
   function renderScreen() {
-    render(<AddGameScreen stores={STORES} statusGroups={GROUPS} />);
+    renderWithIntl(<AddGameScreen stores={STORES} statusGroups={GROUPS} />);
     return screen.getByRole("searchbox", { name: "Buscar juego" });
   }
 
@@ -129,7 +131,7 @@ describe("AddResultAction", () => {
   it("Juego ya cargado", () => {
     const owned = result({ kind: "in_library", gameId: "hades" });
 
-    render(<AddResultAction result={owned} addedGameId={undefined} pending={false} onAdd={() => undefined} />);
+    renderWithIntl(<AddResultAction result={owned} addedGameId={undefined} pending={false} onAdd={() => undefined} />);
 
     expect(screen.getByText("En tu biblioteca")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Agregar" })).not.toBeInTheDocument();
@@ -138,7 +140,7 @@ describe("AddResultAction", () => {
   it("Juego en la wishlist", () => {
     const wished = result({ kind: "wishlist", gameId: "hades" });
 
-    render(<AddResultAction result={wished} addedGameId={undefined} pending={false} onAdd={() => undefined} />);
+    renderWithIntl(<AddResultAction result={wished} addedGameId={undefined} pending={false} onAdd={() => undefined} />);
 
     expect(screen.getByText("En «Quiero jugarlo»")).toBeInTheDocument();
   });
@@ -146,7 +148,7 @@ describe("AddResultAction", () => {
   it("un resultado ya cargado ofrece «Agregar una copia»", () => {
     const owned = result({ kind: "in_library", gameId: "hades" });
 
-    render(<AddResultAction result={owned} addedGameId={undefined} pending={false} onAdd={() => undefined} />);
+    renderWithIntl(<AddResultAction result={owned} addedGameId={undefined} pending={false} onAdd={() => undefined} />);
 
     expect(screen.getByRole("link", { name: "Agregar una copia" })).toHaveAttribute("href", "/games/hades?copy=new");
   });
@@ -157,7 +159,7 @@ describe("ManualGameForm", () => {
     const onSubmit = vi.fn();
     const onUploadCover = vi.fn(async (_file: File): Promise<string | undefined> => undefined);
 
-    render(
+    renderWithIntl(
       <ManualGameForm
         stores={STORES}
         statusGroups={GROUPS}
@@ -296,7 +298,7 @@ describe("ManualGameForm", () => {
 describe("ManualGameForm con varias copias", () => {
   function renderForm() {
     const onSubmit = vi.fn();
-    render(
+    renderWithIntl(
       <ManualGameForm
         stores={STORES}
         statusGroups={GROUPS}
@@ -411,7 +413,7 @@ describe("AddGameScreen con el formulario de IGDB", () => {
   async function openDialog() {
     const user = userEvent.setup();
     mockSearch([result({ kind: "new" })]);
-    render(<AddGameScreen stores={STORES} statusGroups={GROUPS} />);
+    renderWithIntl(<AddGameScreen stores={STORES} statusGroups={GROUPS} />);
     await user.type(screen.getByRole("searchbox", { name: "Buscar juego" }), "hades");
     await user.click(await screen.findByRole("button", { name: "Agregar" }));
     return { user, dialog: screen.getByRole("dialog", { name: "Agregar «Hades»" }) };
@@ -474,7 +476,7 @@ describe("formularios de alta con horas jugadas", () => {
     const user = userEvent.setup();
     mockSearch([result({ kind: "new" })]);
     addFromIgdbAction.mockResolvedValue({ ok: true, data: { kind: "added", gameId: "hades" } });
-    render(<AddGameScreen stores={STORES} statusGroups={GROUPS} />);
+    renderWithIntl(<AddGameScreen stores={STORES} statusGroups={GROUPS} />);
     await user.type(screen.getByRole("searchbox", { name: "Buscar juego" }), "hades");
     await user.click(await screen.findByRole("button", { name: "Agregar" }));
     const dialog = within(screen.getByRole("dialog", { name: "Agregar «Hades»" }));
@@ -486,7 +488,7 @@ describe("formularios de alta con horas jugadas", () => {
   });
 
   it("el formulario a mano tiene «Horas jugadas» opcional y la ayuda de «Duración»", () => {
-    render(
+    renderWithIntl(
       <ManualGameForm
         stores={STORES}
         statusGroups={GROUPS}

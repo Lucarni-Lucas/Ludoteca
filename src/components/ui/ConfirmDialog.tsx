@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import controls from "./controls.module.css";
 import { Modal } from "./Modal";
 
@@ -24,6 +26,8 @@ export function ConfirmDialog({
   errorMessage,
   onConfirm,
 }: ConfirmDialogProps) {
+  const t = useTranslations("common");
+
   return (
     <Modal
       open={open}
@@ -33,7 +37,7 @@ export function ConfirmDialog({
       footer={
         <>
           <button type="button" className={controls.secondary} onClick={() => onOpenChange(false)}>
-            Cancelar
+            {t("cancel")}
           </button>
           <button type="button" className={controls.danger} disabled={pending} onClick={onConfirm}>
             {confirmLabel}

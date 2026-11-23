@@ -22,7 +22,7 @@ describe("createStatusService", () => {
 
     const groups = await service.listGrouped(USER_ID);
 
-    expect(groups.map(({ label }) => label)).toEqual(["En curso", "Sin empezar", "Terminado", "Dejado"]);
+    expect(groups.map(({ group }) => group)).toEqual(["in_progress", "not_started", "finished", "dropped"]);
   });
 
   it("Estado «Jugado»", async () => {

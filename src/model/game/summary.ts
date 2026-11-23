@@ -27,10 +27,6 @@ function currentCopies(game: LibraryGame) {
   return game.copies.filter((copy) => !isLost(copy));
 }
 
-function plural(count: number, singular: string, pluralForm: string): string {
-  return `${count} ${count === 1 ? singular : pluralForm}`;
-}
-
 /** Nunca cuenta los «Sin interés»: aunque se muestren, no son parte de la biblioteca. */
 export function summarizeLibrary(games: readonly LibraryGame[]): LibrarySummary {
   const interesting = visibleGames(games, false);
@@ -42,17 +38,6 @@ export function summarizeLibrary(games: readonly LibraryGame[]): LibrarySummary 
     wishlist: interesting.filter((game) => isWishlist(game.status)).length,
     lost: interesting.filter((game) => game.copies.length > 0 && currentCopies(game).length === 0).length,
   };
-}
-
-export function summaryText(summary: LibrarySummary): string {
-  const games = plural(summary.games, "juego", "juegos");
-  const stores = plural(summary.stores, "tienda", "tiendas");
-
-  return `${games} en ${stores} · ${summary.wishlist} en «Quiero jugarlo» · ${summary.lost} que ya no tenés`;
-}
-
-export function gamesCountText(count: number): string {
-  return `Ver ${plural(count, "juego", "juegos")}`;
 }
 
 function tally(keys: readonly string[]): Record<string, number> {

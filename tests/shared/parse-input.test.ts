@@ -5,9 +5,18 @@ import { InvalidRequestError } from "@/shared/app-error";
 import { parseInput } from "@/shared/parse-input";
 
 const schema = z.object({
-  title: z.string().trim().min(1, { error: "Poné el título del juego" }),
+  title: z.string().trim().min(1, { error: "titleRequired" }),
   id: z.uuid().optional(),
 });
+
+function thrownBy(parse: () => unknown): unknown {
+  try {
+    parse();
+  } catch (error) {
+    return error;
+  }
+  return null;
+}
 
 describe("parseInput", () => {
   it("devuelve los datos normalizados", () => {
@@ -18,19 +27,21 @@ describe("parseInput", () => {
     expect(result).toEqual({ title: "Hades" });
   });
 
-  it("usa el mensaje propio del esquema", () => {
+  it("usa la clave propia del esquema", () => {
     const input = { title: "   " };
 
-    const parse = () => parseInput(schema, input);
+    const error = thrownBy(() => parseInput(schema, input));
 
-    expect(parse).toThrow(new InvalidRequestError("Poné el título del juego"));
+    expect(error).toBeInstanceOf(InvalidRequestError);
+    expect(error).toMatchObject({ code: "INVALID_REQUEST", validationKey: "titleRequired" });
   });
 
   it("no deja salir un mensaje interno de Zod", () => {
     const input = { title: "Hades", id: "no-es-un-uuid" };
 
-    const parse = () => parseInput(schema, input);
+    const error = thrownBy(() => parseInput(schema, input));
 
-    expect(parse).toThrow(new InvalidRequestError("El pedido no es válido."));
+    expect(error).toBeInstanceOf(InvalidRequestError);
+    expect(error).toMatchObject({ code: "INVALID_REQUEST", validationKey: null, messageKey: null });
   });
 });

@@ -1,3 +1,6 @@
+import { useTranslations } from "next-intl";
+
+import { useStatusText } from "@/components/status/status-text";
 import controls from "@/components/ui/controls.module.css";
 import { type LibraryFilters, toggleOption } from "@/model/game/filters";
 import type { LibraryCounts } from "@/model/game/summary";
@@ -14,6 +17,8 @@ type GroupTabsProps = Readonly<{
 
 /** En el celu los grupos se suman entre sí, igual que en PC. */
 export function GroupTabs({ groups, filters, counts, onChange }: GroupTabsProps) {
+  const t = useTranslations("filters");
+  const statusText = useStatusText();
   const noneSelected = filters.groups.length === 0 && filters.statusIds.length === 0;
 
   return (
@@ -24,10 +29,10 @@ export function GroupTabs({ groups, filters, counts, onChange }: GroupTabsProps)
         aria-pressed={noneSelected}
         onClick={() => onChange({ groups: [], statusIds: [] })}
       >
-        Todos{" "}
+        {t("all")}{" "}
         <span className={styles.count}>{counts.total}</span>
       </button>
-      {groups.map(({ group, label }) => (
+      {groups.map(({ group }) => (
         <button
           key={group}
           type="button"
@@ -35,7 +40,7 @@ export function GroupTabs({ groups, filters, counts, onChange }: GroupTabsProps)
           aria-pressed={filters.groups.includes(group)}
           onClick={() => onChange({ groups: toggleOption(filters.groups, group) })}
         >
-          {label}{" "}
+          {statusText.group(group)}{" "}
           <span className={styles.count}>{counts.groups[group] ?? 0}</span>
         </button>
       ))}

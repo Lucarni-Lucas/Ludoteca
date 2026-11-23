@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   type Copy,
-  copyCardLabel,
-  copyDetailLabel,
+  copyCardParts,
+  copyDetailParts,
   isLost,
   isOwnCopyKind,
   markCopyLost,
@@ -25,55 +25,55 @@ function copy(overrides: Partial<Copy> = {}): Copy {
   };
 }
 
-describe("copyCardLabel", () => {
+describe("copyCardParts", () => {
   it("Copia de suscripción", () => {
     const subscription = copy({ storeName: "Game Pass", kind: "subscription" });
 
-    const label = copyCardLabel(subscription);
+    const parts = copyCardParts(subscription);
 
-    expect(label).toBe("Game Pass · Suscripción");
+    expect(parts).toEqual({ store: "Game Pass", kind: "subscription", detail: null });
   });
 
   it("Comprado muestra solo la tienda", () => {
     const purchased = copy();
 
-    const label = copyCardLabel(purchased);
+    const parts = copyCardParts(purchased);
 
-    expect(label).toBe("Steam");
+    expect(parts).toEqual({ store: "Steam", kind: null, detail: null });
   });
 
   it("una copia perdida conserva la misma etiqueta", () => {
     const lost = copy({ storeName: "Game Pass", kind: "subscription", lostAt: "2026-01-01" });
 
-    const label = copyCardLabel(lost);
+    const parts = copyCardParts(lost);
 
-    expect(label).toBe("Game Pass · Suscripción");
+    expect(parts).toEqual({ store: "Game Pass", kind: "subscription", detail: null });
   });
 });
 
-describe("copyDetailLabel", () => {
+describe("copyDetailParts", () => {
   it("Copia de la familia", () => {
     const family = copy({ kind: "family", familyOwner: "Martín" });
 
-    const label = copyDetailLabel(family);
+    const parts = copyDetailParts(family);
 
-    expect(label).toBe("Familia · de Martín");
+    expect(parts).toEqual({ kind: "family", extra: { type: "familyOwner", owner: "Martín" } });
   });
 
   it("muestra solo «Familia» si no se sabe de quién es", () => {
     const family = copy({ kind: "family" });
 
-    const label = copyDetailLabel(family);
+    const parts = copyDetailParts(family);
 
-    expect(label).toBe("Familia");
+    expect(parts).toEqual({ kind: "family", extra: null });
   });
 
   it("una copia perdida se ve como «Físico · ya no»", () => {
     const lost = copy({ kind: "physical", lostAt: "2026-01-01", lostReason: "sold" });
 
-    const label = copyDetailLabel(lost);
+    const parts = copyDetailParts(lost);
 
-    expect(label).toBe("Físico · ya no");
+    expect(parts).toEqual({ kind: "physical", extra: { type: "lost" } });
   });
 });
 
@@ -111,7 +111,7 @@ describe("marcar y recuperar", () => {
     const recovered = { ...lost, ...NO_LOST_MARK };
 
     expect(isLost(recovered)).toBe(false);
-    expect(copyCardLabel(recovered)).toBe("Game Pass · Suscripción");
+    expect(copyCardParts(recovered)).toEqual({ store: "Game Pass", kind: "subscription", detail: null });
   });
 });
 
@@ -119,33 +119,33 @@ describe("copias de tipo Otro", () => {
   it("Copia de otro tipo", () => {
     const gift = copy({ kind: "other", kindDetail: "Regalo" });
 
-    const label = copyDetailLabel(gift);
+    const parts = copyDetailParts(gift);
 
-    expect(label).toBe("Otro · Regalo");
+    expect(parts).toEqual({ kind: "other", extra: { type: "detail", detail: "Regalo" } });
   });
 
   it("Otro sin detalle", () => {
     const other = copy({ kind: "other" });
 
-    const label = copyDetailLabel(other);
+    const parts = copyDetailParts(other);
 
-    expect(label).toBe("Otro");
+    expect(parts).toEqual({ kind: "other", extra: null });
   });
 
   it("en la tarjeta muestra la tienda y el detalle", () => {
     const gift = copy({ kind: "other", kindDetail: "Regalo" });
 
-    const label = copyCardLabel(gift);
+    const parts = copyCardParts(gift);
 
-    expect(label).toBe("Steam · Regalo");
+    expect(parts).toEqual({ store: "Steam", kind: "other", detail: "Regalo" });
   });
 
   it("en la tarjeta muestra «Otro» si no tiene detalle", () => {
     const other = copy({ kind: "other" });
 
-    const label = copyCardLabel(other);
+    const parts = copyCardParts(other);
 
-    expect(label).toBe("Steam · Otro");
+    expect(parts).toEqual({ store: "Steam", kind: "other", detail: null });
   });
 
   it("una copia Otro perdida conserva su tipo y su detalle", () => {
@@ -153,7 +153,7 @@ describe("copias de tipo Otro", () => {
 
     const lost = { ...gift, ...markCopyLost("2026-11-06", "other") };
 
-    expect(copyDetailLabel(lost)).toBe("Otro · ya no");
+    expect(copyDetailParts(lost)).toEqual({ kind: "other", extra: { type: "lost" } });
     expect(lost.kind).toBe("other");
     expect(lost.kindDetail).toBe("Regalo");
   });

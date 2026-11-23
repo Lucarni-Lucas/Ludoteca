@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { ChangeEvent, ReactNode } from "react";
 
 import controls from "@/components/ui/controls.module.css";
@@ -35,7 +36,8 @@ export function RangeFilter({
   hint,
   onChange,
 }: RangeFilterProps) {
-  const suffix = unit ? ` (${unit})` : "";
+  const t = useTranslations("filters");
+  const withUnit = (label: string) => (unit ? t("withUnit", { label, unit }) : label);
 
   return (
     <section className={styles.section}>
@@ -45,7 +47,7 @@ export function RangeFilter({
       </div>
       <div className={styles.fields}>
         <label className={styles.field}>
-          Desde{suffix}
+          {withUnit(t("from"))}
           <input
             className={styles.input}
             type="number"
@@ -58,7 +60,7 @@ export function RangeFilter({
           />
         </label>
         <label className={styles.field}>
-          Hasta{suffix}
+          {withUnit(t("to"))}
           <input
             className={styles.input}
             type="number"
@@ -78,13 +80,13 @@ export function RangeFilter({
 
             return (
               <button
-                key={preset.label}
+                key={preset.id}
                 type="button"
                 className={styles.preset}
                 aria-pressed={active}
                 onClick={() => onChange(active ? NO_RANGE : preset.range)}
               >
-                {preset.label}
+                {t(`presets.${preset.id}`)}
               </button>
             );
           })}

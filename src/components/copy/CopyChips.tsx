@@ -1,4 +1,8 @@
-import { type Copy, copyCardLabel, isLost } from "@/model/copy/copy";
+import { useTranslations } from "next-intl";
+
+import { type Copy, isLost } from "@/model/copy/copy";
+
+import { useCopyText } from "./copy-text";
 
 import styles from "./CopyChips.module.css";
 
@@ -9,14 +13,17 @@ type CopyChipsProps = Readonly<{
 }>;
 
 export function CopyChips({ copies, notBought }: CopyChipsProps) {
+  const t = useTranslations("copy");
+  const copyText = useCopyText();
+
   return (
     <>
       {copies.map((copy) => (
         <span key={copy.id} className={isLost(copy) ? styles.lost : styles.chip}>
-          {copyCardLabel(copy)}
+          {copyText.cardLabel(copy)}
         </span>
       ))}
-      {notBought ? <span className={styles.notBought}>Sin comprar</span> : null}
+      {notBought ? <span className={styles.notBought}>{t("notBought")}</span> : null}
     </>
   );
 }

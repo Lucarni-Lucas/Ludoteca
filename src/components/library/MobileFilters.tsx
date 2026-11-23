@@ -1,9 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
+import { useStatusText } from "@/components/status/status-text";
 import controls from "@/components/ui/controls.module.css";
 import { Modal } from "@/components/ui/Modal";
 import { type LibraryFilters, toggleOption } from "@/model/game/filters";
-import { gamesCountText } from "@/model/game/summary";
 import type { StatusGroupView } from "@/model/status/status";
 
 import { FilterPanel, type FilterPanelProps } from "./FilterPanel";
@@ -27,12 +29,15 @@ function StatusOptions({
   filters: LibraryFilters;
   onChange: (changes: Partial<LibraryFilters>) => void;
 }>) {
+  const t = useTranslations("status");
+  const statusText = useStatusText();
+
   return (
     <section className={styles.section}>
-      <h2 className={controls.sectionLabel}>Estado</h2>
-      {groups.map(({ group, label, statuses }) => (
+      <h2 className={controls.sectionLabel}>{t("title")}</h2>
+      {groups.map(({ group, statuses }) => (
         <div key={group} className={styles.group}>
-          <span className={styles.groupLabel}>{label}</span>
+          <span className={styles.groupLabel}>{statusText.group(group)}</span>
           <div className={styles.pills}>
             {statuses.map((status) => (
               <button
@@ -42,7 +47,7 @@ function StatusOptions({
                 aria-pressed={filters.statusIds.includes(status.id)}
                 onClick={() => onChange({ statusIds: toggleOption(filters.statusIds, status.id) })}
               >
-                {status.name}
+                {statusText.name(status)}
               </button>
             ))}
           </div>
@@ -54,20 +59,22 @@ function StatusOptions({
 
 /** Es una ventana y no una ruta: necesita la biblioteca en memoria para decir «Ver 5 juegos». */
 export function MobileFilters({ open, onOpenChange, groups, resultCount, onClear, ...panel }: MobileFiltersProps) {
+  const t = useTranslations("filters");
+
   return (
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Filtros"
+      title={t("title")}
       fullScreen
       headerAction={
         <button type="button" className={styles.clear} onClick={onClear}>
-          Limpiar
+          {t("clear")}
         </button>
       }
       footer={
         <button type="button" className={`${controls.primary} ${styles.cta}`} onClick={() => onOpenChange(false)}>
-          {gamesCountText(resultCount)}
+          {t("seeGames", { count: resultCount })}
         </button>
       }
     >

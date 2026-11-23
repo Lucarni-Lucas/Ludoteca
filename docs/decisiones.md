@@ -256,4 +256,4 @@ También queda para después sincronizar solas Epic, GOG o Xbox. Cada una sería
 - El formato exacto del export de Playnite (etapa 4).
 - El diseño visual de la pantalla de revisión de importación (etapa 4).
 - Cómo detectar «solo multijugador» en IGDB (etapa 4).
-- Cómo mostrar en el idioma elegido los nombres por defecto que hoy se guardan en la base, sin pisar los que renombre el usuario (etapa 3).
+- ~~Cómo mostrar en el idioma elegido los nombres por defecto que hoy se guardan en la base, sin pisar los que renombre el usuario (etapa 3).~~ Resuelto en `03-idiomas` (design.md §8): un estado con `system_key` que conserva su nombre de fábrica se muestra con el nombre por defecto del idioma elegido; cualquier otro nombre, tal cual. Sin migración.

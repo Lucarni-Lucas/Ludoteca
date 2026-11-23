@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useId, useState } from "react";
 
 import { CopyRowsEditor } from "@/components/copy/CopyRowsEditor";
@@ -51,6 +52,7 @@ export function ManualGameForm({
   const [pageUrl, setPageUrl] = useState("");
   const [year, setYear] = useState("");
   const [estimatedHours, setEstimatedHours] = useState("");
+  const t = useTranslations();
   const entry = useEntryForm();
   const yearId = useId();
   const durationId = useId();
@@ -80,7 +82,7 @@ export function ManualGameForm({
       />
 
       <label className={controls.field}>
-        Título
+        {t("add.form.title")}
         <input
           className={`${controls.input} ${controls.inputTitle}`}
           type="text"
@@ -90,11 +92,11 @@ export function ManualGameForm({
       </label>
 
       <label className={controls.field}>
-        Link a la página del juego
+        {t("add.form.pageUrl")}
         <input
           className={controls.input}
           type="url"
-          placeholder="opcional"
+          placeholder={t("common.optional")}
           value={pageUrl}
           onChange={(event) => setPageUrl(event.target.value)}
         />
@@ -111,7 +113,7 @@ export function ManualGameForm({
       <div className={styles.threeColumns}>
         <div className={controls.field}>
           <span className={controls.labelWithHelp}>
-            <label htmlFor={yearId}>Año de lanzamiento</label>
+            <label htmlFor={yearId}>{t("add.form.year")}</label>
             <HelpTip help={HELP.releaseYear} />
           </span>
           <input
@@ -119,14 +121,14 @@ export function ManualGameForm({
             className={`${controls.input} ${controls.number}`}
             type="number"
             inputMode="numeric"
-            placeholder="opcional"
+            placeholder={t("common.optional")}
             value={year}
             onChange={(event) => setYear(event.target.value)}
           />
         </div>
         <div className={controls.field}>
           <span className={controls.labelWithHelp}>
-            <label htmlFor={durationId}>Duración (h)</label>
+            <label htmlFor={durationId}>{t("add.form.duration")}</label>
             <HelpTip help={HELP.duration} />
           </span>
           <input
@@ -135,25 +137,25 @@ export function ManualGameForm({
             type="number"
             inputMode="decimal"
             min="0"
-            placeholder="opcional"
+            placeholder={t("common.optional")}
             value={estimatedHours}
             onChange={(event) => setEstimatedHours(event.target.value)}
           />
         </div>
         <label className={controls.field}>
-          Horas jugadas
+          {t("add.form.played")}
           <input
             className={`${controls.input} ${controls.number}`}
             type="number"
             inputMode="decimal"
             min="0"
-            placeholder="opcional"
+            placeholder={t("common.optional")}
             value={entry.playedHours}
             onChange={(event) => entry.setPlayedHours(event.target.value)}
           />
         </label>
         <label className={`${controls.field} ${styles.status}`}>
-          Estado
+          {t("add.form.status")}
           <StatusSelect
             className={controls.select}
             groups={statusGroups}
@@ -166,18 +168,17 @@ export function ManualGameForm({
       <ScoreInput value={entry.score} onChange={entry.setScore} />
 
       <p className={controls.hint}>
-        Queda marcado como «agregado a mano». Si algún día aparece en IGDB, lo podés vincular sin perder tu puntaje ni
-        tu historial.
+        {t("add.form.manualHint")}
       </p>
 
       {errorMessage ? <p className={controls.error}>{errorMessage}</p> : null}
 
       <div className={styles.actions}>
         <Link href="/library" className={`${controls.secondary} ${styles.action}`}>
-          Cancelar
+          {t("common.cancel")}
         </Link>
         <button type="submit" className={`${controls.primary} ${styles.action} ${styles.submit}`} disabled={pending}>
-          Guardar juego
+          {t("add.form.save")}
         </button>
       </div>
     </form>

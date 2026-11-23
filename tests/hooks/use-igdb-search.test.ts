@@ -1,7 +1,9 @@
-import { act, renderHook } from "@testing-library/react";
+import { act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useIgdbSearch } from "@/hooks/use-igdb-search";
+
+import { renderHookWithIntl } from "../i18n/render-with-intl";
 
 const RESULT = { igdbId: 1, baseIgdbId: 1, title: "Hades", year: 2020, coverUrl: null, mark: { kind: "new" } };
 const DEBOUNCE_MS = 300;
@@ -30,7 +32,7 @@ describe("useIgdbSearch", () => {
 
   it("no busca con una sola letra", async () => {
     const fetchMock = mockFetch();
-    const { result } = renderHook(() => useIgdbSearch());
+    const { result } = renderHookWithIntl(() => useIgdbSearch());
 
     act(() => result.current.setQuery("h"));
     await advance(DEBOUNCE_MS);
@@ -41,7 +43,7 @@ describe("useIgdbSearch", () => {
 
   it("espera a que se deje de escribir antes de buscar", async () => {
     const fetchMock = mockFetch();
-    const { result } = renderHook(() => useIgdbSearch());
+    const { result } = renderHookWithIntl(() => useIgdbSearch());
 
     act(() => result.current.setQuery("ha"));
     await advance(DEBOUNCE_MS - 1);
@@ -52,7 +54,7 @@ describe("useIgdbSearch", () => {
 
   it("devuelve los resultados", async () => {
     mockFetch();
-    const { result } = renderHook(() => useIgdbSearch());
+    const { result } = renderHookWithIntl(() => useIgdbSearch());
 
     act(() => result.current.setQuery("hades"));
     await advance(DEBOUNCE_MS);
@@ -63,7 +65,7 @@ describe("useIgdbSearch", () => {
 
   it("codifica el texto en la URL", async () => {
     const fetchMock = mockFetch();
-    const { result } = renderHook(() => useIgdbSearch());
+    const { result } = renderHookWithIntl(() => useIgdbSearch());
 
     act(() => result.current.setQuery("a&b"));
     await advance(DEBOUNCE_MS);
@@ -73,7 +75,7 @@ describe("useIgdbSearch", () => {
 
   it("cancela el pedido anterior al seguir escribiendo", async () => {
     const fetchMock = mockFetch();
-    const { result } = renderHook(() => useIgdbSearch());
+    const { result } = renderHookWithIntl(() => useIgdbSearch());
     act(() => result.current.setQuery("ha"));
     await advance(DEBOUNCE_MS);
     const signal = fetchMock.mock.calls[0][1]?.signal;
@@ -85,7 +87,7 @@ describe("useIgdbSearch", () => {
 
   it("avisa cuando no hay resultados", async () => {
     mockFetch({ ok: true, data: [] });
-    const { result } = renderHook(() => useIgdbSearch());
+    const { result } = renderHookWithIntl(() => useIgdbSearch());
 
     act(() => result.current.setQuery("zzz"));
     await advance(DEBOUNCE_MS);
@@ -95,7 +97,7 @@ describe("useIgdbSearch", () => {
 
   it("muestra el mensaje de error del servidor", async () => {
     mockFetch({ ok: false, error: { code: "IGDB_UNAVAILABLE", message: "No pudimos consultar IGDB." } });
-    const { result } = renderHook(() => useIgdbSearch());
+    const { result } = renderHookWithIntl(() => useIgdbSearch());
 
     act(() => result.current.setQuery("hades"));
     await advance(DEBOUNCE_MS);
@@ -106,7 +108,7 @@ describe("useIgdbSearch", () => {
 
   it("no muestra resultados viejos para un texto nuevo", async () => {
     mockFetch();
-    const { result } = renderHook(() => useIgdbSearch());
+    const { result } = renderHookWithIntl(() => useIgdbSearch());
     act(() => result.current.setQuery("hades"));
     await advance(DEBOUNCE_MS);
 

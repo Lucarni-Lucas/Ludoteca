@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import controls from "@/components/ui/controls.module.css";
 import type { MarkedSearchResult } from "@/model/game/add-game";
@@ -12,13 +13,15 @@ type AddResultActionProps = Readonly<{
   onAdd: () => void;
 }>;
 
-const MARK_LABELS = { in_library: "En tu biblioteca", wishlist: "En «Quiero jugarlo»" } as const;
+const MARK_KEYS = { in_library: "inLibrary", wishlist: "wishlist" } as const;
 
 export function AddResultAction({ result, addedGameId, pending, onAdd }: AddResultActionProps) {
+  const t = useTranslations();
+
   if (addedGameId) {
     return (
       <Link href={`/games/${addedGameId}`} className={`${controls.secondary} ${styles.added}`}>
-        Agregado
+        {t("add.result.added")}
       </Link>
     );
   }
@@ -26,16 +29,16 @@ export function AddResultAction({ result, addedGameId, pending, onAdd }: AddResu
   if (result.mark.kind === "new") {
     return (
       <button type="button" className={controls.primary} disabled={pending} onClick={onAdd}>
-        Agregar
+        {t("add.result.add")}
       </button>
     );
   }
 
   return (
     <div className={styles.owned}>
-      <span className={styles.mark}>{MARK_LABELS[result.mark.kind]}</span>
+      <span className={styles.mark}>{t(`add.result.${MARK_KEYS[result.mark.kind]}`)}</span>
       <Link href={`/games/${result.mark.gameId}?copy=new`} className={controls.ghost}>
-        Agregar una copia
+        {t("copy.addFirst")}
       </Link>
     </div>
   );

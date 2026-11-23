@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { ValidationKey } from "@/i18n/messages";
 import { COPY_KINDS, type CopyKind } from "@/model/copy/copy";
 import type { LibraryEntryInput, ManualGameInput, NewCopyInput } from "@/service/game/catalog-service";
 
@@ -8,8 +9,12 @@ const MAX_TEXT_LENGTH = 200;
 const MAX_URL_LENGTH = 2048;
 // Un tope de forma, para que un pedido no traiga miles de filas; nadie tiene tantas copias de un juego.
 const MAX_COPIES_PER_GAME = 30;
-const NOT_HTTPS_MESSAGE = "El link tiene que empezar con https://";
-const PLAYED_HOURS_MESSAGE = "Poné las horas jugadas, de 0 en adelante";
+// Claves de `validation`: el texto, en el idioma del usuario, lo pone el manejador de errores.
+const NOT_HTTPS: ValidationKey = "httpsRequired";
+const TITLE_REQUIRED: ValidationKey = "titleRequired";
+const YEAR_INVALID: ValidationKey = "yearInvalid";
+const DURATION_INVALID: ValidationKey = "durationInvalid";
+export const PLAYED_HOURS_INVALID: ValidationKey = "playedHours";
 
 function emptyToNull(value: unknown): unknown {
   if (typeof value !== "string") {
@@ -26,7 +31,7 @@ function optional<T extends z.ZodType>(schema: T) {
 const optionalText = optional(z.string().max(MAX_TEXT_LENGTH));
 
 export const httpsUrlSchema = optional(
-  z.url({ protocol: /^https$/, error: NOT_HTTPS_MESSAGE }).max(MAX_URL_LENGTH, { error: NOT_HTTPS_MESSAGE }),
+  z.url({ protocol: /^https$/, error: NOT_HTTPS }).max(MAX_URL_LENGTH, { error: NOT_HTTPS }),
 );
 
 const copyRowSchema = z.object({
@@ -44,17 +49,17 @@ const entryShape = {
   // El rango lo valida el modelo; acá solo la forma.
   score: z.number().nullable(),
   // Igual que el puntaje: el rango y el redondeo son del modelo.
-  playedHours: optional(z.coerce.number({ error: PLAYED_HOURS_MESSAGE })).optional(),
+  playedHours: optional(z.coerce.number({ error: PLAYED_HOURS_INVALID })).optional(),
 };
 
 const manualGameSchema = z.object({
-  title: z.string({ error: "Poné el título del juego" }).trim().min(1, { error: "Poné el título del juego" }).max(MAX_TEXT_LENGTH),
+  title: z.string({ error: TITLE_REQUIRED }).trim().min(1, { error: TITLE_REQUIRED }).max(MAX_TEXT_LENGTH),
   coverUrl: httpsUrlSchema,
   pageUrl: httpsUrlSchema,
   // Solo la forma: el rango depende de la fecha y lo decide el modelo (design.md §5).
-  year: optional(z.coerce.number().int({ error: "Revisá el año" })),
+  year: optional(z.coerce.number().int({ error: YEAR_INVALID })),
   estimatedHours: optional(
-    z.coerce.number().min(0, { error: "Revisá la duración" }).max(MAX_HOURS, { error: "Revisá la duración" }),
+    z.coerce.number().min(0, { error: DURATION_INVALID }).max(MAX_HOURS, { error: DURATION_INVALID }),
   ),
   ...entryShape,
 });

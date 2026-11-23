@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import controls from "@/components/ui/controls.module.css";
@@ -44,6 +45,7 @@ export function EditGameDialog({
   const [endless, setEndless] = useState(effectiveEndless(game));
   const [coverUrl, setCoverUrl] = useState(game.corrections.coverUrl ?? "");
   const durationId = useId();
+  const t = useTranslations();
 
   async function handleUpload(file: File): Promise<void> {
     const url = await onUploadCover(file);
@@ -57,12 +59,12 @@ export function EditGameDialog({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Editar"
-      description="Tus cambios se ven solo en tu biblioteca. Dejá un campo vacío para usar el dato del catálogo."
+      title={t("game.edit.title")}
+      description={t("game.edit.description")}
       footer={
         <>
           <button type="button" className={controls.secondary} onClick={() => onOpenChange(false)}>
-            Cancelar
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -70,7 +72,7 @@ export function EditGameDialog({
             disabled={pending}
             onClick={() => onSave({ estimatedHours, endless, coverUrl })}
           >
-            Guardar cambios
+            {t("game.edit.save")}
           </button>
         </>
       }
@@ -83,10 +85,10 @@ export function EditGameDialog({
         onCoverUrlChange={setCoverUrl}
         onUpload={(file) => void handleUpload(file)}
       />
-      <Toggle label="Sin fin" help={HELP.endless} checked={endless} onCheckedChange={setEndless} />
+      <Toggle label={t("game.edit.endless")} help={HELP.endless} checked={endless} onCheckedChange={setEndless} />
       <div className={controls.field}>
         <span className={controls.labelWithHelp}>
-          <label htmlFor={durationId}>Duración (h)</label>
+          <label htmlFor={durationId}>{t("game.edit.duration")}</label>
           <HelpTip help={HELP.duration} />
         </span>
         <input
@@ -96,13 +98,13 @@ export function EditGameDialog({
           inputMode="decimal"
           min="0"
           disabled={endless}
-          placeholder="opcional"
+          placeholder={t("common.optional")}
           value={endless ? "" : estimatedHours}
           onChange={(event) => setEstimatedHours(event.target.value)}
         />
       </div>
       {game.catalog.estimatedHours === null ? null : (
-        <p className={controls.hint}>IGDB: unas {formatHours(game.catalog.estimatedHours)} h</p>
+        <p className={controls.hint}>{t("game.edit.igdbHint", { hours: formatHours(game.catalog.estimatedHours) })}</p>
       )}
       {errorMessage ? <p className={controls.error}>{errorMessage}</p> : null}
     </Modal>

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 
 import controls from "@/components/ui/controls.module.css";
@@ -18,15 +19,16 @@ type CopyRowsEditorProps = Readonly<{
 export function CopyRowsEditor({ stores, rows, onAdd, onChange, onRemove }: CopyRowsEditorProps) {
   // En /add pueden convivir dos formularios: el id no se repite.
   const titleId = useId();
+  const t = useTranslations("copy");
 
   return (
     <section className={styles.section} aria-labelledby={titleId}>
       <h2 id={titleId} className={controls.sectionLabel}>
-        Dónde y cómo lo tenés
+        {t("rows.title")}
       </h2>
-      {rows.length === 0 ? <p className={controls.hint}>Todavía no lo tenés</p> : null}
+      {rows.length === 0 ? <p className={controls.hint}>{t("rows.none")}</p> : null}
       {rows.map((row, index) => {
-        const name = `Copia ${index + 1}`;
+        const name = t("rows.name", { number: index + 1 });
 
         return (
           <div key={row.key} className={styles.row} role="group" aria-label={name}>
@@ -35,10 +37,10 @@ export function CopyRowsEditor({ stores, rows, onAdd, onChange, onRemove }: Copy
               <button
                 type="button"
                 className={controls.ghost}
-                aria-label={`Quitar la copia ${index + 1}`}
+                aria-label={t("rows.removeLabel", { number: index + 1 })}
                 onClick={() => onRemove(row.key)}
               >
-                Quitar
+                {t("rows.remove")}
               </button>
             </div>
             <CopyRowFields stores={stores} value={row} onChange={(changes) => onChange(row.key, changes)} />
@@ -46,7 +48,7 @@ export function CopyRowsEditor({ stores, rows, onAdd, onChange, onRemove }: Copy
         );
       })}
       <button type="button" className={`${controls.secondary} ${styles.add}`} onClick={onAdd}>
-        {rows.length === 0 ? "Agregar una copia" : "Agregar otra copia"}
+        {rows.length === 0 ? t("addFirst") : t("addAnother")}
       </button>
     </section>
   );

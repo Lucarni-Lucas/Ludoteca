@@ -1,12 +1,15 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  INTERNAL_ERROR_CODE,
-  INTERNAL_ERROR_MESSAGE,
-  toActionResult,
-} from "@/shared/action-result";
+import { ReleaseYearOutOfRangeError } from "@/model/game/errors";
+import { INTERNAL_ERROR_CODE, toActionResult } from "@/shared/action-result";
 import { AppError, DatabaseUnavailableError, InvalidRequestError } from "@/shared/app-error";
 import { logger } from "@/shared/logger";
+
+const request = vi.hoisted(() => ({ locale: "es" as "es" | "en" }));
+
+vi.mock("@/i18n/locale", () => ({ getRequestLocale: async () => request.locale }));
+
+const INTERNAL_ERROR_MESSAGE = "Algo salió mal. Probá de nuevo.";
 
 class GameCaseError extends AppError {
   readonly code = "GAME_CASE";
@@ -17,6 +20,10 @@ class GameCaseError extends AppError {
 }
 
 describe("toActionResult", () => {
+  beforeEach(() => {
+    request.locale = "es";
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -37,14 +44,26 @@ describe("toActionResult", () => {
     expect(result).toEqual({ ok: true, data: "listo" });
   });
 
-  it("traduce un error con nombre a su código y su mensaje en español", async () => {
-    const action = () => Promise.reject(new GameCaseError());
+  it("traduce un error con nombre a su código y al texto del catálogo en español", async () => {
+    const action = () => Promise.reject(new ReleaseYearOutOfRangeError({ min: 1950, max: 2027 }));
 
     const result = await toActionResult(action);
 
     expect(result).toEqual({
       ok: false,
-      error: { code: "GAME_CASE", message: "Ese juego no existe." },
+      error: { code: "RELEASE_YEAR_OUT_OF_RANGE", message: "Poné un año entre 1950 y 2027" },
+    });
+  });
+
+  it("traduce el mismo error en inglés cuando ese es el idioma del pedido", async () => {
+    request.locale = "en";
+    const action = () => Promise.reject(new ReleaseYearOutOfRangeError({ min: 1950, max: 2027 }));
+
+    const result = await toActionResult(action);
+
+    expect(result).toEqual({
+      ok: false,
+      error: { code: "RELEASE_YEAR_OUT_OF_RANGE", message: "Enter a year between 1950 and 2027" },
     });
   });
 
@@ -57,6 +76,16 @@ describe("toActionResult", () => {
       ok: false,
       error: { code: "INVALID_REQUEST", message: "El pedido no es válido." },
     });
+  });
+
+  it("da el mensaje genérico y lo anota cuando un código no tiene texto en el catálogo", async () => {
+    const log = vi.spyOn(logger, "error").mockImplementation(() => undefined);
+    const action = () => Promise.reject(new GameCaseError());
+
+    const result = await toActionResult(action);
+
+    expect(result).toEqual({ ok: false, error: { code: "GAME_CASE", message: INTERNAL_ERROR_MESSAGE } });
+    expect(log).toHaveBeenCalledWith(expect.any(String), { key: "errors.GAME_CASE", locale: "es" });
   });
 
   it("no filtra el mensaje interno de un error desconocido", async () => {
@@ -86,6 +115,10 @@ describe("toActionResult", () => {
 });
 
 describe("toActionResult con la base que no responde", () => {
+  beforeEach(() => {
+    request.locale = "es";
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });

@@ -1,11 +1,13 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { TopNav } from "@/components/layout/TopNav";
 
+import { renderWithIntl } from "../../i18n/render-with-intl";
+
 describe("TopNav", () => {
   function renderNav(activeSection: Parameters<typeof TopNav>[0]["activeSection"] = "stores") {
-    render(<TopNav activeSection={activeSection} avatarInitial="L" settingsActive={false} />);
+    renderWithIntl(<TopNav activeSection={activeSection} avatarInitial="L" settingsActive={false} />);
   }
 
   it("marca solo la sección actual", () => {

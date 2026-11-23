@@ -3,7 +3,8 @@ import { z } from "zod";
 
 import { getSessionUser } from "@/security/session";
 import { getCatalogService } from "@/service/game/instance";
-import { toActionResult } from "@/shared/action-result";
+import { toActionFailure, toActionResult } from "@/shared/action-result";
+import { UnauthenticatedError } from "@/shared/app-error";
 import { parseInput } from "@/shared/parse-input";
 
 // Usa la base: corta mucho antes de los 300 s por defecto de Vercel (design.md §17).
@@ -20,9 +21,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const user = await getSessionUser();
 
   if (!user) {
-    return NextResponse.json({ ok: false, error: { code: "UNAUTHENTICATED", message: "Tenés que ingresar." } }, {
-      status: HTTP_UNAUTHORIZED,
-    });
+    return NextResponse.json(await toActionFailure(new UnauthenticatedError()), { status: HTTP_UNAUTHORIZED });
   }
 
   const result = await toActionResult(() => {

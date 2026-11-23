@@ -7,14 +7,6 @@ export type LibrarySort = (typeof LIBRARY_SORTS)[number];
 
 export const DEFAULT_SORT: LibrarySort = "recent";
 
-export const LIBRARY_SORT_LABELS: Readonly<Record<LibrarySort, string>> = {
-  recent: "Agregados recientemente",
-  score: "Mi puntaje",
-  played: "Horas jugadas",
-  duration: "Duración estimada",
-  title: "Título (A–Z)",
-};
-
 type Comparator = (a: LibraryGame, b: LibraryGame) => number;
 
 /** Los juegos sin el dato van al final, sin importar si el orden es ascendente o descendente. */

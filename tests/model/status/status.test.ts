@@ -4,6 +4,7 @@ import {
   DEFAULT_STATUSES,
   finishedOn,
   groupStatuses,
+  hasDefaultName,
   planStatusChange,
   type Status,
 } from "@/model/status/status";
@@ -90,7 +91,7 @@ describe("groupStatuses", () => {
 
     const groups = groupStatuses(statuses);
 
-    expect(groups.map(({ label }) => label)).toEqual(["En curso", "Sin empezar", "Terminado", "Dejado"]);
+    expect(groups.map(({ group }) => group)).toEqual(["in_progress", "not_started", "finished", "dropped"]);
   });
 });
 
@@ -101,5 +102,20 @@ describe("DEFAULT_STATUSES", () => {
     const unique = new Set(keys);
 
     expect(unique.size).toBe(keys.length);
+  });
+});
+
+describe("hasDefaultName", () => {
+  it.each([
+    { name: "reconoce un estado de fábrica con su nombre de fábrica", value: status({ name: "Quiero jugarlo", systemKey: "wishlist" }), expected: true },
+    { name: "un estado renombrado se ve tal cual", value: status({ name: "Algún día", systemKey: "wishlist" }), expected: false },
+    { name: "un nombre de fábrica de otro system_key no se traduce", value: status({ name: "Jugando", systemKey: "wishlist" }), expected: false },
+    { name: "un estado propio sin system_key no es de fábrica", value: status({ name: "Jugando", systemKey: null }), expected: false },
+  ])("$name", ({ value, expected }) => {
+    const current = value;
+
+    const result = hasDefaultName(current);
+
+    expect(result).toBe(expected);
   });
 });

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -6,6 +6,8 @@ import { describe, expect, it, vi } from "vitest";
 import { Modal } from "@/components/ui/Modal";
 import { Notice } from "@/components/ui/Notice";
 import { Toggle } from "@/components/ui/Toggle";
+
+import { renderWithIntl } from "../../i18n/render-with-intl";
 
 function ModalHarness({ onOpenChange }: Readonly<{ onOpenChange?: (open: boolean) => void }>) {
   const [open, setOpen] = useState(false);
@@ -33,7 +35,7 @@ function ModalHarness({ onOpenChange }: Readonly<{ onOpenChange?: (open: boolean
 describe("Modal", () => {
   it("mueve el foco adentro al abrirse", async () => {
     const user = userEvent.setup();
-    render(<ModalHarness />);
+    renderWithIntl(<ModalHarness />);
 
     await user.click(screen.getByRole("button", { name: "Abrir" }));
 
@@ -44,7 +46,7 @@ describe("Modal", () => {
   it("se cierra con Escape y devuelve el foco a quien la abrió", async () => {
     const user = userEvent.setup();
     const onOpenChange = vi.fn();
-    render(<ModalHarness onOpenChange={onOpenChange} />);
+    renderWithIntl(<ModalHarness onOpenChange={onOpenChange} />);
     await user.click(screen.getByRole("button", { name: "Abrir" }));
 
     await user.keyboard("{Escape}");
@@ -56,7 +58,7 @@ describe("Modal", () => {
 
   it("se cierra con el botón Cerrar", async () => {
     const user = userEvent.setup();
-    render(<ModalHarness />);
+    renderWithIntl(<ModalHarness />);
     await user.click(screen.getByRole("button", { name: "Abrir" }));
 
     await user.click(screen.getByRole("button", { name: "Cerrar" }));
@@ -66,7 +68,7 @@ describe("Modal", () => {
 
   it("muestra la descripción", async () => {
     const user = userEvent.setup();
-    render(<ModalHarness />);
+    renderWithIntl(<ModalHarness />);
 
     await user.click(screen.getByRole("button", { name: "Abrir" }));
 
@@ -78,7 +80,7 @@ describe("Toggle", () => {
   it("avisa el nuevo valor al tocarlo", async () => {
     const user = userEvent.setup();
     const onCheckedChange = vi.fn();
-    render(<Toggle label="Sin fin" checked={false} onCheckedChange={onCheckedChange} />);
+    renderWithIntl(<Toggle label="Sin fin" checked={false} onCheckedChange={onCheckedChange} />);
 
     await user.click(screen.getByRole("switch", { name: "Sin fin" }));
 
@@ -88,7 +90,7 @@ describe("Toggle", () => {
   it("refleja el valor recibido", () => {
     const checked = true;
 
-    render(<Toggle label="Sin fin" checked={checked} onCheckedChange={() => undefined} />);
+    renderWithIntl(<Toggle label="Sin fin" checked={checked} onCheckedChange={() => undefined} />);
 
     expect(screen.getByRole("switch", { name: "Sin fin" })).toBeChecked();
   });
@@ -96,7 +98,7 @@ describe("Toggle", () => {
   it("no cambia si está deshabilitado", async () => {
     const user = userEvent.setup();
     const onCheckedChange = vi.fn();
-    render(<Toggle label="Sin fin" checked={false} disabled onCheckedChange={onCheckedChange} />);
+    renderWithIntl(<Toggle label="Sin fin" checked={false} disabled onCheckedChange={onCheckedChange} />);
 
     await user.click(screen.getByRole("switch", { name: "Sin fin" }));
 
@@ -108,7 +110,7 @@ describe("Notice", () => {
   it("anuncia el mensaje", () => {
     const message = "Frostpunk pasó a «Pendiente»";
 
-    render(<Notice message={message} />);
+    renderWithIntl(<Notice message={message} />);
 
     expect(screen.getByRole("status")).toHaveTextContent(message);
   });
@@ -116,7 +118,7 @@ describe("Notice", () => {
   it("queda montado y vacío cuando no hay mensaje", () => {
     const message = null;
 
-    render(<Notice message={message} />);
+    renderWithIntl(<Notice message={message} />);
 
     expect(screen.getByRole("status")).toBeEmptyDOMElement();
   });

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import type { MarkedSearchResult } from "@/model/game/add-game";
@@ -10,11 +11,10 @@ type IgdbResultsProps = Readonly<{
   renderAction: (result: MarkedSearchResult) => ReactNode;
 }>;
 
-function metaText({ year }: MarkedSearchResult): string {
-  return year === null ? "IGDB" : `${year} · IGDB`;
-}
-
 export function IgdbResults({ results, renderAction }: IgdbResultsProps) {
+  const t = useTranslations("add.result");
+  const metaText = ({ year }: MarkedSearchResult) => (year === null ? "IGDB" : t("meta", { year: String(year) }));
+
   return (
     <ul className={styles.list}>
       {results.map((result) => (

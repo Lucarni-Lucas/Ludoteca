@@ -1,0 +1,423 @@
+{
+  "common": {
+    "description": "Tu biblioteca de videojuegos, tus tiendas y tus suscripciones.",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "optional": "opcional",
+    "close": "Cerrar"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "nav": "Ajustes",
+    "account": "Cuenta",
+    "signedInAs": "Ingresaste como",
+    "signOut": "Cerrar sesión",
+    "signingOut": "Cerrando sesión…",
+    "language": {
+      "title": "Idioma",
+      "es": "Español",
+      "en": "English",
+      "updated": "Idioma actualizado",
+      "unchanged": "Ya estaba en español"
+    }
+  },
+  "errors": {
+    "INVALID_REQUEST": "El pedido no es válido.",
+    "DATABASE_UNAVAILABLE": "No pudimos guardar el cambio. Probá de nuevo.",
+    "UNAUTHENTICATED": "Tenés que ingresar para hacer esto.",
+    "INTERNAL_ERROR": "Algo salió mal. Probá de nuevo.",
+    "IGDB_UNAVAILABLE": "No pudimos consultar IGDB. Probá de nuevo.",
+    "IGDB_RATE_LIMIT": "IGDB está recibiendo muchas consultas. Probá en unos segundos.",
+    "IGDB_TIMEOUT": "IGDB tardó demasiado en responder. Probá de nuevo.",
+    "COVER_UPLOAD_FAILED": "No pudimos subir la imagen. Probá de nuevo.",
+    "EMAIL_NOT_ALLOWED": "Esta cuenta no tiene acceso a Ludoteca",
+    "SIGN_IN_FAILED": "No pudimos iniciar sesión. Probá de nuevo.",
+    "SIGN_OUT_FAILED": "No pudimos cerrar la sesión. Probá de nuevo.",
+    "COPY_NOT_FOUND": "No encontramos esa copia.",
+    "COPY_STORE_MISSING": "Elegí la tienda de cada copia",
+    "KIND_DETAIL_TOO_LONG": "El detalle puede tener hasta {max} caracteres",
+    "COVER_TYPE_NOT_ALLOWED": "La portada tiene que ser JPEG, PNG o WebP.",
+    "COVER_TOO_LARGE": "La portada no puede pesar más de 2 MB.",
+    "GAME_NOT_FOUND": "No encontramos este juego.",
+    "SCORE_OUT_OF_RANGE": "El puntaje va de 0.0 a 10.0.",
+    "GAME_ALREADY_IN_LIBRARY": "Ese juego ya está en tu biblioteca.",
+    "GAME_NOT_MANUAL": "Solo se puede vincular un juego cargado a mano.",
+    "GAME_NOT_FROM_IGDB": "Este juego no viene de IGDB.",
+    "PLAYED_HOURS_OUT_OF_RANGE": "Poné las horas jugadas, de 0 en adelante",
+    "RELEASE_YEAR_OUT_OF_RANGE": "Poné un año entre {min} y {max}",
+    "STATUS_NOT_FOUND": "No encontramos ese estado.",
+    "STORE_NOT_FOUND": "No encontramos esa tienda.",
+    "INVALID_STORE_NAME": "Escribí un nombre de tienda con letras o números."
+  },
+  "validation": {
+    "titleRequired": "Poné el título del juego",
+    "httpsRequired": "El link tiene que empezar con https://",
+    "playedHours": "Poné las horas jugadas, de 0 en adelante",
+    "yearInvalid": "Revisá el año",
+    "durationInvalid": "Revisá la duración",
+    "storeRequired": "Elegí una tienda",
+    "imageRequired": "Elegí una imagen."
+  },
+  "copy": {
+    "kinds": {
+      "purchased": "Comprado",
+      "free": "Gratis",
+      "subscription": "Suscripción",
+      "family": "Familia",
+      "physical": "Físico",
+      "other": "Otro"
+    },
+    "lostReasons": {
+      "left_family": "Salí de la familia",
+      "subscription_ended": "Terminó la suscripción",
+      "sold": "Lo vendí",
+      "other": "Otro"
+    },
+    "familyOwner": "de {owner}",
+    "noLonger": "ya no",
+    "notBought": "Sin comprar",
+    "where": "Dónde lo tenés",
+    "recover": "Recuperar",
+    "markLost": "Ya no lo tengo",
+    "remove": "Eliminar",
+    "removeLabel": "Eliminar copia de {store}",
+    "addFirst": "Agregar una copia",
+    "addAnother": "Agregar otra copia",
+    "dialog": {
+      "title": "Agregar copia",
+      "save": "Guardar copia",
+      "acquiredOn": "Cuándo lo conseguiste (opcional)"
+    },
+    "lostDialog": {
+      "title": "Ya no lo tengo",
+      "description": "La copia de {store} queda en el historial con su tipo y su fecha.",
+      "reason": "Motivo",
+      "date": "Fecha (si no la ponés, usamos la de hoy)"
+    },
+    "fields": {
+      "store": "Tienda",
+      "chooseStore": "Elegí una tienda",
+      "otherStore": "Otra",
+      "otherStoreName": "Nombre de la tienda",
+      "kind": "Cómo lo tenés",
+      "familyOwner": "De quién es",
+      "kindDetail": "Qué es"
+    },
+    "rows": {
+      "title": "Dónde y cómo lo tenés",
+      "none": "Todavía no lo tenés",
+      "name": "Copia {number}",
+      "removeLabel": "Quitar la copia {number}",
+      "remove": "Quitar"
+    }
+  },
+  "help": {
+    "label": "Qué es «{term}»",
+    "notInterested": {
+      "term": "Sin interés",
+      "text": "Lo tenés pero no pensás jugarlo: no aparece en la biblioteca ni en los conteos. Lo ves con «Mostrar sin interés»."
+    },
+    "releaseYear": {
+      "term": "Año de lanzamiento",
+      "text": "El año en que salió el juego, no el año en que lo conseguiste."
+    },
+    "duration": {
+      "term": "Duración",
+      "text": "Cuánto se tarda en promedio en terminarlo, según IGDB o lo que cargues vos. No son tus horas jugadas."
+    },
+    "family": {
+      "term": "Familia",
+      "text": "Te lo presta alguien de tu familia de Steam: lo podés jugar, pero no es tuyo."
+    },
+    "other": {
+      "term": "Otro",
+      "text": "Para lo que no entra en los demás tipos, como un regalo. Cuenta como tuyo."
+    },
+    "manual": {
+      "term": "A mano",
+      "text": "Lo cargaste vos porque no estaba en IGDB. Solo lo ves vos, y podés vincularlo con IGDB cuando quieras."
+    },
+    "lost": {
+      "term": "Ya no lo tengo",
+      "text": "Ya no tenés esta copia, por ejemplo porque la vendiste o terminó la suscripción. El juego conserva su estado, su puntaje y sus horas."
+    },
+    "endless": {
+      "term": "Sin fin",
+      "text": "Un juego que no se termina, como un multijugador: no tiene duración estimada."
+    }
+  },
+  "dates": {
+    "months": {
+      "1": "ene",
+      "2": "feb",
+      "3": "mar",
+      "4": "abr",
+      "5": "may",
+      "6": "jun",
+      "7": "jul",
+      "8": "ago",
+      "9": "sep",
+      "10": "oct",
+      "11": "nov",
+      "12": "dic"
+    },
+    "dayMonth": "{day} {month}",
+    "monthYear": "{month} {year}"
+  },
+  "filters": {
+    "duration": "Duración estimada",
+    "durationSource": "IGDB o tuya",
+    "noTop": "sin tope",
+    "endlessHint": "Los juegos «Sin fin» no tienen duración y quedan afuera de este filtro.",
+    "played": "Horas que jugaste",
+    "score": "Tu puntaje",
+    "store": "Tienda",
+    "kind": "Cómo lo tenés",
+    "lost": "Ya no lo tengo",
+    "showNotInterested": "Mostrar sin interés",
+    "from": "Desde",
+    "to": "Hasta",
+    "withUnit": "{label} ({unit})",
+    "presets": {
+      "under5": "< 5 h",
+      "from5to15": "5–15 h",
+      "from15to40": "15–40 h",
+      "over40": "40 h +",
+      "unopened": "Sin abrir",
+      "under2": "< 2 h",
+      "from2to20": "2–20 h",
+      "over20": "20 h +"
+    },
+    "all": "Todos",
+    "title": "Filtros",
+    "clear": "Limpiar",
+    "seeGames": "{count, plural, one {Ver # juego} other {Ver # juegos}}"
+  },
+  "status": {
+    "groups": {
+      "in_progress": "En curso",
+      "not_started": "Sin empezar",
+      "finished": "Terminado",
+      "dropped": "Dejado"
+    },
+    "defaults": {
+      "playing": "Jugando",
+      "paused": "En pausa",
+      "endless": "Sin fin",
+      "wishlist": "Quiero jugarlo",
+      "backlog": "Pendiente",
+      "completed": "Completado",
+      "hundred_percent": "100%",
+      "played": "Jugado",
+      "abandoned": "Abandonado",
+      "tried": "Lo probé"
+    },
+    "since": "desde el {date}",
+    "finishedOn": "lo terminaste el {date}",
+    "title": "Estado",
+    "change": "Cambiar estado",
+    "fromCopies": "Según las copias",
+    "dialog": {
+      "current": "{title} · ahora: {status}",
+      "saveAs": "Guardar como «{status}»",
+      "finishedTitle": "¡Terminado!",
+      "finishedNote": "Guardamos la fecha de hoy como fecha de fin. Después podés ponerle puntaje.",
+      "note": "El cambio queda registrado con la fecha de hoy."
+    }
+  },
+  "library": {
+    "card": {
+      "hours": "{hours} h",
+      "notStarted": "Sin empezar",
+      "manual": "A MANO",
+      "notInterested": "SIN INTERÉS",
+      "select": "Seleccionar {title}",
+      "open": "Ver la ficha de {title}"
+    },
+    "title": "Biblioteca",
+    "wideTitle": "Tu biblioteca",
+    "summary": "{games, plural, one {# juego} other {# juegos}} en {stores, plural, one {# tienda} other {# tiendas}} · {wishlist} en «Quiero jugarlo» · {lost} que ya no tenés",
+    "sort": {
+      "label": "Ordenar por",
+      "options": {
+        "recent": "Agregados recientemente",
+        "score": "Mi puntaje",
+        "played": "Horas jugadas",
+        "duration": "Duración estimada",
+        "title": "Título (A–Z)"
+      }
+    },
+    "search": "Buscar por título",
+    "searchPlaceholder": "Buscá por título…",
+    "select": "Seleccionar",
+    "selection": {
+      "label": "Selección",
+      "count": "{count, plural, one {# seleccionado} other {# seleccionados}}",
+      "mark": "Marcar sin interés",
+      "unmark": "Quitar «Sin interés»"
+    },
+    "empty": "Todavía no cargaste ningún juego.",
+    "emptyAction": "Agregá tu primer juego",
+    "noResults": "No hay juegos con esta combinación de filtros.",
+    "clearFilters": "Limpiar filtros"
+  },
+  "game": {
+    "back": "Biblioteca",
+    "backLabel": "Volver a la biblioteca",
+    "manual": "A MANO",
+    "movedTo": "{title} pasó a «{status}»",
+    "notFound": "No encontramos este juego",
+    "facts": {
+      "title": "Datos",
+      "developer": "Desarrollo",
+      "duration": "Duración",
+      "played": "Jugaste",
+      "playedHeader": "{hours} h jugadas",
+      "hours": "{hours} h",
+      "added": "Agregado",
+      "page": "Página",
+      "open": "Abrir",
+      "edit": "Editar",
+      "loadHours": "Cargar horas",
+      "changeHours": "Cambiar horas"
+    },
+    "duration": {
+      "endless": "Sin fin",
+      "unknown": "Duración desconocida",
+      "hours": "unas {hours} h",
+      "withSource": "{duration} · {source}",
+      "sources": {
+        "own": "tuya",
+        "igdb": "IGDB"
+      }
+    },
+    "score": {
+      "title": "Tu puntaje",
+      "none": "Sin puntaje",
+      "down": "Bajar 0.1",
+      "up": "Subir 0.1",
+      "input": "Puntaje",
+      "slider": "Puntaje de 0 a 10",
+      "clear": "Quitar puntaje"
+    },
+    "playedDialog": {
+      "title": "Horas jugadas",
+      "description": "El total que jugaste. Si lo cargás, vale más que lo que digan las tiendas.",
+      "clear": "Borrar horas",
+      "field": "Horas jugadas"
+    },
+    "edit": {
+      "title": "Editar",
+      "description": "Tus cambios se ven solo en tu biblioteca. Dejá un campo vacío para usar el dato del catálogo.",
+      "save": "Guardar cambios",
+      "endless": "Sin fin",
+      "duration": "Duración (h)",
+      "igdbHint": "IGDB: unas {hours} h"
+    },
+    "cover": {
+      "label": "Portada (opcional)",
+      "upload": "Subir imagen",
+      "uploading": "Subiendo…",
+      "paste": "Pegar link",
+      "hint": "Si no ponés ninguna, usamos las iniciales.",
+      "file": "Archivo de la portada",
+      "url": "Link de la portada"
+    },
+    "link": {
+      "title": "Vincular con IGDB",
+      "description": "El juego toma los datos de IGDB y conserva tu estado, tu puntaje, tus copias y tu historial.",
+      "search": "Buscar en IGDB",
+      "action": "Vincular",
+      "noResults": "No encontramos ese juego en IGDB."
+    },
+    "admin": {
+      "edit": "Editar",
+      "link": "Vincular con IGDB",
+      "refresh": "Actualizar datos",
+      "markNotInterested": "Marcar sin interés",
+      "unmarkNotInterested": "Quitar «Sin interés»",
+      "remove": "Quitar de la biblioteca",
+      "removeDescription": "Se borra {title} con sus copias, su puntaje y su historial. No se puede deshacer.",
+      "removeConfirm": "Quitar"
+    },
+    "removeCopy": {
+      "title": "Eliminar copia",
+      "description": "Se borra la copia de {store} sin dejar rastro. Si la perdiste, mejor marcala «Ya no lo tengo».",
+      "confirm": "Eliminar copia"
+    }
+  },
+  "login": {
+    "pageTitle": "Ingresar · Ludoteca",
+    "title": "Ingresá a tu biblioteca",
+    "text": "Tus juegos, tus tiendas y tus suscripciones, en un solo lugar.",
+    "signIn": "Ingresar con Google",
+    "signingIn": "Ingresando…"
+  },
+  "nav": {
+    "main": "Principal",
+    "bar": "Secciones",
+    "sections": {
+      "library": "Biblioteca",
+      "check": "¿Lo tengo?",
+      "subscriptions": "Suscripciones",
+      "stores": "Tiendas"
+    },
+    "search": "Buscar en tu biblioteca",
+    "searchPlaceholder": "¿Lo tengo? Buscá un juego…",
+    "addGame": "Agregar juego",
+    "settings": "Ajustes",
+    "comingSoon": "Próximamente",
+    "loadError": "No pudimos cargar tus datos. Probá de nuevo.",
+    "retry": "Reintentar",
+    "notFound": {
+      "title": "No encontramos esa pantalla",
+      "text": "Puede que el link esté mal o que la pantalla ya no exista.",
+      "back": "Volver a tu biblioteca"
+    }
+  },
+  "add": {
+    "title": "Agregar juego",
+    "subtitle": "Buscalo en IGDB. Si no aparece, cargalo a mano en el panel de la derecha.",
+    "searchSection": "Buscar en IGDB",
+    "searchLabel": "Buscar juego",
+    "searchPlaceholder": "Escribí 2 o 3 letras",
+    "searchHint": "Buscamos en IGDB mientras escribís.",
+    "noResults": "No encontramos “{query}” en IGDB",
+    "tooShort": "Escribí al menos 2 letras",
+    "invite": {
+      "title": "¿No aparece?",
+      "text": "Juegos de itch.io, game jams, mods o lo que sea: cargalo a mano con título, link y portada.",
+      "action": "Agregar a mano"
+    },
+    "manualSection": "Agregar a mano",
+    "manualTitle": "¿No aparece? Cargalo a mano",
+    "manualSubtitle": "Para indies de itch.io, game jams o mods.",
+    "result": {
+      "meta": "{year} · IGDB",
+      "added": "Agregado",
+      "add": "Agregar",
+      "inLibrary": "En tu biblioteca",
+      "wishlist": "En «Quiero jugarlo»"
+    },
+    "manualPage": {
+      "back": "Agregar juego",
+      "backLabel": "Volver a la búsqueda",
+      "title": "Agregar a mano",
+      "subtitle": "Para juegos que no están en IGDB: indies de itch.io, game jams, mods."
+    },
+    "igdbDialog": {
+      "title": "Agregar «{title}»",
+      "description": "Título, año y portada vienen de IGDB."
+    },
+    "form": {
+      "title": "Título",
+      "pageUrl": "Link a la página del juego",
+      "year": "Año de lanzamiento",
+      "duration": "Duración (h)",
+      "played": "Horas jugadas",
+      "status": "Estado",
+      "manualHint": "Queda marcado como «agregado a mano». Si algún día aparece en IGDB, lo podés vincular sin perder tu puntaje ni tu historial.",
+      "save": "Guardar juego"
+    }
+  }
+}

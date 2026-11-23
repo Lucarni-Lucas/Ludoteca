@@ -52,7 +52,7 @@ export async function uploadCoverAction(formData: FormData): Promise<ActionResul
     const file = formData.get("cover");
 
     if (!(file instanceof File)) {
-      throw new InvalidRequestError("Elegí una imagen.");
+      throw new InvalidRequestError("imageRequired");
     }
 
     return getCoverService().uploadCover(user.id, {

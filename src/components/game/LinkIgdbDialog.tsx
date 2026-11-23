@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import controls from "@/components/ui/controls.module.css";
 import { Modal } from "@/components/ui/Modal";
 import type { MarkedSearchResult } from "@/model/game/add-game";
@@ -31,15 +33,17 @@ export function LinkIgdbDialog({
   onQueryChange,
   onLink,
 }: LinkIgdbDialogProps) {
+  const t = useTranslations("game.link");
+
   return (
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Vincular con IGDB"
-      description="El juego toma los datos de IGDB y conserva tu estado, tu puntaje, tus copias y tu historial."
+      title={t("title")}
+      description={t("description")}
     >
       <label className={controls.field}>
-        Buscar en IGDB
+        {t("search")}
         <input
           className={controls.input}
           type="search"
@@ -56,11 +60,11 @@ export function LinkIgdbDialog({
             disabled={pending}
             onClick={() => onLink(result.baseIgdbId)}
           >
-            Vincular
+            {t("action")}
           </button>
         )}
       />
-      {noResults ? <p className={controls.hint}>No encontramos ese juego en IGDB.</p> : null}
+      {noResults ? <p className={controls.hint}>{t("noResults")}</p> : null}
       {searchError ? <p className={controls.error}>{searchError}</p> : null}
       {errorMessage ? <p className={controls.error}>{errorMessage}</p> : null}
     </Modal>

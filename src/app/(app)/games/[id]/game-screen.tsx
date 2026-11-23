@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { EditGameDialog, type EditGameValues } from "@/components/game/EditGameDialog";
@@ -35,6 +36,7 @@ function metaText(game: LibraryGame): string {
 }
 
 export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameScreenProps) {
+  const t = useTranslations("game");
   const [statusOpen, setStatusOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [playedOpen, setPlayedOpen] = useState(false);
@@ -78,7 +80,7 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
 
   return (
     <div className={styles.page}>
-      <BackLink href="/library" label="Biblioteca" accessibleLabel="Volver a la biblioteca" />
+      <BackLink href="/library" label={t("back")} accessibleLabel={t("backLabel")} />
 
       <div className={styles.layout}>
         <div className={styles.aside}>
@@ -86,7 +88,7 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
             <GameCover title={game.title} coverUrl={effectiveCover(game)} year={game.year} variant="detail" />
           </div>
           <div className={styles.copies}>
-            <CopiesSection gameId={game.id} copies={game.copies} stores={stores} openAddDialog={openCopyDialog} />
+            <CopiesSection gameId={game.id} gameTitle={game.title} copies={game.copies} stores={stores} openAddDialog={openCopyDialog} />
           </div>
           <div className={styles.facts}>
             <GameFacts game={game} onEdit={() => setEditOpen(true)} onEditPlayed={() => setPlayedOpen(true)} />
@@ -99,7 +101,7 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
             <p className={styles.meta}>{metaText(game)}</p>
             {isManual(game) ? (
               <span className={styles.badgeWithHelp}>
-                <span className={styles.badge}>A MANO</span>
+                <span className={styles.badge}>{t("manual")}</span>
                 <HelpTip help={HELP.manual} />
               </span>
             ) : null}

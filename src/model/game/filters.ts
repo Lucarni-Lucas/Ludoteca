@@ -35,20 +35,26 @@ export const NO_FILTERS: LibraryFilters = {
   showNotInterested: false,
 };
 
-export type RangePreset = Readonly<{ label: string; range: NumberRange }>;
+export const DURATION_PRESET_IDS = ["under5", "from5to15", "from15to40", "over40"] as const;
+export const PLAYED_PRESET_IDS = ["unopened", "under2", "from2to20", "over20"] as const;
+
+/** El texto de cada rango rápido sale del catálogo, por su `id`. */
+export type RangePresetId = (typeof DURATION_PRESET_IDS)[number] | (typeof PLAYED_PRESET_IDS)[number];
+
+export type RangePreset = Readonly<{ id: RangePresetId; range: NumberRange }>;
 
 export const DURATION_PRESETS: readonly RangePreset[] = [
-  { label: "< 5 h", range: { min: 0, max: 5 } },
-  { label: "5–15 h", range: { min: 5, max: 15 } },
-  { label: "15–40 h", range: { min: 15, max: 40 } },
-  { label: "40 h +", range: { min: 40, max: null } },
+  { id: "under5", range: { min: 0, max: 5 } },
+  { id: "from5to15", range: { min: 5, max: 15 } },
+  { id: "from15to40", range: { min: 15, max: 40 } },
+  { id: "over40", range: { min: 40, max: null } },
 ];
 
 export const PLAYED_PRESETS: readonly RangePreset[] = [
-  { label: "Sin abrir", range: { min: 0, max: 0 } },
-  { label: "< 2 h", range: { min: 0, max: 2 } },
-  { label: "2–20 h", range: { min: 2, max: 20 } },
-  { label: "20 h +", range: { min: 20, max: null } },
+  { id: "unopened", range: { min: 0, max: 0 } },
+  { id: "under2", range: { min: 0, max: 2 } },
+  { id: "from2to20", range: { min: 2, max: 20 } },
+  { id: "over20", range: { min: 20, max: null } },
 ];
 
 export function toggleOption<T>(selected: readonly T[], option: T): readonly T[] {

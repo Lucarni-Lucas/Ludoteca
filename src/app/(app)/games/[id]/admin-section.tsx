@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { LinkIgdbDialog } from "@/components/game/LinkIgdbDialog";
@@ -26,6 +27,7 @@ type AdminSectionProps = Readonly<{
 }>;
 
 export function AdminSection({ game, onEdit }: AdminSectionProps) {
+  const t = useTranslations("game.admin");
   const [linkOpen, setLinkOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);
   const search = useIgdbSearch();
@@ -48,11 +50,11 @@ export function AdminSection({ game, onEdit }: AdminSectionProps) {
     <div className={styles.admin}>
       <div className={styles.adminButtons}>
         <button type="button" className={controls.secondary} onClick={onEdit}>
-          Editar
+          {t("edit")}
         </button>
         {manual ? (
           <button type="button" className={controls.secondary} onClick={() => setLinkOpen(true)}>
-            Vincular con IGDB
+            {t("link")}
           </button>
         ) : (
           <button
@@ -61,7 +63,7 @@ export function AdminSection({ game, onEdit }: AdminSectionProps) {
             disabled={refresh.pending}
             onClick={() => void refresh.run(game.id)}
           >
-            Actualizar datos
+            {t("refresh")}
           </button>
         )}
         <span className={controls.withHelp}>
@@ -71,12 +73,12 @@ export function AdminSection({ game, onEdit }: AdminSectionProps) {
             disabled={notInterested.pending}
             onClick={() => void notInterested.run(game.id, !game.notInterested)}
           >
-            {game.notInterested ? "Quitar «Sin interés»" : "Marcar sin interés"}
+            {game.notInterested ? t("unmarkNotInterested") : t("markNotInterested")}
           </button>
           <HelpTip help={HELP.notInterested} />
         </span>
         <button type="button" className={controls.danger} onClick={() => setRemoveOpen(true)}>
-          Quitar de la biblioteca
+          {t("remove")}
         </button>
       </div>
       {errorMessage ? <p className={controls.error}>{errorMessage}</p> : null}
@@ -97,9 +99,9 @@ export function AdminSection({ game, onEdit }: AdminSectionProps) {
       <ConfirmDialog
         open={removeOpen}
         onOpenChange={setRemoveOpen}
-        title="Quitar de la biblioteca"
-        description={`Se borra ${game.title} con sus copias, su puntaje y su historial. No se puede deshacer.`}
-        confirmLabel="Quitar"
+        title={t("remove")}
+        description={t("removeDescription", { title: game.title })}
+        confirmLabel={t("removeConfirm")}
         pending={remove.pending}
         errorMessage={remove.errorMessage}
         onConfirm={() => remove.run(game.id)}

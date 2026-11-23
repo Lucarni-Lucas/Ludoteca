@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -7,11 +7,13 @@ import { GameCover } from "@/components/game/GameCover";
 
 import { buildCopy, buildGame, statusByKey } from "./game-fixtures";
 
+import { renderWithIntl } from "../../i18n/render-with-intl";
+
 describe("GameCard", () => {
   it("Juego sin copias", () => {
     const game = buildGame({ title: "Frostpunk", status: statusByKey("wishlist") });
 
-    const { container } = render(<GameCard game={game} />);
+    const { container } = renderWithIntl(<GameCard game={game} />);
 
     expect(screen.getByText("Sin comprar")).toBeInTheDocument();
     expect(container.querySelector('[data-dashed="true"]')).toBeInTheDocument();
@@ -20,7 +22,7 @@ describe("GameCard", () => {
   it("Juego sin puntuar", () => {
     const game = buildGame({ title: "Hades", score: null });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.queryByText("/10")).not.toBeInTheDocument();
   });
@@ -28,7 +30,7 @@ describe("GameCard", () => {
   it("muestra un puntaje de cero, que no es lo mismo que no tener", () => {
     const game = buildGame({ score: 0 });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.getByText("0.0")).toBeInTheDocument();
   });
@@ -40,7 +42,7 @@ describe("GameCard", () => {
       copies: [buildCopy({ playtimeMinutes: 18 * 60 })],
     });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.getByText("Disco Elysium")).toBeInTheDocument();
     expect(screen.getByText("Jugando")).toBeInTheDocument();
@@ -50,7 +52,7 @@ describe("GameCard", () => {
   it("dice «Sin empezar» si tiene copias y no lo jugó", () => {
     const game = buildGame({ copies: [buildCopy({ playtimeMinutes: 0 })] });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.getByText("Sin empezar")).toBeInTheDocument();
   });
@@ -58,7 +60,7 @@ describe("GameCard", () => {
   it("no muestra horas si no tiene copias", () => {
     const game = buildGame({ status: statusByKey("wishlist") });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.queryByText(/ h$/)).not.toBeInTheDocument();
   });
@@ -68,7 +70,7 @@ describe("GameCard", () => {
       copies: [buildCopy(), buildCopy({ id: "gp", storeName: "Game Pass", kind: "subscription" })],
     });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.getByText("Steam")).toBeInTheDocument();
     expect(screen.getByText("Game Pass · Suscripción")).toBeInTheDocument();
@@ -77,7 +79,7 @@ describe("GameCard", () => {
   it("muestra la marca «A MANO» en un juego cargado a mano", () => {
     const game = buildGame({ source: "manual", igdbId: null });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.getByText("A MANO")).toBeInTheDocument();
   });
@@ -85,7 +87,7 @@ describe("GameCard", () => {
   it("no muestra «A MANO» en un juego de IGDB", () => {
     const game = buildGame();
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.queryByText("A MANO")).not.toBeInTheDocument();
   });
@@ -93,7 +95,7 @@ describe("GameCard", () => {
   it("muestra la marca «SIN INTERÉS»", () => {
     const game = buildGame({ notInterested: true });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.getByText("SIN INTERÉS")).toBeInTheDocument();
   });
@@ -101,7 +103,7 @@ describe("GameCard", () => {
   it("enlaza con la ficha del juego", () => {
     const game = buildGame({ id: "hades", title: "Hades" });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.getByRole("link", { name: "Ver la ficha de Hades" })).toHaveAttribute("href", "/games/hades");
   });
@@ -110,7 +112,7 @@ describe("GameCard", () => {
     const user = userEvent.setup();
     const onToggle = vi.fn();
     const game = buildGame({ title: "Hades" });
-    render(<GameCard game={game} selection={{ selected: true, onToggle }} />);
+    renderWithIntl(<GameCard game={game} selection={{ selected: true, onToggle }} />);
 
     await user.click(screen.getByRole("button", { name: "Seleccionar Hades" }));
 
@@ -124,7 +126,7 @@ describe("GameCover", () => {
   it("muestra las iniciales cuando no hay portada", () => {
     const title = "Cartas del Faro";
 
-    render(<GameCover title={title} coverUrl={null} variant="card" />);
+    renderWithIntl(<GameCover title={title} coverUrl={null} variant="card" />);
 
     expect(screen.getByText("CF")).toBeInTheDocument();
   });
@@ -132,7 +134,7 @@ describe("GameCover", () => {
   it("muestra la imagen cuando hay portada", () => {
     const coverUrl = "https://example.com/portada.jpg";
 
-    const { container } = render(<GameCover title="Hades" coverUrl={coverUrl} variant="card" />);
+    const { container } = renderWithIntl(<GameCover title="Hades" coverUrl={coverUrl} variant="card" />);
 
     expect(container.querySelector("img")).toHaveAttribute("src", coverUrl);
     expect(screen.queryByText("H")).not.toBeInTheDocument();
@@ -141,14 +143,14 @@ describe("GameCover", () => {
   it("no se rompe con un link a medio escribir", () => {
     const coverUrl = "https:";
 
-    const { container } = render(<GameCover title="Hades" coverUrl={coverUrl} variant="card" />);
+    const { container } = renderWithIntl(<GameCover title="Hades" coverUrl={coverUrl} variant="card" />);
 
     expect(container.querySelector("img")).not.toBeInTheDocument();
     expect(screen.getByText("H")).toBeInTheDocument();
   });
 
   it("cae a las iniciales cuando la portada está rota", () => {
-    const { container } = render(<GameCover title="Hades" coverUrl="https://example.com/rota.jpg" variant="card" />);
+    const { container } = renderWithIntl(<GameCover title="Hades" coverUrl="https://example.com/rota.jpg" variant="card" />);
 
     fireEvent.error(container.querySelector("img") as HTMLImageElement);
 
@@ -161,7 +163,7 @@ describe("GameCard con copias de tipo Otro", () => {
   it("Copia de otro tipo", () => {
     const game = buildGame({ title: "Celeste", copies: [buildCopy({ kind: "other", kindDetail: "Regalo" })] });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.getByText("Steam · Regalo")).toBeInTheDocument();
   });
@@ -169,7 +171,7 @@ describe("GameCard con copias de tipo Otro", () => {
   it("muestra «Otro» si la copia no tiene detalle", () => {
     const game = buildGame({ copies: [buildCopy({ kind: "other" })] });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.getByText("Steam · Otro")).toBeInTheDocument();
   });
@@ -179,7 +181,7 @@ describe("GameCard con el puntaje", () => {
   it("Puntaje alto", () => {
     const game = buildGame({ score: 9.8 });
 
-    render(<GameCard game={game} />);
+    renderWithIntl(<GameCard game={game} />);
 
     expect(screen.getByText("9.8")).toBeInTheDocument();
     expect(screen.queryByText(/Excelente/)).not.toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -16,6 +16,8 @@ import { countLibraryOptions, listStoreOptions } from "@/model/game/summary";
 import { groupStatuses } from "@/model/status/status";
 
 import { buildCopy, buildGame, STATUSES, statusByKey } from "../game/game-fixtures";
+
+import { renderWithIntl } from "../../i18n/render-with-intl";
 
 const GAMES = [
   buildGame({ id: "a", status: statusByKey("wishlist"), copies: [buildCopy({ kind: "free" })] }),
@@ -48,7 +50,7 @@ function durationSection() {
 describe("FilterPanel", () => {
   it("Atajo", async () => {
     const user = userEvent.setup();
-    render(<PanelHarness />);
+    renderWithIntl(<PanelHarness />);
 
     await user.click(durationSection().getByRole("button", { name: "5–15 h" }));
 
@@ -59,7 +61,7 @@ describe("FilterPanel", () => {
 
   it("tocar de nuevo un atajo activo lo saca", async () => {
     const user = userEvent.setup();
-    render(<PanelHarness />);
+    renderWithIntl(<PanelHarness />);
     const shortcut = durationSection().getByRole("button", { name: "5–15 h" });
     await user.click(shortcut);
 
@@ -69,7 +71,7 @@ describe("FilterPanel", () => {
   });
 
   it("muestra la cantidad de juegos de cada tienda y tipo", () => {
-    render(<PanelHarness />);
+    renderWithIntl(<PanelHarness />);
 
     expect(screen.getByRole("button", { name: "Steam 1" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Gratis 1" })).toBeInTheDocument();
@@ -79,7 +81,7 @@ describe("FilterPanel", () => {
   it("permite elegir varias opciones de un mismo filtro", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
-    render(<PanelHarness onChange={onChange} />);
+    renderWithIntl(<PanelHarness onChange={onChange} />);
 
     await user.click(screen.getByRole("button", { name: "Gratis 1" }));
     await user.click(screen.getByRole("button", { name: "Comprado 0" }));
@@ -90,7 +92,7 @@ describe("FilterPanel", () => {
   it("escribe un rango libre con un solo extremo", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
-    render(<PanelHarness onChange={onChange} />);
+    renderWithIntl(<PanelHarness onChange={onChange} />);
 
     await user.type(durationSection().getByLabelText("Hasta (h)"), "8");
 
@@ -100,7 +102,7 @@ describe("FilterPanel", () => {
   it("activa «Mostrar sin interés»", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
-    render(<PanelHarness onChange={onChange} />);
+    renderWithIntl(<PanelHarness onChange={onChange} />);
 
     await user.click(screen.getByRole("switch", { name: "Mostrar sin interés" }));
 
@@ -112,7 +114,7 @@ describe("StatusFilters", () => {
   it("muestra cada estado con su cantidad", () => {
     const filters = NO_FILTERS;
 
-    render(<StatusFilters groups={GROUPS} filters={filters} counts={COUNTS} onChange={() => undefined} />);
+    renderWithIntl(<StatusFilters groups={GROUPS} filters={filters} counts={COUNTS} onChange={() => undefined} />);
 
     expect(screen.getByRole("button", { name: "Quiero jugarlo 1" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Todos 2" })).toHaveAttribute("aria-pressed", "true");
@@ -121,7 +123,7 @@ describe("StatusFilters", () => {
   it("elige un grupo entero", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
-    render(<StatusFilters groups={GROUPS} filters={NO_FILTERS} counts={COUNTS} onChange={onChange} />);
+    renderWithIntl(<StatusFilters groups={GROUPS} filters={NO_FILTERS} counts={COUNTS} onChange={onChange} />);
 
     await user.click(screen.getByRole("button", { name: "Dejado" }));
 
@@ -132,7 +134,7 @@ describe("StatusFilters", () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     const filters = { ...NO_FILTERS, statusIds: ["wishlist"] };
-    render(<StatusFilters groups={GROUPS} filters={filters} counts={COUNTS} onChange={onChange} />);
+    renderWithIntl(<StatusFilters groups={GROUPS} filters={filters} counts={COUNTS} onChange={onChange} />);
 
     await user.click(screen.getByRole("button", { name: "Todos 2" }));
 
@@ -145,7 +147,7 @@ describe("GroupTabs", () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     const filters = { ...NO_FILTERS, groups: ["finished" as const] };
-    render(<GroupTabs groups={GROUPS} filters={filters} counts={COUNTS} onChange={onChange} />);
+    renderWithIntl(<GroupTabs groups={GROUPS} filters={filters} counts={COUNTS} onChange={onChange} />);
 
     await user.click(screen.getByRole("button", { name: "Dejado 1" }));
 
@@ -157,7 +159,7 @@ describe("LibraryToolbar", () => {
   it("avisa el título que se escribe", async () => {
     const user = userEvent.setup();
     const onTitleChange = vi.fn();
-    render(<LibraryToolbar title="" onTitleChange={onTitleChange} onStartSelection={() => undefined} />);
+    renderWithIntl(<LibraryToolbar title="" onTitleChange={onTitleChange} onStartSelection={() => undefined} />);
 
     await user.type(screen.getByRole("textbox", { name: "Buscar por título" }), "c");
 
@@ -165,7 +167,7 @@ describe("LibraryToolbar", () => {
   });
 
   it("no agrega un segundo searchbox a la página", () => {
-    render(<LibraryToolbar title="" onTitleChange={() => undefined} onStartSelection={() => undefined} />);
+    renderWithIntl(<LibraryToolbar title="" onTitleChange={() => undefined} onStartSelection={() => undefined} />);
 
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
   });
@@ -173,7 +175,7 @@ describe("LibraryToolbar", () => {
   it("cambia el orden", async () => {
     const user = userEvent.setup();
     const onSortChange = vi.fn();
-    render(<LibrarySort sort="recent" onSortChange={onSortChange} />);
+    renderWithIntl(<LibrarySort sort="recent" onSortChange={onSortChange} />);
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Ordenar por" }), "Mi puntaje");
 
@@ -185,7 +187,7 @@ describe("NoResults", () => {
   it("Combinación vacía", async () => {
     const user = userEvent.setup();
     const onClear = vi.fn();
-    render(<NoResults onClear={onClear} />);
+    renderWithIntl(<NoResults onClear={onClear} />);
 
     await user.click(screen.getByRole("button", { name: "Limpiar filtros" }));
 
@@ -196,7 +198,7 @@ describe("NoResults", () => {
 
 describe("MobileFilters", () => {
   function renderFilters(resultCount: number, overrides: { onClear?: () => void } = {}) {
-    render(
+    renderWithIntl(
       <MobileFilters
         open
         onOpenChange={() => undefined}
@@ -242,7 +244,7 @@ describe("SelectionBar", () => {
   it("usa el singular con un solo juego", () => {
     const count = 1;
 
-    render(
+    renderWithIntl(
       <SelectionBar
         count={count}
         markLabel="Marcar sin interés"
@@ -259,7 +261,7 @@ describe("SelectionBar", () => {
   it("no deja marcar si no hay nada elegido", () => {
     const count = 0;
 
-    render(
+    renderWithIntl(
       <SelectionBar
         count={count}
         markLabel="Marcar sin interés"
@@ -277,7 +279,7 @@ describe("SelectionBar", () => {
     const user = userEvent.setup();
     const onMark = vi.fn();
     const onCancel = vi.fn();
-    render(
+    renderWithIntl(
       <SelectionBar
         count={2}
         markLabel="Marcar sin interés"
@@ -298,7 +300,7 @@ describe("SelectionBar", () => {
   it("muestra el error", () => {
     const errorMessage = "No pudimos guardar.";
 
-    render(
+    renderWithIntl(
       <SelectionBar
         count={1}
         markLabel="Marcar sin interés"
@@ -321,7 +323,7 @@ describe("FilterPanel con copias de tipo Otro", () => {
       buildGame({ id: "a", copies: [buildCopy({ kind: "other", kindDetail: "Regalo" })] }),
       buildGame({ id: "b", copies: [buildCopy({ kind: "other" })] }),
     ];
-    render(
+    renderWithIntl(
       <FilterPanel filters={NO_FILTERS} counts={countLibraryOptions(games, false)} stores={listStoreOptions(games)} onChange={onChange} />,
     );
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import type { HelpText } from "./help-texts";
@@ -15,12 +16,13 @@ export const OPEN_HELP_SELECTOR = '[data-help-open="true"]';
  * El foco no entra al popover, así que al cerrarlo sigue en el «?».
  */
 export function HelpTip({ help }: HelpTipProps) {
+  const t = useTranslations("help");
   const id = useId();
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <button type="button" className={styles.button} popoverTarget={id} aria-label={`Qué es «${help.term}»`}>
+      <button type="button" className={styles.button} popoverTarget={id} aria-label={t("label", { term: t(`${help}.term`) })}>
         <span className={styles.mark} aria-hidden="true">
           ?
         </span>
@@ -32,7 +34,7 @@ export function HelpTip({ help }: HelpTipProps) {
         data-help-open={open}
         onToggle={(event) => setOpen(event.newState === "open")}
       >
-        {help.text}
+        {t(`${help}.text`)}
       </div>
     </>
   );

@@ -1,8 +1,9 @@
+/** El nombre de cada sección sale del catálogo, en `nav.sections.<id>`. */
 export const SECTIONS = [
-  { id: "library", href: "/library", label: "Biblioteca" },
-  { id: "check", href: "/check", label: "¿Lo tengo?" },
-  { id: "subscriptions", href: "/subscriptions", label: "Suscripciones" },
-  { id: "stores", href: "/stores", label: "Tiendas" },
+  { id: "library", href: "/library" },
+  { id: "check", href: "/check" },
+  { id: "subscriptions", href: "/subscriptions" },
+  { id: "stores", href: "/stores" },
 ] as const;
 
 export type SectionId = (typeof SECTIONS)[number]["id"];

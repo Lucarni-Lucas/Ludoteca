@@ -52,26 +52,33 @@ export function formatHours(hours: number): string {
   return String(Math.round(hours * DECIMAL_FACTOR) / DECIMAL_FACTOR);
 }
 
-export function durationLabel(game: GameData): string {
+export type DurationInfo =
+  | Readonly<{ type: "endless" }>
+  | Readonly<{ type: "unknown" }>
+  | Readonly<{ type: "hours"; hours: number }>;
+
+export function durationInfo(game: GameData): DurationInfo {
   if (effectiveEndless(game)) {
-    return "Sin fin";
+    return { type: "endless" };
   }
 
   const hours = effectiveHours(game);
-  return hours === null ? "Duración desconocida" : `unas ${formatHours(hours)} h`;
+  return hours === null ? { type: "unknown" } : { type: "hours", hours };
 }
 
+export type DurationSource = "own" | "igdb";
+
 /** De dónde sale la duración que se muestra; `null` si no hay ninguna o el juego es sin fin. */
-export function durationSource(game: GameData & Pick<LibraryGame, "source">): "tuya" | "IGDB" | null {
+export function durationSource(game: GameData & Pick<LibraryGame, "source">): DurationSource | null {
   if (effectiveHours(game) === null) {
     return null;
   }
 
   if (game.corrections.estimatedHours !== null) {
-    return "tuya";
+    return "own";
   }
 
-  return isManual(game) ? null : "IGDB";
+  return isManual(game) ? null : "igdb";
 }
 
 export type CorrectionsForm = Readonly<{

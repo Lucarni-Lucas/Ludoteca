@@ -1,7 +1,6 @@
 import { type LostMark, type LostReason, markCopyLost } from "@/model/copy/copy";
 import {
   buildNewCopy,
-  movedToNotice,
   type NewCopy,
   type NewCopyDetails,
   planStatusAfterNewCopy,
@@ -15,7 +14,8 @@ import type { StoreChoice, StoreResolver } from "@/service/copy/store-resolver";
 
 export type AddCopyInput = NewCopyDetails & Readonly<{ store: StoreChoice }>;
 
-export type AddCopyResult = Readonly<{ notice: string | null }>;
+/** Si la copia nueva sacó al juego de «Quiero jugarlo», a qué estado pasó: la pantalla lo avisa. */
+export type AddCopyResult = Readonly<{ movedTo: Status | null }>;
 
 type CopyServiceDependencies = Readonly<{
   gameRepo: Readonly<{ findById(userId: string, gameId: string): Promise<LibraryGame | null> }>;
@@ -69,7 +69,7 @@ export function createCopyService({
       await copyRepo.addCopy(userId, gameId, buildNewCopy(store.id, details), plan);
 
       const backlog = findStatusByKey(statuses, BACKLOG_KEY);
-      return { notice: plan && backlog ? movedToNotice(game.title, backlog.name) : null };
+      return { movedTo: plan && backlog ? backlog : null };
     },
 
     markLost(userId, copyId, reason, lostAt) {

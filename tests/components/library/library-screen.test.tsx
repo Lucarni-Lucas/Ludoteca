@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +8,8 @@ import { groupStatuses } from "@/model/status/status";
 
 import { buildCopy, buildGame, STATUSES, statusByKey } from "../game/game-fixtures";
 
+import { renderWithIntl } from "../../i18n/render-with-intl";
+
 const { setNotInterestedAction } = vi.hoisted(() => ({
   setNotInterestedAction: vi.fn(async (): Promise<{ ok: true; data: undefined }> => ({ ok: true, data: undefined })),
 }));
@@ -15,7 +17,7 @@ const { setNotInterestedAction } = vi.hoisted(() => ({
 vi.mock("@/app/(app)/library/actions", () => ({ setNotInterestedAction }));
 
 function renderScreen(games: readonly LibraryGame[]) {
-  render(
+  renderWithIntl(
     <LibraryScreen games={games} statusGroups={groupStatuses(STATUSES)} avatarInitial="L" initialSearch="" />,
   );
 }

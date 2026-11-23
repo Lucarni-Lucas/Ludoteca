@@ -1,8 +1,10 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ScoreControl } from "@/components/game/ScoreControl";
+
+import { renderWithIntl } from "../../i18n/render-with-intl";
 
 const SAVE_DELAY_MS = 400;
 
@@ -29,7 +31,7 @@ describe("ScoreControl", () => {
 
   function setup(score: number | null) {
     const onSave = vi.fn();
-    const utils = render(<ScoreControl score={score} errorMessage={null} onSave={onSave} />);
+    const utils = renderWithIntl(<ScoreControl score={score} errorMessage={null} onSave={onSave} />);
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 
     return { onSave, user, ...utils };
@@ -143,13 +145,13 @@ describe("ScoreControl", () => {
   it("muestra el error de guardado", () => {
     const errorMessage = "No pudimos guardar el puntaje.";
 
-    render(<ScoreControl score={7} errorMessage={errorMessage} onSave={() => undefined} />);
+    renderWithIntl(<ScoreControl score={7} errorMessage={errorMessage} onSave={() => undefined} />);
 
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
   it("toma el puntaje nuevo si cambia desde afuera", () => {
-    const { rerender } = render(<ScoreControl score={7} errorMessage={null} onSave={() => undefined} />);
+    const { rerender } = renderWithIntl(<ScoreControl score={7} errorMessage={null} onSave={() => undefined} />);
 
     rerender(<ScoreControl score={8} errorMessage={null} onSave={() => undefined} />);
 
@@ -169,7 +171,7 @@ describe("ScoreControl solo con el número", () => {
   it("Puntaje alto", () => {
     const score = 9.8;
 
-    render(<ScoreControl score={score} errorMessage={null} onSave={vi.fn()} />);
+    renderWithIntl(<ScoreControl score={score} errorMessage={null} onSave={vi.fn()} />);
 
     expect(screen.getByRole("textbox", { name: "Puntaje" })).toHaveValue("9.8");
     expect(screen.getByText("9.8", { selector: "output" })).toBeInTheDocument();

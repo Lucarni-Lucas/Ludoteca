@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { coverInitials, coverTone, COVER_TONE_COUNT } from "@/model/game/cover";
-import { formatDayMonth, formatMonthYear } from "@/model/game/date-format";
+import { dateParts } from "@/model/game/date-format";
 import { resolveInitialStatus } from "@/model/game/initial-status";
-import { durationLabel, effectiveCover, effectiveHours } from "@/model/game/library-game";
+import { durationInfo, effectiveCover, effectiveHours } from "@/model/game/library-game";
 import { StatusNotFoundError } from "@/model/status/errors";
 import { DEFAULT_STATUSES, type Status } from "@/model/status/status";
 
@@ -16,50 +16,50 @@ describe("datos efectivos", () => {
   it("Juego sin fin", () => {
     const game = { catalog: CATALOG, corrections: { ...NO_CORRECTIONS, endless: true } };
 
-    const label = durationLabel(game);
+    const info = durationInfo(game);
 
-    expect(label).toBe("Sin fin");
+    expect(info).toEqual({ type: "endless" });
     expect(effectiveHours(game)).toBeNull();
   });
 
   it("muestra lo corregido antes que lo del catálogo", () => {
     const game = { catalog: CATALOG, corrections: { ...NO_CORRECTIONS, estimatedHours: 30 } };
 
-    const label = durationLabel(game);
+    const info = durationInfo(game);
 
-    expect(label).toBe("unas 30 h");
+    expect(info).toEqual({ type: "hours", hours: 30 });
   });
 
   it("muestra lo del catálogo cuando no hay corrección", () => {
     const game = { catalog: CATALOG, corrections: NO_CORRECTIONS };
 
-    const label = durationLabel(game);
+    const info = durationInfo(game);
 
-    expect(label).toBe("unas 22 h");
+    expect(info).toEqual({ type: "hours", hours: 22 });
   });
 
   it("muestra una duración con decimal", () => {
     const game = { catalog: { ...CATALOG, estimatedHours: 12.5 }, corrections: NO_CORRECTIONS };
 
-    const label = durationLabel(game);
+    const info = durationInfo(game);
 
-    expect(label).toBe("unas 12.5 h");
+    expect(info).toEqual({ type: "hours", hours: 12.5 });
   });
 
   it("dice «Duración desconocida» cuando no hay dato", () => {
     const game = { catalog: { ...CATALOG, estimatedHours: null }, corrections: NO_CORRECTIONS };
 
-    const label = durationLabel(game);
+    const info = durationInfo(game);
 
-    expect(label).toBe("Duración desconocida");
+    expect(info).toEqual({ type: "unknown" });
   });
 
   it("una corrección puede sacarle el «sin fin» al catálogo", () => {
     const game = { catalog: { ...CATALOG, endless: true }, corrections: { ...NO_CORRECTIONS, endless: false } };
 
-    const label = durationLabel(game);
+    const info = durationInfo(game);
 
-    expect(label).toBe("unas 22 h");
+    expect(info).toEqual({ type: "hours", hours: 22 });
   });
 
   it("prefiere la portada corregida", () => {
@@ -142,24 +142,24 @@ describe("formato de fechas", () => {
   it("«28 oct» para el día y mes", () => {
     const date = "2026-10-28";
 
-    const text = formatDayMonth(date);
+    const parts = dateParts(date);
 
-    expect(text).toBe("28 oct");
+    expect(parts).toEqual({ year: 2026, month: 10, day: 28 });
   });
 
   it("no agrega un cero al día", () => {
     const date = "2026-11-06";
 
-    const text = formatDayMonth(date);
+    const parts = dateParts(date);
 
-    expect(text).toBe("6 nov");
+    expect(parts.day).toBe(6);
   });
 
   it("«mar 2023» para el mes y año", () => {
     const date = "2023-03-14";
 
-    const text = formatMonthYear(date);
+    const parts = dateParts(date);
 
-    expect(text).toBe("mar 2023");
+    expect(parts).toMatchObject({ year: 2023, month: 3 });
   });
 });

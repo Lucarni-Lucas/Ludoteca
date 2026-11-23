@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -7,9 +7,11 @@ import { PlayedHoursDialog } from "@/components/game/PlayedHoursDialog";
 
 import { buildCopy, buildGame } from "./game-fixtures";
 
+import { renderWithIntl } from "../../i18n/render-with-intl";
+
 function renderDialog(manualPlayedMinutes: number | null, errorMessage: string | null = null) {
   const onSave = vi.fn();
-  render(
+  renderWithIntl(
     <PlayedHoursDialog
       open
       onOpenChange={() => undefined}
@@ -81,7 +83,7 @@ describe("las horas jugadas en la ficha", () => {
   it("Cargar las horas en la ficha: muestra el total a mano", () => {
     const game = buildGame({ manualPlayedMinutes: 70 * 60, copies: [buildCopy({ playtimeMinutes: 60 })] });
 
-    render(<GameFacts game={game} onEdit={() => undefined} onEditPlayed={() => undefined} />);
+    renderWithIntl(<GameFacts game={game} onEdit={() => undefined} onEditPlayed={() => undefined} />);
 
     expect(screen.getByText("Jugaste").nextElementSibling).toHaveTextContent("70 h");
     expect(screen.getByRole("button", { name: "Cambiar horas" })).toBeInTheDocument();
@@ -91,7 +93,7 @@ describe("las horas jugadas en la ficha", () => {
     const user = userEvent.setup();
     const onEditPlayed = vi.fn();
     const game = buildGame();
-    render(<GameHeaderFacts game={game} onEdit={() => undefined} onEditPlayed={onEditPlayed} />);
+    renderWithIntl(<GameHeaderFacts game={game} onEdit={() => undefined} onEditPlayed={onEditPlayed} />);
 
     await user.click(screen.getByRole("button", { name: "Cargar horas" }));
 

@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import controls from "@/components/ui/controls.module.css";
 import type { CopyKind } from "@/model/copy/copy";
 import type { Store } from "@/model/store/store";
@@ -43,10 +45,12 @@ type CopyRowFieldsProps = Readonly<{
 
 /** Tienda, tipo y, según el tipo, «De quién es» o el detalle. Lo usan las filas del alta y la ventana de copia. */
 export function CopyRowFields({ stores, value, onChange }: CopyRowFieldsProps) {
+  const t = useTranslations();
+
   return (
     <>
       <StoreSelect
-        label="Tienda"
+        label={t("copy.fields.store")}
         stores={stores}
         value={value.storeId}
         otherName={value.otherStoreName}
@@ -56,11 +60,11 @@ export function CopyRowFields({ stores, value, onChange }: CopyRowFieldsProps) {
       <CopyKindPicker value={value.kind} onChange={(kind) => onChange({ kind })} />
       {value.kind === "family" ? (
         <label className={controls.field}>
-          De quién es
+          {t("copy.fields.familyOwner")}
           <input
             className={controls.input}
             type="text"
-            placeholder="opcional"
+            placeholder={t("common.optional")}
             value={value.familyOwner}
             onChange={(event) => onChange({ familyOwner: event.target.value })}
           />
@@ -68,11 +72,11 @@ export function CopyRowFields({ stores, value, onChange }: CopyRowFieldsProps) {
       ) : null}
       {value.kind === "other" ? (
         <label className={controls.field}>
-          Qué es
+          {t("copy.fields.kindDetail")}
           <input
             className={controls.input}
             type="text"
-            placeholder="opcional"
+            placeholder={t("common.optional")}
             value={value.kindDetail}
             onChange={(event) => onChange({ kindDetail: event.target.value })}
           />

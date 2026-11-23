@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
 import controls from "@/components/ui/controls.module.css";
@@ -19,13 +20,14 @@ export type CoverFieldProps = Readonly<{
 export function CoverField({ title, coverUrl, uploading, uploadError, onCoverUrlChange, onUpload }: CoverFieldProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [pasting, setPasting] = useState(false);
+  const t = useTranslations();
 
   return (
     <div className={styles.field}>
       <div className={styles.row}>
         <GameCover title={title} coverUrl={coverUrl === "" ? null : coverUrl} variant="form" />
         <div className={styles.controls}>
-          <span className={styles.label}>Portada (opcional)</span>
+          <span className={styles.label}>{t("game.cover.label")}</span>
           <div className={styles.buttons}>
             <button
               type="button"
@@ -33,13 +35,13 @@ export function CoverField({ title, coverUrl, uploading, uploadError, onCoverUrl
               disabled={uploading}
               onClick={() => fileInput.current?.click()}
             >
-              {uploading ? "Subiendo…" : "Subir imagen"}
+              {uploading ? t("game.cover.uploading") : t("game.cover.upload")}
             </button>
             <button type="button" className={controls.ghost} onClick={() => setPasting(true)}>
-              Pegar link
+              {t("game.cover.paste")}
             </button>
           </div>
-          <span className={styles.hint}>Si no ponés ninguna, usamos las iniciales.</span>
+          <span className={styles.hint}>{t("game.cover.hint")}</span>
         </div>
       </div>
       {/* Se abre desde el botón: un input de archivo no se puede maquetar y queda fuera del foco. */}
@@ -48,7 +50,7 @@ export function CoverField({ title, coverUrl, uploading, uploadError, onCoverUrl
         type="file"
         accept="image/jpeg,image/png,image/webp"
         className={styles.file}
-        aria-label="Archivo de la portada"
+        aria-label={t("game.cover.file")}
         tabIndex={-1}
         onChange={(event) => {
           const [file] = event.target.files ?? [];
@@ -62,11 +64,11 @@ export function CoverField({ title, coverUrl, uploading, uploadError, onCoverUrl
       />
       {pasting ? (
         <label className={controls.field}>
-          Link de la portada
+          {t("game.cover.url")}
           <input
             className={controls.input}
             type="url"
-            placeholder="opcional"
+            placeholder={t("common.optional")}
             value={coverUrl}
             onChange={(event) => onCoverUrlChange(event.target.value)}
           />

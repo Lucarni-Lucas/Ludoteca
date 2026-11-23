@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { isDisplayableCover } from "@/model/game/cover";
 import { durationSource, toCorrections } from "@/model/game/library-game";
 import { parseScoreText } from "@/model/game/score";
-import { statusSinceLabel } from "@/model/status/status";
+import { statusSince } from "@/model/status/status";
 
 import { buildGame, statusByKey } from "./library-fixtures";
 
@@ -31,21 +31,21 @@ describe("parseScoreText", () => {
   });
 });
 
-describe("statusSinceLabel", () => {
+describe("statusSince", () => {
   it("Ficha con estado", () => {
     const status = statusByKey("playing");
 
-    const label = statusSinceLabel(status, "2026-10-28");
+    const since = statusSince(status, "2026-10-28");
 
-    expect(label).toBe("En curso · desde el 28 oct");
+    expect(since).toEqual({ group: "in_progress", date: "2026-10-28", finished: false });
   });
 
   it("Terminar un juego", () => {
     const status = statusByKey("completed");
 
-    const label = statusSinceLabel(status, "2026-11-06");
+    const since = statusSince(status, "2026-11-06");
 
-    expect(label).toBe("Terminado · lo terminaste el 6 nov");
+    expect(since).toEqual({ group: "finished", date: "2026-11-06", finished: true });
   });
 });
 
@@ -57,7 +57,7 @@ describe("durationSource", () => {
 
     const source = durationSource(game);
 
-    expect(source).toBe("IGDB");
+    expect(source).toBe("igdb");
   });
 
   it("dice «tuya» cuando el usuario la corrigió", () => {
@@ -65,7 +65,7 @@ describe("durationSource", () => {
 
     const source = durationSource(game);
 
-    expect(source).toBe("tuya");
+    expect(source).toBe("own");
   });
 
   it("no dice nada en un juego a mano", () => {

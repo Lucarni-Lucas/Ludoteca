@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { AddResultAction } from "@/components/game/AddResultAction";
@@ -28,6 +29,7 @@ type AddGameScreenProps = Readonly<{
 }>;
 
 export function AddGameScreen({ stores, statusGroups }: AddGameScreenProps) {
+  const t = useTranslations();
   const search = useIgdbSearch();
   const add = useServerAction(addFromIgdbAction);
   const [addedGames, setAddedGames] = useState<ReadonlyMap<number, string>>(new Map());
@@ -44,27 +46,27 @@ export function AddGameScreen({ stores, statusGroups }: AddGameScreenProps) {
 
   return (
     <div className={styles.page}>
-      <BackLink href="/library" label="Biblioteca" accessibleLabel="Volver a la biblioteca" />
+      <BackLink href="/library" label={t("game.back")} accessibleLabel={t("game.backLabel")} />
 
       <div className={styles.heading}>
-        <h1 className={styles.title}>Agregar juego</h1>
-        <p className={styles.subtitle}>Buscalo en IGDB. Si no aparece, cargalo a mano en el panel de la derecha.</p>
+        <h1 className={styles.title}>{t("add.title")}</h1>
+        <p className={styles.subtitle}>{t("add.subtitle")}</p>
       </div>
 
       <div className={styles.columns}>
-        <section aria-label="Buscar en IGDB" className={styles.searchColumn}>
+        <section aria-label={t("add.searchSection")} className={styles.searchColumn}>
           <label className={styles.searchField}>
             <SearchIcon size={SEARCH_ICON_SIZE} />
-            <span className={controls.visuallyHidden}>Buscar juego</span>
+            <span className={controls.visuallyHidden}>{t("add.searchLabel")}</span>
             <input
               className={styles.searchInput}
               type="search"
-              placeholder="Escribí 2 o 3 letras"
+              placeholder={t("add.searchPlaceholder")}
               value={search.query}
               onChange={(event) => search.setQuery(event.target.value)}
             />
           </label>
-          <p className={styles.searchHint}>Buscamos en IGDB mientras escribís.</p>
+          <p className={styles.searchHint}>{t("add.searchHint")}</p>
 
           <IgdbResults
             results={search.results}
@@ -80,25 +82,25 @@ export function AddGameScreen({ stores, statusGroups }: AddGameScreenProps) {
 
           {search.errorMessage ? <p className={controls.error}>{search.errorMessage}</p> : null}
           {search.noResults ? (
-            <p className={styles.message}>No encontramos “{search.trimmedQuery}” en IGDB</p>
+            <p className={styles.message}>{t("add.noResults", { query: search.trimmedQuery })}</p>
           ) : null}
-          {search.tooShort ? <p className={styles.tooShort}>Escribí al menos 2 letras</p> : null}
+          {search.tooShort ? <p className={styles.tooShort}>{t("add.tooShort")}</p> : null}
 
           <section className={styles.manualInvite}>
-            <h2 className={styles.manualInviteTitle}>¿No aparece?</h2>
+            <h2 className={styles.manualInviteTitle}>{t("add.invite.title")}</h2>
             <p className={styles.manualInviteText}>
-              Juegos de itch.io, game jams, mods o lo que sea: cargalo a mano con título, link y portada.
+              {t("add.invite.text")}
             </p>
             <Link href="/add/manual" className={`${controls.secondary} ${styles.manualLink}`}>
-              Agregar a mano
+              {t("add.invite.action")}
             </Link>
           </section>
         </section>
 
-        <section aria-label="Agregar a mano" className={styles.manualPanel}>
+        <section aria-label={t("add.manualSection")} className={styles.manualPanel}>
           <div>
-            <h2 className={styles.panelTitle}>¿No aparece? Cargalo a mano</h2>
-            <p className={styles.panelSubtitle}>Para indies de itch.io, game jams o mods.</p>
+            <h2 className={styles.panelTitle}>{t("add.manualTitle")}</h2>
+            <p className={styles.panelSubtitle}>{t("add.manualSubtitle")}</p>
           </div>
           <ManualGameSection stores={stores} statusGroups={statusGroups} />
         </section>

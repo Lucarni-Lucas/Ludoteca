@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { AddGameShortcut } from "@/components/layout/AddGameShortcut";
@@ -21,7 +22,7 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { filterLibrary } from "@/model/game/filters";
 import type { LibraryGame } from "@/model/game/library-game";
 import { sortLibrary } from "@/model/game/sort";
-import { countLibraryOptions, listStoreOptions, summarizeLibrary, summaryText } from "@/model/game/summary";
+import { countLibraryOptions, listStoreOptions, summarizeLibrary } from "@/model/game/summary";
 import type { StatusGroupView } from "@/model/status/status";
 
 import { setNotInterestedAction } from "./actions";
@@ -40,15 +41,17 @@ function Header({
   avatarInitial,
   onOpenFilters,
 }: Readonly<{ avatarInitial: string; onOpenFilters?: () => void }>) {
+  const t = useTranslations();
+
   return (
     <PageHeader
-      title="Biblioteca"
-      wideTitle="Tu biblioteca"
+      title={t("library.title")}
+      wideTitle={t("library.wideTitle")}
       avatarInitial={avatarInitial}
       actions={
         <>
           {onOpenFilters ? (
-            <button type="button" className={styles.filtersButton} aria-label="Filtros" onClick={onOpenFilters}>
+            <button type="button" className={styles.filtersButton} aria-label={t("filters.title")} onClick={onOpenFilters}>
               <FilterIcon size={FILTER_ICON_SIZE} />
             </button>
           ) : null}
@@ -60,6 +63,7 @@ function Header({
 }
 
 export function LibraryScreen({ games, statusGroups, avatarInitial, initialSearch }: LibraryScreenProps) {
+  const t = useTranslations("library");
   const { filters, sort, setFilters, setSort, clearFilters } = useLibraryFilters(initialSearch);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const selection = useSelection();
@@ -71,7 +75,7 @@ export function LibraryScreen({ games, statusGroups, avatarInitial, initialSearc
     [games, filters.showNotInterested],
   );
   const stores = useMemo(() => listStoreOptions(games), [games]);
-  const summary = useMemo(() => summaryText(summarizeLibrary(games)), [games]);
+  const summary = useMemo(() => summarizeLibrary(games), [games]);
 
   if (games.length === 0) {
     return (
@@ -100,7 +104,7 @@ export function LibraryScreen({ games, statusGroups, avatarInitial, initialSearc
       <div className={styles.top}>
         <div className={styles.heading}>
           <Header avatarInitial={avatarInitial} onOpenFilters={() => setFiltersOpen(true)} />
-          <p className={styles.summary}>{summary}</p>
+          <p className={styles.summary}>{t("summary", summary)}</p>
         </div>
         <div className={styles.sort}>
           <LibrarySort sort={sort} onSortChange={setSort} />
@@ -117,7 +121,7 @@ export function LibraryScreen({ games, statusGroups, avatarInitial, initialSearc
       {selection.active ? (
         <SelectionBar
           count={selection.selectedIds.size}
-          markLabel={unmark ? "Quitar «Sin interés»" : "Marcar sin interés"}
+          markLabel={unmark ? t("selection.unmark") : t("selection.mark")}
           pending={notInterested.pending}
           errorMessage={notInterested.errorMessage}
           onMark={() => void applyMark()}

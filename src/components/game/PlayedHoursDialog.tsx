@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import controls from "@/components/ui/controls.module.css";
@@ -32,6 +33,7 @@ export function PlayedHoursDialog({
   errorMessage,
   onSave,
 }: PlayedHoursDialogProps) {
+  const t = useTranslations();
   const [text, setText] = useState(
     manualPlayedMinutes === null ? "" : formatHours(manualPlayedMinutes / MINUTES_PER_HOUR),
   );
@@ -40,26 +42,26 @@ export function PlayedHoursDialog({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Horas jugadas"
-      description="El total que jugaste. Si lo cargás, vale más que lo que digan las tiendas."
+      title={t("game.playedDialog.title")}
+      description={t("game.playedDialog.description")}
       footer={
         <>
           {manualPlayedMinutes === null ? null : (
             <button type="button" className={controls.ghost} disabled={pending} onClick={() => onSave(null)}>
-              Borrar horas
+              {t("game.playedDialog.clear")}
             </button>
           )}
           <button type="button" className={controls.secondary} onClick={() => onOpenChange(false)}>
-            Cancelar
+            {t("common.cancel")}
           </button>
           <button type="button" className={controls.primary} disabled={pending} onClick={() => onSave(toHours(text))}>
-            Guardar
+            {t("common.save")}
           </button>
         </>
       }
     >
       <label className={controls.field}>
-        Horas jugadas
+        {t("game.playedDialog.field")}
         <input
           className={`${controls.input} ${controls.number}`}
           type="text"

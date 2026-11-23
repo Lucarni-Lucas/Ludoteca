@@ -1,6 +1,7 @@
 "use client";
 
 import * as Slider from "@radix-ui/react-slider";
+import { useTranslations } from "next-intl";
 import { type CSSProperties, useState } from "react";
 
 import controls from "@/components/ui/controls.module.css";
@@ -24,13 +25,10 @@ type ScoreInputProps = Readonly<{
   onChange: (next: number | null, source: ScoreChangeSource) => void;
 }>;
 
-// Solo el número: la etiqueta («Excelente») vuelve en 07 como opción de Ajustes (design.md §11).
-function summaryOf(score: number | null): string {
-  return score === null ? "Sin puntaje" : formatScore(score);
-}
 
 /** Controlado: muestra el puntaje y avisa cada cambio, sin guardar nada. Lo usan la ficha y el formulario de alta. */
 export function ScoreInput({ value, errorMessage = null, onChange }: ScoreInputProps) {
+  const t = useTranslations("game.score");
   const [draft, setDraft] = useState<string | null>(null);
 
   function step(delta: number): void {
@@ -59,9 +57,9 @@ export function ScoreInput({ value, errorMessage = null, onChange }: ScoreInputP
 
   return (
     <section className={styles.section}>
-      <h2 className={controls.sectionLabel}>Tu puntaje</h2>
+      <h2 className={controls.sectionLabel}>{t("title")}</h2>
       <div className={styles.row}>
-        <button type="button" className={styles.step} aria-label="Bajar 0.1" onClick={() => step(-SCORE_STEP)}>
+        <button type="button" className={styles.step} aria-label={t("down")} onClick={() => step(-SCORE_STEP)}>
           −.1
         </button>
         <div className={styles.center}>
@@ -69,20 +67,21 @@ export function ScoreInput({ value, errorMessage = null, onChange }: ScoreInputP
             className={styles.number}
             type="text"
             inputMode="decimal"
-            aria-label="Puntaje"
+            aria-label={t("input")}
             placeholder="—"
             value={draft ?? shown}
             onChange={(event) => handleDraft(event.target.value)}
             onBlur={() => setDraft(null)}
           />
           {/* Siempre presente, para que el número no salte cuando se define el puntaje. */}
-          <span className={styles.label}>{value === null ? "Sin puntaje" : ""}</span>
+          <span className={styles.label}>{value === null ? t("none") : ""}</span>
         </div>
-        <button type="button" className={styles.step} aria-label="Subir 0.1" onClick={() => step(SCORE_STEP)}>
+        <button type="button" className={styles.step} aria-label={t("up")} onClick={() => step(SCORE_STEP)}>
           +.1
         </button>
       </div>
-      <output className={controls.visuallyHidden}>{summaryOf(value)}</output>
+      {/* Solo el número: la etiqueta («Excelente») vuelve en 07 como opción de Ajustes (design.md §11). */}
+      <output className={controls.visuallyHidden}>{value === null ? t("none") : formatScore(value)}</output>
       <div className={styles.sliderBlock}>
         <Slider.Root
           className={styles.slider}
@@ -99,7 +98,7 @@ export function ScoreInput({ value, errorMessage = null, onChange }: ScoreInputP
         >
           {/* Sin Slider.Range: el relleno es un gradiente de la barra que termina en el centro del círculo. */}
           <Slider.Track className={styles.track} />
-          <Slider.Thumb className={styles.thumb} aria-label="Puntaje de 0 a 10" />
+          <Slider.Thumb className={styles.thumb} aria-label={t("slider")} />
         </Slider.Root>
         <span className={styles.scale} aria-hidden="true">
           <span>0</span>
@@ -109,7 +108,7 @@ export function ScoreInput({ value, errorMessage = null, onChange }: ScoreInputP
       </div>
       {value === null ? null : (
         <button type="button" className={`${controls.ghost} ${styles.clear}`} onClick={clearScore}>
-          Quitar puntaje
+          {t("clear")}
         </button>
       )}
       {errorMessage ? <p className={controls.error}>{errorMessage}</p> : null}

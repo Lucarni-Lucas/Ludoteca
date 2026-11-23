@@ -1,10 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import controls from "@/components/ui/controls.module.css";
 import { Modal } from "@/components/ui/Modal";
-import { LOST_REASON_LABELS, LOST_REASONS, type LostReason } from "@/model/copy/copy";
+import { LOST_REASONS, type LostReason } from "@/model/copy/copy";
+
+import { useCopyText } from "./copy-text";
 
 type LostCopyDialogProps = Readonly<{
   open: boolean;
@@ -16,6 +19,8 @@ type LostCopyDialogProps = Readonly<{
 }>;
 
 export function LostCopyDialog({ open, onOpenChange, storeName, pending, errorMessage, onSave }: LostCopyDialogProps) {
+  const t = useTranslations();
+  const copyText = useCopyText();
   const [reason, setReason] = useState<LostReason>("other");
   const [lostAt, setLostAt] = useState("");
 
@@ -23,21 +28,21 @@ export function LostCopyDialog({ open, onOpenChange, storeName, pending, errorMe
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Ya no lo tengo"
-      description={`La copia de ${storeName} queda en el historial con su tipo y su fecha.`}
+      title={t("copy.lostDialog.title")}
+      description={t("copy.lostDialog.description", { store: storeName })}
       footer={
         <>
           <button type="button" className={controls.secondary} onClick={() => onOpenChange(false)}>
-            Cancelar
+            {t("common.cancel")}
           </button>
           <button type="button" className={controls.primary} disabled={pending} onClick={() => onSave(reason, lostAt)}>
-            Guardar
+            {t("common.save")}
           </button>
         </>
       }
     >
       <label className={controls.field}>
-        Motivo
+        {t("copy.lostDialog.reason")}
         <select
           className={controls.select}
           value={reason}
@@ -45,13 +50,13 @@ export function LostCopyDialog({ open, onOpenChange, storeName, pending, errorMe
         >
           {LOST_REASONS.map((option) => (
             <option key={option} value={option}>
-              {LOST_REASON_LABELS[option]}
+              {copyText.lostReason(option)}
             </option>
           ))}
         </select>
       </label>
       <label className={controls.field}>
-        Fecha (si no la ponés, usamos la de hoy)
+        {t("copy.lostDialog.date")}
         <input
           className={controls.input}
           type="date"

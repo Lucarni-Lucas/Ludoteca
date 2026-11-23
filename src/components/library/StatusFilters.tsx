@@ -1,3 +1,6 @@
+import { useTranslations } from "next-intl";
+
+import { useStatusText } from "@/components/status/status-text";
 import controls from "@/components/ui/controls.module.css";
 import type { LibraryFilters } from "@/model/game/filters";
 import { toggleOption } from "@/model/game/filters";
@@ -29,17 +32,19 @@ function CountedPill({
 
 /** En PC: «Todos», cada grupo y cada estado. Se pueden sumar varios, y «Todos» los saca. */
 export function StatusFilters({ groups, filters, counts, onChange }: StatusFiltersProps) {
+  const t = useTranslations("filters");
+  const statusText = useStatusText();
   const noneSelected = filters.statusIds.length === 0 && filters.groups.length === 0;
 
   return (
     <div className={styles.bar}>
       <CountedPill
-        label="Todos"
+        label={t("all")}
         count={counts.total}
         active={noneSelected}
         onClick={() => onChange({ statusIds: [], groups: [] })}
       />
-      {groups.map(({ group, label, statuses }) => (
+      {groups.map(({ group, statuses }) => (
         <div key={group} className={styles.group}>
           <button
             type="button"
@@ -47,12 +52,12 @@ export function StatusFilters({ groups, filters, counts, onChange }: StatusFilte
             aria-pressed={filters.groups.includes(group)}
             onClick={() => onChange({ groups: toggleOption(filters.groups, group) })}
           >
-            {label}
+            {statusText.group(group)}
           </button>
           {statuses.map((status) => (
             <CountedPill
               key={status.id}
-              label={status.name}
+              label={statusText.name(status)}
               count={counts.statuses[status.id] ?? 0}
               active={filters.statusIds.includes(status.id)}
               onClick={() => onChange({ statusIds: toggleOption(filters.statusIds, status.id) })}

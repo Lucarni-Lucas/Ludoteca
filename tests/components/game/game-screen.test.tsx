@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -10,6 +10,8 @@ import type { LibraryGame } from "@/model/game/library-game";
 import { groupStatuses } from "@/model/status/status";
 
 import { buildCopy, buildGame, STATUSES, statusByKey } from "./game-fixtures";
+
+import { renderWithIntl } from "../../i18n/render-with-intl";
 
 const OK = { ok: true as const, data: undefined };
 const FAILURE = (message: string) => ({ ok: false as const, error: { code: "X", message } });
@@ -47,7 +49,7 @@ const GROUPS = groupStatuses(STATUSES);
 const STORES = [{ id: "steam", name: "Steam", slug: "steam" }];
 
 function renderScreen(game: LibraryGame, openCopyDialog = false) {
-  render(<GameScreen game={game} statusGroups={GROUPS} stores={STORES} openCopyDialog={openCopyDialog} />);
+  renderWithIntl(<GameScreen game={game} statusGroups={GROUPS} stores={STORES} openCopyDialog={openCopyDialog} />);
 }
 
 beforeEach(() => {
@@ -59,7 +61,7 @@ describe("StatusCard", () => {
   it("Ficha con estado", () => {
     const status = statusByKey("playing");
 
-    render(<StatusCard status={status} statusSince="2026-10-28" onChange={() => undefined} />);
+    renderWithIntl(<StatusCard status={status} statusSince="2026-10-28" onChange={() => undefined} />);
 
     expect(screen.getByText("Jugando")).toBeInTheDocument();
     expect(screen.getByText("En curso · desde el 28 oct")).toBeInTheDocument();
@@ -68,7 +70,7 @@ describe("StatusCard", () => {
   it("Terminar un juego", () => {
     const status = statusByKey("completed");
 
-    render(<StatusCard status={status} statusSince="2026-11-06" onChange={() => undefined} />);
+    renderWithIntl(<StatusCard status={status} statusSince="2026-11-06" onChange={() => undefined} />);
 
     expect(screen.getByText("Terminado · lo terminaste el 6 nov")).toBeInTheDocument();
   });
@@ -79,7 +81,7 @@ describe("GameFacts", () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
     const game = buildGame({ catalog: { estimatedHours: null, endless: false, coverUrl: null } });
-    render(<GameFacts game={game} onEdit={onEdit} />);
+    renderWithIntl(<GameFacts game={game} onEdit={onEdit} />);
 
     await user.click(screen.getByRole("button", { name: "Editar" }));
 
@@ -90,7 +92,7 @@ describe("GameFacts", () => {
   it("Juego sin fin", () => {
     const game = buildGame({ corrections: { estimatedHours: null, endless: true, coverUrl: null } });
 
-    render(<GameFacts game={game} onEdit={() => undefined} />);
+    renderWithIntl(<GameFacts game={game} onEdit={() => undefined} />);
 
     expect(screen.getByText(/^Sin fin/)).toBeInTheDocument();
   });
@@ -101,7 +103,7 @@ describe("GameFacts", () => {
       corrections: { estimatedHours: 30, endless: null, coverUrl: null },
     });
 
-    render(<GameFacts game={game} onEdit={() => undefined} />);
+    renderWithIntl(<GameFacts game={game} onEdit={() => undefined} />);
 
     expect(screen.getByText(/unas 30 h · tuya/)).toBeInTheDocument();
   });
@@ -109,7 +111,7 @@ describe("GameFacts", () => {
   it("enlaza a IGDB", () => {
     const game = buildGame({ pageUrl: "https://www.igdb.com/games/hades" });
 
-    render(<GameFacts game={game} onEdit={() => undefined} />);
+    renderWithIntl(<GameFacts game={game} onEdit={() => undefined} />);
 
     expect(screen.getByRole("link", { name: "IGDB" })).toHaveAttribute("href", "https://www.igdb.com/games/hades");
   });
@@ -118,7 +120,7 @@ describe("GameFacts", () => {
 describe("CopyList", () => {
   function renderCopies(copy = buildCopy()) {
     const handlers = { onAdd: vi.fn(), onMarkLost: vi.fn(), onRecover: vi.fn(), onRemove: vi.fn() };
-    render(<CopyList copies={[copy]} {...handlers} />);
+    renderWithIntl(<CopyList copies={[copy]} {...handlers} />);
     return handlers;
   }
 
@@ -190,7 +192,7 @@ describe("GameScreen", () => {
 
   it("agrega una copia y avisa el cambio de estado", async () => {
     const user = userEvent.setup();
-    actions.addCopyAction.mockResolvedValue({ ok: true, data: { notice: "Frostpunk pasó a «Pendiente»" } });
+    actions.addCopyAction.mockResolvedValue({ ok: true, data: { movedTo: statusByKey("backlog") } });
     renderScreen(game);
 
     await user.click(screen.getByRole("button", { name: "Agregar otra copia" }));
@@ -201,7 +203,7 @@ describe("GameScreen", () => {
       "juego",
       expect.objectContaining({ storeId: "steam", kind: "purchased", acquiredOn: "" }),
     );
-    expect(await screen.findByText("Frostpunk pasó a «Pendiente»")).toHaveAttribute("role", "status");
+    expect(await screen.findByText("Disco Elysium pasó a «Pendiente»")).toHaveAttribute("role", "status");
   });
 
   it("marca una copia como perdida con su motivo", async () => {
@@ -377,7 +379,7 @@ describe("CopyList con copias de tipo Otro", () => {
   it("Copia de otro tipo", () => {
     const copy = buildCopy({ kind: "other", kindDetail: "Regalo" });
 
-    render(<CopyList copies={[copy]} onAdd={vi.fn()} onMarkLost={vi.fn()} onRecover={vi.fn()} onRemove={vi.fn()} />);
+    renderWithIntl(<CopyList copies={[copy]} onAdd={vi.fn()} onMarkLost={vi.fn()} onRecover={vi.fn()} onRemove={vi.fn()} />);
 
     expect(screen.getByText("Otro · Regalo")).toBeInTheDocument();
   });
@@ -385,7 +387,7 @@ describe("CopyList con copias de tipo Otro", () => {
   it("Otro sin detalle", () => {
     const copy = buildCopy({ kind: "other" });
 
-    render(<CopyList copies={[copy]} onAdd={vi.fn()} onMarkLost={vi.fn()} onRecover={vi.fn()} onRemove={vi.fn()} />);
+    renderWithIntl(<CopyList copies={[copy]} onAdd={vi.fn()} onMarkLost={vi.fn()} onRecover={vi.fn()} onRemove={vi.fn()} />);
 
     expect(screen.getByText("Otro")).toBeInTheDocument();
   });

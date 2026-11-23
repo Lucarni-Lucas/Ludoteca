@@ -1,4 +1,6 @@
-import { LIBRARY_SORT_LABELS, LIBRARY_SORTS, type LibrarySort as SortOption } from "@/model/game/sort";
+import { useTranslations } from "next-intl";
+
+import { LIBRARY_SORTS, type LibrarySort as SortOption } from "@/model/game/sort";
 
 import styles from "./LibrarySort.module.css";
 
@@ -8,9 +10,11 @@ type LibrarySortProps = Readonly<{
 }>;
 
 export function LibrarySort({ sort, onSortChange }: LibrarySortProps) {
+  const t = useTranslations("library.sort");
+
   return (
     <label className={styles.sort}>
-      <span className={styles.label}>Ordenar por</span>
+      <span className={styles.label}>{t("label")}</span>
       <select
         className={styles.select}
         value={sort}
@@ -18,7 +22,7 @@ export function LibrarySort({ sort, onSortChange }: LibrarySortProps) {
       >
         {LIBRARY_SORTS.map((option) => (
           <option key={option} value={option}>
-            {LIBRARY_SORT_LABELS[option]}
+            {t(`options.${option}`)}
           </option>
         ))}
       </select>

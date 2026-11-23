@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import controls from "@/components/ui/controls.module.css";
 import type { Store } from "@/model/store/store";
 
@@ -13,23 +15,25 @@ type StoreSelectProps = Readonly<{
 }>;
 
 export function StoreSelect({ label, stores, value, otherName, onChange, onOtherNameChange }: StoreSelectProps) {
+  const t = useTranslations("copy.fields");
+
   return (
     <>
       <label className={controls.field}>
         {label}
         <select className={controls.select} value={value} onChange={(event) => onChange(event.target.value)}>
-          <option value="">Elegí una tienda</option>
+          <option value="">{t("chooseStore")}</option>
           {stores.map((store) => (
             <option key={store.id} value={store.id}>
               {store.name}
             </option>
           ))}
-          <option value={OTHER_STORE}>Otra</option>
+          <option value={OTHER_STORE}>{t("otherStore")}</option>
         </select>
       </label>
       {value === OTHER_STORE ? (
         <label className={controls.field}>
-          Nombre de la tienda
+          {t("otherStoreName")}
           <input
             className={controls.input}
             type="text"

@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
+
+import { htmlLang } from "@/model/account/locale";
 
 import "@/styles/globals.css";
 
@@ -22,15 +26,21 @@ const monoFont = JetBrains_Mono({
   variable: "--font-mono-face",
 });
 
-export const metadata: Metadata = {
-  title: "Ludoteca",
-  description: "Tu biblioteca de videojuegos, tus tiendas y tus suscripciones.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("common");
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  return { title: "Ludoteca", description: t("description") };
+}
+
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const locale = await getLocale();
+
   return (
-    <html lang="es" className={`${bodyFont.variable} ${headingFont.variable} ${monoFont.variable}`}>
-      <body>{children}</body>
+    <html lang={htmlLang(locale)} className={`${bodyFont.variable} ${headingFont.variable} ${monoFont.variable}`}>
+      <body>
+        {/* Hereda el idioma y el catálogo de src/i18n/request.ts. */}
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+      </body>
     </html>
   );
 }

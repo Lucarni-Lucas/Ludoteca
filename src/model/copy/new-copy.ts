@@ -91,6 +91,3 @@ export function planStatusAfterNewCopy(
   return isOwnCopyKind(kind) && isWishlist(game.status) && backlog ? planStatusChange(game, backlog, today) : null;
 }
 
-export function movedToNotice(title: string, statusName: string): string {
-  return `${title} pasó a «${statusName}»`;
-}

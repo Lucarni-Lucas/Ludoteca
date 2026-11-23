@@ -1,10 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { CopyKindPicker } from "@/components/copy/CopyKindPicker";
 import { HELP, type HelpText } from "@/components/ui/help-texts";
 import { HelpTip } from "@/components/ui/HelpTip";
 import { Toggle } from "@/components/ui/Toggle";
+
+import { renderWithIntl } from "../../i18n/render-with-intl";
 
 /** jsdom no abre popovers: se verifica que el «?» apunte al popover que tiene el texto. */
 function expectHelp(term: string, text: string): void {
@@ -16,12 +18,12 @@ function expectHelp(term: string, text: string): void {
 }
 
 function renderTip(help: HelpText) {
-  render(<HelpTip help={help} />);
+  renderWithIntl(<HelpTip help={help} />);
 }
 
 describe("HelpTip", () => {
   it("Ayuda de «Sin interés»", () => {
-    render(<Toggle label="Mostrar sin interés" help={HELP.notInterested} checked={false} onCheckedChange={() => undefined} />);
+    renderWithIntl(<Toggle label="Mostrar sin interés" help={HELP.notInterested} checked={false} onCheckedChange={() => undefined} />);
 
     expectHelp(
       "Sin interés",
@@ -36,13 +38,13 @@ describe("HelpTip", () => {
   });
 
   it("Ayuda de «Familia»", () => {
-    render(<CopyKindPicker value="purchased" onChange={() => undefined} />);
+    renderWithIntl(<CopyKindPicker value="purchased" onChange={() => undefined} />);
 
     expectHelp("Familia", "Te lo presta alguien de tu familia de Steam: lo podés jugar, pero no es tuyo.");
   });
 
   it("Ayuda de «Otro»", () => {
-    render(<CopyKindPicker value="purchased" onChange={() => undefined} />);
+    renderWithIntl(<CopyKindPicker value="purchased" onChange={() => undefined} />);
 
     expectHelp("Otro", "Para lo que no entra en los demás tipos, como un regalo. Cuenta como tuyo.");
   });
@@ -72,7 +74,7 @@ describe("HelpTip", () => {
   });
 
   it("cada «?» abre su propio texto aunque haya varios en la pantalla", () => {
-    render(
+    renderWithIntl(
       <>
         <HelpTip help={HELP.family} />
         <HelpTip help={HELP.other} />
@@ -85,7 +87,7 @@ describe("HelpTip", () => {
   });
 
   it("los tipos sin término propio no llevan «?»", () => {
-    render(<CopyKindPicker value="purchased" onChange={() => undefined} />);
+    renderWithIntl(<CopyKindPicker value="purchased" onChange={() => undefined} />);
 
     const helpButtons = screen.getAllByRole("button", { name: /^Qué es/ });
 
@@ -95,7 +97,7 @@ describe("HelpTip", () => {
 
 describe("HelpTip de la duración", () => {
   it("Ayuda de la duración", () => {
-    render(<HelpTip help={HELP.duration} />);
+    renderWithIntl(<HelpTip help={HELP.duration} />);
 
     expectHelp(
       "Duración",

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { ComponentType } from "react";
 
 import { CheckNavIcon, LibraryNavIcon, StoresNavIcon, SubscriptionsNavIcon } from "./icons";
@@ -17,9 +18,11 @@ type BottomNavProps = Readonly<{
 }>;
 
 export function BottomNav({ activeSection }: BottomNavProps) {
+  const t = useTranslations("nav");
+
   return (
-    <nav aria-label="Secciones" className={styles.bar}>
-      {SECTIONS.map(({ id, href, label }) => {
+    <nav aria-label={t("bar")} className={styles.bar}>
+      {SECTIONS.map(({ id, href }) => {
         const Icon = SECTION_ICONS[id];
 
         return (
@@ -30,7 +33,7 @@ export function BottomNav({ activeSection }: BottomNavProps) {
             className={id === activeSection ? `${styles.link} ${styles.linkActive}` : styles.link}
           >
             <Icon />
-            {label}
+            {t(`sections.${id}`)}
           </Link>
         );
       })}

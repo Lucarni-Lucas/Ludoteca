@@ -1,4 +1,4 @@
-const APP_TIME_ZONE = "America/Argentina/Buenos_Aires";
+export const APP_TIME_ZONE = "America/Argentina/Buenos_Aires";
 
 // en-CA formatea como AAAA-MM-DD, que es el formato en el que viajan las fechas.
 const dayFormatter = new Intl.DateTimeFormat("en-CA", {

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { CopyRowsEditor } from "@/components/copy/CopyRowsEditor";
 import { StatusSelect } from "@/components/status/StatusSelect";
 import controls from "@/components/ui/controls.module.css";
@@ -35,21 +37,22 @@ export function IgdbAddDialog({
   errorMessage,
   onSave,
 }: IgdbAddDialogProps) {
+  const t = useTranslations();
   const entry = useEntryForm();
 
   return (
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title={`Agregar «${title}»`}
-      description="Título, año y portada vienen de IGDB."
+      title={t("add.igdbDialog.title", { title })}
+      description={t("add.igdbDialog.description")}
       footer={
         <>
           <button type="button" className={controls.secondary} onClick={() => onOpenChange(false)}>
-            Cancelar
+            {t("common.cancel")}
           </button>
           <button type="button" className={controls.primary} disabled={pending} onClick={() => onSave(entry.values())}>
-            Guardar juego
+            {t("add.form.save")}
           </button>
         </>
       }
@@ -62,7 +65,7 @@ export function IgdbAddDialog({
         onRemove={entry.copyRows.remove}
       />
       <label className={controls.field}>
-        Estado
+        {t("add.form.status")}
         <StatusSelect
           className={controls.select}
           groups={statusGroups}
@@ -71,13 +74,13 @@ export function IgdbAddDialog({
         />
       </label>
       <label className={controls.field}>
-        Horas jugadas
+        {t("add.form.played")}
         <input
           className={`${controls.input} ${controls.number}`}
           type="number"
           inputMode="decimal"
           min="0"
-          placeholder="opcional"
+          placeholder={t("common.optional")}
           value={entry.playedHours}
           onChange={(event) => entry.setPlayedHours(event.target.value)}
         />

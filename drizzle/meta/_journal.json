@@ -43,6 +43,13 @@
       "when": 1794503102058,
       "tag": "0005_add_played_minutes_manual",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795393733719,
+      "tag": "0006_create_user_settings",
+      "breakpoints": true
     }
   ]
 }

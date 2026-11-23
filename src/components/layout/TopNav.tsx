@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { PlusIcon, SearchIcon } from "./icons";
 import { Logo } from "./Logo";
@@ -13,21 +14,23 @@ type TopNavProps = Readonly<{
 }>;
 
 export function TopNav({ activeSection, avatarInitial, settingsActive }: TopNavProps) {
+  const t = useTranslations("nav");
+
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link href="/library" className={styles.brand}>
           <Logo />
         </Link>
-        <nav aria-label="Principal" className={styles.nav}>
-          {SECTIONS.map(({ id, href, label }) => (
+        <nav aria-label={t("main")} className={styles.nav}>
+          {SECTIONS.map(({ id, href }) => (
             <Link
               key={id}
               href={href}
               aria-current={id === activeSection ? "page" : undefined}
               className={id === activeSection ? `${styles.link} ${styles.linkActive}` : styles.link}
             >
-              {label}
+              {t(`sections.${id}`)}
             </Link>
           ))}
         </nav>
@@ -35,13 +38,13 @@ export function TopNav({ activeSection, avatarInitial, settingsActive }: TopNavP
           <form action="/check" method="get" role="search" className={styles.searchForm}>
             <label className={styles.search}>
               <SearchIcon />
-              <span className={styles.visuallyHidden}>Buscar en tu biblioteca</span>
-              <input type="search" name="q" placeholder="¿Lo tengo? Buscá un juego…" className={styles.searchInput} />
+              <span className={styles.visuallyHidden}>{t("search")}</span>
+              <input type="search" name="q" placeholder={t("searchPlaceholder")} className={styles.searchInput} />
             </label>
           </form>
           <Link href="/add" className={styles.add}>
             <PlusIcon />
-            Agregar juego
+            {t("addGame")}
           </Link>
           <SettingsAvatar initial={avatarInitial} current={settingsActive} />
         </div>

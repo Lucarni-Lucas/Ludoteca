@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { type CSSProperties, useState } from "react";
 
 import controls from "@/components/ui/controls.module.css";
@@ -7,6 +8,7 @@ import { Modal } from "@/components/ui/Modal";
 import type { Status, StatusGroupView } from "@/model/status/status";
 
 import styles from "./StatusDialog.module.css";
+import { useStatusText } from "./status-text";
 
 type StatusDialogProps = Readonly<{
   open: boolean;
@@ -29,6 +31,8 @@ export function StatusDialog({
   errorMessage,
   onSave,
 }: StatusDialogProps) {
+  const t = useTranslations();
+  const statusText = useStatusText();
   const [selectedId, setSelectedId] = useState(current.id);
   const selected = groups.flatMap(({ statuses }) => statuses).find(({ id }) => id === selectedId) ?? current;
 
@@ -36,25 +40,25 @@ export function StatusDialog({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Cambiar estado"
-      description={`${title} · ahora: ${current.name}`}
+      title={t("status.change")}
+      description={t("status.dialog.current", { title, status: statusText.name(current) })}
       wide
       footer={
         <>
           <button type="button" className={controls.secondary} onClick={() => onOpenChange(false)}>
-            Cancelar
+            {t("common.cancel")}
           </button>
           <button type="button" className={controls.primary} disabled={pending} onClick={() => onSave(selected.id)}>
-            Guardar como «{selected.name}»
+            {t("status.dialog.saveAs", { status: statusText.name(selected) })}
           </button>
         </>
       }
     >
       <div className={styles.columns}>
         <div className={styles.groups}>
-          {groups.map(({ group, label, statuses }) => (
+          {groups.map(({ group, statuses }) => (
             <div key={group} className={styles.group}>
-              <span className={controls.sectionLabel}>{label}</span>
+              <span className={controls.sectionLabel}>{statusText.group(group)}</span>
               <div className={styles.options}>
                 {statuses.map((status) => (
                   <button
@@ -66,7 +70,7 @@ export function StatusDialog({
                     onClick={() => setSelectedId(status.id)}
                   >
                     <span className={styles.dot} />
-                    {status.name}
+                    {statusText.name(status)}
                   </button>
                 ))}
               </div>
@@ -76,11 +80,11 @@ export function StatusDialog({
         <div className={styles.panel}>
           {selected.group === "finished" ? (
             <>
-              <h2 className={styles.panelTitle}>¡Terminado!</h2>
-              <p className={styles.note}>Guardamos la fecha de hoy como fecha de fin. Después podés ponerle puntaje.</p>
+              <h2 className={styles.panelTitle}>{t("status.dialog.finishedTitle")}</h2>
+              <p className={styles.note}>{t("status.dialog.finishedNote")}</p>
             </>
           ) : (
-            <p className={styles.note}>El cambio queda registrado con la fecha de hoy.</p>
+            <p className={styles.note}>{t("status.dialog.note")}</p>
           )}
           {errorMessage ? <p className={controls.error}>{errorMessage}</p> : null}
         </div>

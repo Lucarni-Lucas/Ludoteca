@@ -21,6 +21,6 @@ export class KindDetailTooLongError extends AppError {
   readonly code = "KIND_DETAIL_TOO_LONG";
 
   constructor() {
-    super(`El detalle puede tener hasta ${MAX_KIND_DETAIL_LENGTH} caracteres`);
+    super(`El detalle puede tener hasta ${MAX_KIND_DETAIL_LENGTH} caracteres`, { params: { max: MAX_KIND_DETAIL_LENGTH } });
   }
 }

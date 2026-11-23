@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import controls from "@/components/ui/controls.module.css";
@@ -20,6 +21,7 @@ type CopyDialogProps = Readonly<{
 }>;
 
 export function CopyDialog({ open, onOpenChange, stores, pending, errorMessage, onSave }: CopyDialogProps) {
+  const t = useTranslations();
   const [row, setRow] = useState<CopyRowDraft>(EMPTY_COPY_ROW);
   const [acquiredOn, setAcquiredOn] = useState("");
 
@@ -27,11 +29,11 @@ export function CopyDialog({ open, onOpenChange, stores, pending, errorMessage, 
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Agregar copia"
+      title={t("copy.dialog.title")}
       footer={
         <>
           <button type="button" className={controls.secondary} onClick={() => onOpenChange(false)}>
-            Cancelar
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -39,14 +41,14 @@ export function CopyDialog({ open, onOpenChange, stores, pending, errorMessage, 
             disabled={pending}
             onClick={() => onSave({ ...toCopyRowValues(row), acquiredOn })}
           >
-            Guardar copia
+            {t("copy.dialog.save")}
           </button>
         </>
       }
     >
       <CopyRowFields stores={stores} value={row} onChange={(changes) => setRow((current) => ({ ...current, ...changes }))} />
       <label className={controls.field}>
-        Cuándo lo conseguiste (opcional)
+        {t("copy.dialog.acquiredOn")}
         <input
           className={controls.input}
           type="date"

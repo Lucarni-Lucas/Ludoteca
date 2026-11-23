@@ -1,13 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { sortLibrary } from "@/model/game/sort";
-import {
-  countLibraryOptions,
-  gamesCountText,
-  listStoreOptions,
-  summarizeLibrary,
-  summaryText,
-} from "@/model/game/summary";
+import { countLibraryOptions, listStoreOptions, summarizeLibrary } from "@/model/game/summary";
 
 import { buildCopy, buildGame, statusByKey } from "./library-fixtures";
 
@@ -88,7 +82,7 @@ describe("summarizeLibrary", () => {
 
     const summary = summarizeLibrary([...owned, wished, lost]);
 
-    expect(summaryText(summary)).toBe("14 juegos en 7 tiendas · 1 en «Quiero jugarlo» · 1 que ya no tenés");
+    expect(summary).toEqual({ games: 14, stores: 7, wishlist: 1, lost: 1 });
   });
 
   it("usa el singular cuando hay un solo juego en una sola tienda", () => {
@@ -96,7 +90,7 @@ describe("summarizeLibrary", () => {
 
     const summary = summarizeLibrary(games);
 
-    expect(summaryText(summary)).toBe("1 juego en 1 tienda · 0 en «Quiero jugarlo» · 0 que ya no tenés");
+    expect(summary).toEqual({ games: 1, stores: 1, wishlist: 0, lost: 0 });
   });
 
   it("un juego sin copias no suma a los juegos ni a los perdidos", () => {
@@ -167,19 +161,5 @@ describe("listStoreOptions", () => {
     const options = listStoreOptions(games);
 
     expect(options.map(({ name }) => name)).toEqual(["GOG", "Steam"]);
-  });
-});
-
-describe("gamesCountText", () => {
-  it.each([
-    { count: 1, expected: "Ver 1 juego" },
-    { count: 5, expected: "Ver 5 juegos" },
-    { count: 0, expected: "Ver 0 juegos" },
-  ])("$count da «$expected»", ({ count, expected }) => {
-    const value = count;
-
-    const text = gamesCountText(value);
-
-    expect(text).toBe(expected);
   });
 });

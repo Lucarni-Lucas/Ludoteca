@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { EMAIL_NOT_ALLOWED_MESSAGE, SIGN_IN_FAILED_MESSAGE } from "@/model/account/errors";
+import { EMAIL_NOT_ALLOWED_MESSAGE } from "@/model/account/errors";
 import {
   classifySignInError,
   SIGN_IN_ERROR_FAILED,
   SIGN_IN_ERROR_NOT_ALLOWED,
-  signInErrorMessage,
 } from "@/model/account/sign-in-error";
 
 describe("classifySignInError", () => {
@@ -42,28 +41,28 @@ describe("classifySignInError", () => {
   });
 });
 
-describe("signInErrorMessage", () => {
+describe("el error de ingreso que se muestra", () => {
   it("devuelve null cuando no hay error", () => {
     const params = {};
 
-    const message = signInErrorMessage(params);
+    const code = classifySignInError(params);
 
-    expect(message).toBeNull();
+    expect(code).toBeNull();
   });
 
   it("devuelve el mensaje de cuenta sin acceso", () => {
     const params = { error: SIGN_IN_ERROR_NOT_ALLOWED };
 
-    const message = signInErrorMessage(params);
+    const code = classifySignInError(params);
 
-    expect(message).toBe(EMAIL_NOT_ALLOWED_MESSAGE);
+    expect(code).toBe(SIGN_IN_ERROR_NOT_ALLOWED);
   });
 
   it("nunca muestra el texto que llega por la URL", () => {
     const params = { error: "x", errorDescription: "Llamá al 0800 para recuperar tu cuenta" };
 
-    const message = signInErrorMessage(params);
+    const code = classifySignInError(params);
 
-    expect(message).toBe(SIGN_IN_FAILED_MESSAGE);
+    expect(code).toBe(SIGN_IN_ERROR_FAILED);
   });
 });

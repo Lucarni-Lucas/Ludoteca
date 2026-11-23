@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { CopyChips } from "@/components/copy/CopyChips";
 import { StatusBadge } from "@/components/status/StatusBadge";
+import { useStatusText } from "@/components/status/status-text";
 import { ClockIcon } from "@/components/ui/icons";
 import { effectiveCover, formatHours, hasPlayedHours, type LibraryGame, playedHours } from "@/model/game/library-game";
 import { formatScore } from "@/model/game/score";
@@ -19,18 +21,22 @@ type GameCardProps = Readonly<{
   selection?: Readonly<{ selected: boolean; onToggle: () => void }>;
 }>;
 
-function playedText(game: LibraryGame): string | null {
+type CardTranslator = ReturnType<typeof useTranslations<"library.card">>;
+
+function playedText(game: LibraryGame, t: CardTranslator): string | null {
   if (!hasPlayedHours(game)) {
     return null;
   }
 
   const hours = playedHours(game);
-  return hours > 0 ? `${formatHours(hours)} h` : "Sin empezar";
+  return hours > 0 ? t("hours", { hours: formatHours(hours) }) : t("notStarted");
 }
 
 function CardContents({ game }: Readonly<{ game: LibraryGame }>) {
+  const t = useTranslations("library.card");
+  const statusText = useStatusText();
   const notBought = isWishlist(game.status) && game.copies.length === 0;
-  const played = playedText(game);
+  const played = playedText(game, t);
 
   return (
     <>
@@ -53,7 +59,7 @@ function CardContents({ game }: Readonly<{ game: LibraryGame }>) {
         </span>
         <span className={styles.statusRow}>
           <StatusBadge group={game.status.group} color={game.status.color}>
-            {game.status.name}
+            {statusText.name(game.status)}
           </StatusBadge>
           {played ? (
             <span className={styles.played}>
@@ -63,8 +69,8 @@ function CardContents({ game }: Readonly<{ game: LibraryGame }>) {
           ) : null}
         </span>
         <span className={styles.chips}>
-          {game.source === "manual" ? <span className={styles.badge}>A MANO</span> : null}
-          {game.notInterested ? <span className={styles.badge}>SIN INTERÉS</span> : null}
+          {game.source === "manual" ? <span className={styles.badge}>{t("manual")}</span> : null}
+          {game.notInterested ? <span className={styles.badge}>{t("notInterested")}</span> : null}
           <CopyChips copies={game.copies} notBought={notBought} />
         </span>
       </span>
@@ -73,13 +79,15 @@ function CardContents({ game }: Readonly<{ game: LibraryGame }>) {
 }
 
 function Wrapper({ game, selection, children }: GameCardProps & Readonly<{ children: ReactNode }>) {
+  const t = useTranslations("library.card");
+
   if (selection) {
     return (
       <button
         type="button"
         className={styles.card}
         aria-pressed={selection.selected}
-        aria-label={`Seleccionar ${game.title}`}
+        aria-label={t("select", { title: game.title })}
         onClick={selection.onToggle}
       >
         {children}
@@ -88,7 +96,7 @@ function Wrapper({ game, selection, children }: GameCardProps & Readonly<{ child
   }
 
   return (
-    <Link href={`/games/${game.id}`} className={styles.card} aria-label={`Ver la ficha de ${game.title}`}>
+    <Link href={`/games/${game.id}`} className={styles.card} aria-label={t("open", { title: game.title })}>
       {children}
     </Link>
   );

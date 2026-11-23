@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   type CopyRowFormValues,
@@ -6,8 +6,23 @@ import {
   type ManualGameFormValues,
   manualGameInputSchema,
 } from "@/app/(app)/add/manual-game-schema";
+import { toActionResult } from "@/shared/action-result";
 import { InvalidRequestError } from "@/shared/app-error";
 import { parseInput } from "@/shared/parse-input";
+
+const request = vi.hoisted(() => ({ locale: "es" as "es" | "en" }));
+
+vi.mock("@/i18n/locale", () => ({ getRequestLocale: async () => request.locale }));
+
+/** Lo que el esquema rechaza llega al manejador como un pedido inválido con su clave de `validation`. */
+function validationKeyOf(parse: () => unknown): string | null | undefined {
+  try {
+    parse();
+  } catch (error) {
+    return error instanceof InvalidRequestError ? error.validationKey : undefined;
+  }
+  return undefined;
+}
 
 const EMPTY: ManualGameFormValues = {
   title: "Cartas del Faro",
@@ -28,9 +43,9 @@ describe("manualGameInputSchema", () => {
   it("Sin título", () => {
     const values = { ...EMPTY, title: "   " };
 
-    const parse = () => parseInput(manualGameInputSchema, values);
+    const key = validationKeyOf(() => parseInput(manualGameInputSchema, values));
 
-    expect(parse).toThrow(new InvalidRequestError("Poné el título del juego"));
+    expect(key).toBe("titleRequired");
   });
 
   it("acepta una carga mínima y deja vacío lo opcional", () => {
@@ -97,22 +112,21 @@ describe("manualGameInputSchema", () => {
     (coverUrl) => {
       const values = { ...EMPTY, coverUrl };
 
-      const parse = () => parseInput(manualGameInputSchema, values);
+      const key = validationKeyOf(() => parseInput(manualGameInputSchema, values));
 
-      expect(parse).toThrow(new InvalidRequestError("El link tiene que empezar con https://"));
+      expect(key).toBe("httpsRequired");
     },
   );
 
   it.each([
-    { field: "year", value: "2025.5", message: "Revisá el año" },
-    { field: "estimatedHours", value: "-1", message: "Revisá la duración" },
-  ])("rechaza $field = $value", ({ field, value, message }) => {
+    { field: "year", value: "2025.5", validationKey: "yearInvalid" },
+    { field: "estimatedHours", value: "-1", validationKey: "durationInvalid" },
+  ])("rechaza $field = $value", ({ field, value, validationKey }) => {
     const values = { ...EMPTY, [field]: value };
 
-    const parse = () => parseInput(manualGameInputSchema, values);
+    const key = validationKeyOf(() => parseInput(manualGameInputSchema, values));
 
-    expect(parse).toThrow(InvalidRequestError);
-    expect(parse).toThrow(field === "year" && value === "2025.5" ? /válido|año/ : message);
+    expect(key).toBe(validationKey);
   });
 
   it("rechaza un id de tienda mal formado", () => {
@@ -192,8 +206,22 @@ describe("las horas jugadas del alta", () => {
   it("rechaza algo que no es un número con el mensaje de la spec", () => {
     const values = { ...EMPTY, playedHours: "muchas" };
 
-    const parse = () => parseInput(manualGameInputSchema, values);
+    const key = validationKeyOf(() => parseInput(manualGameInputSchema, values));
 
-    expect(parse).toThrow(new InvalidRequestError("Poné las horas jugadas, de 0 en adelante"));
+    expect(key).toBe("playedHours");
+  });
+});
+
+describe("Formulario sin título", () => {
+  it.each([
+    { locale: "en", message: "Enter the game’s title" },
+    { locale: "es", message: "Poné el título del juego" },
+  ] as const)("el manejador da el aviso en $locale", async ({ locale, message }) => {
+    request.locale = locale;
+    const values = { ...EMPTY, title: "" };
+
+    const result = await toActionResult(() => parseInput(manualGameInputSchema, values));
+
+    expect(result).toEqual({ ok: false, error: { code: "INVALID_REQUEST", message } });
   });
 });

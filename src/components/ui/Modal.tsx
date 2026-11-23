@@ -1,6 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
+import { useTranslations } from "next-intl";
 import { type ReactNode, useRef } from "react";
 
 import { OPEN_HELP_SELECTOR } from "./HelpTip";
@@ -35,6 +36,7 @@ export function Modal({
   footer,
   children,
 }: ModalProps) {
+  const t = useTranslations("common");
   // Radix solo devuelve el foco a un Dialog.Trigger, y estas ventanas se abren desde afuera.
   const opener = useRef<HTMLElement | null>(null);
   const content = useRef<HTMLDivElement | null>(null);
@@ -73,7 +75,7 @@ export function Modal({
               {description ? <Dialog.Description className={styles.description}>{description}</Dialog.Description> : null}
             </div>
             {headerAction}
-            <Dialog.Close className={styles.close} aria-label="Cerrar">
+            <Dialog.Close className={styles.close} aria-label={t("close")}>
               <CloseIcon size={CLOSE_ICON_SIZE} />
             </Dialog.Close>
           </div>

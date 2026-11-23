@@ -104,7 +104,7 @@ describe("addCopy", () => {
 
     const result = await service.addCopy(USER_ID, "frostpunk", PURCHASED);
 
-    expect(result.notice).toBe("Frostpunk pasó a «Pendiente»");
+    expect(result.movedTo).toMatchObject({ systemKey: "backlog", name: "Pendiente" });
     expect((copyRepo.addCopy.mock.calls[0] as unknown[])[3]).toEqual({
       statusId: "backlog",
       statusSince: TODAY,
@@ -118,7 +118,7 @@ describe("addCopy", () => {
 
     const result = await service.addCopy(USER_ID, "frostpunk", { ...PURCHASED, kind: "subscription" });
 
-    expect(result.notice).toBeNull();
+    expect(result.movedTo).toBeNull();
     expect((copyRepo.addCopy.mock.calls[0] as unknown[])[3]).toBeNull();
   });
 
@@ -128,7 +128,7 @@ describe("addCopy", () => {
 
     const result = await service.addCopy(USER_ID, "hades", PURCHASED);
 
-    expect(result.notice).toBeNull();
+    expect(result.movedTo).toBeNull();
     expect((copyRepo.addCopy.mock.calls[0] as unknown[])[3]).toBeNull();
   });
 });
@@ -174,7 +174,7 @@ describe("addCopy de tipo Otro", () => {
 
     const result = await service.addCopy(USER_ID, "silksong", GIFT);
 
-    expect(result.notice).toBe("Hollow Knight: Silksong pasó a «Pendiente»");
+    expect(result.movedTo).toMatchObject({ systemKey: "backlog", name: "Pendiente" });
     expect((copyRepo.addCopy.mock.calls[0] as unknown[])[2]).toMatchObject({ kind: "other", kindDetail: "Regalo" });
     expect((copyRepo.addCopy.mock.calls[0] as unknown[])[3]).toMatchObject({ statusId: "backlog" });
   });

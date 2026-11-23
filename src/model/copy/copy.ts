@@ -4,22 +4,6 @@ export const LOST_REASONS = ["left_family", "subscription_ended", "sold", "other
 export type CopyKind = (typeof COPY_KINDS)[number];
 export type LostReason = (typeof LOST_REASONS)[number];
 
-export const COPY_KIND_LABELS: Readonly<Record<CopyKind, string>> = {
-  purchased: "Comprado",
-  free: "Gratis",
-  subscription: "Suscripción",
-  family: "Familia",
-  physical: "Físico",
-  other: "Otro",
-};
-
-export const LOST_REASON_LABELS: Readonly<Record<LostReason, string>> = {
-  left_family: "Salí de la familia",
-  subscription_ended: "Terminó la suscripción",
-  sold: "Lo vendí",
-  other: "Otro",
-};
-
 const OWN_COPY_KINDS: readonly CopyKind[] = ["purchased", "free", "physical", "other"];
 
 /** El tope es del modelo y no de la columna, igual que el resto de los textos. */
@@ -52,32 +36,45 @@ function otherDetail(copy: Pick<Copy, "kind" | "kindDetail">): string | null {
   return copy.kind === "other" && copy.kindDetail ? copy.kindDetail : null;
 }
 
-/** En la tarjeta, el detalle de una copia Otro dice más que la palabra «Otro». */
-export function copyCardLabel(copy: Pick<Copy, "kind" | "storeName" | "kindDetail">): string {
+/** Lo que muestra la tarjeta: la tienda y, salvo en Comprado, el tipo o el detalle de una copia Otro. */
+export type CopyCardParts = Readonly<{
+  store: string;
+  kind: CopyKind | null;
+  /** En la tarjeta, el detalle de una copia Otro dice más que la palabra «Otro». */
+  detail: string | null;
+}>;
+
+export function copyCardParts(copy: Pick<Copy, "kind" | "storeName" | "kindDetail">): CopyCardParts {
   if (copy.kind === "purchased") {
-    return copy.storeName;
+    return { store: copy.storeName, kind: null, detail: null };
   }
 
-  return `${copy.storeName} · ${otherDetail(copy) ?? COPY_KIND_LABELS[copy.kind]}`;
+  return { store: copy.storeName, kind: copy.kind, detail: otherDetail(copy) };
 }
 
-function kindSuffix(copy: Pick<Copy, "kind" | "familyOwner" | "kindDetail">): string | null {
-  if (copy.kind === "family" && copy.familyOwner) {
-    return `de ${copy.familyOwner}`;
-  }
+/** Lo que se agrega al tipo en la ficha: de quién es la copia Familia, el detalle de Otro o que ya no la tenés. */
+export type CopyDetailExtra =
+  | Readonly<{ type: "familyOwner"; owner: string }>
+  | Readonly<{ type: "detail"; detail: string }>
+  | Readonly<{ type: "lost" }>;
 
-  return otherDetail(copy);
-}
+export type CopyDetailParts = Readonly<{ kind: CopyKind; extra: CopyDetailExtra | null }>;
 
-export function copyDetailLabel(copy: Pick<Copy, "kind" | "familyOwner" | "kindDetail" | "lostAt">): string {
-  const kindLabel = COPY_KIND_LABELS[copy.kind];
-
+function detailExtra(copy: Pick<Copy, "kind" | "familyOwner" | "kindDetail" | "lostAt">): CopyDetailExtra | null {
   if (isLost(copy)) {
-    return `${kindLabel} · ya no`;
+    return { type: "lost" };
   }
 
-  const suffix = kindSuffix(copy);
-  return suffix ? `${kindLabel} · ${suffix}` : kindLabel;
+  if (copy.kind === "family" && copy.familyOwner) {
+    return { type: "familyOwner", owner: copy.familyOwner };
+  }
+
+  const detail = otherDetail(copy);
+  return detail ? { type: "detail", detail } : null;
+}
+
+export function copyDetailParts(copy: Pick<Copy, "kind" | "familyOwner" | "kindDetail" | "lostAt">): CopyDetailParts {
+  return { kind: copy.kind, extra: detailExtra(copy) };
 }
 
 export type LostMark = Readonly<{ lostAt: string; lostReason: LostReason }>;

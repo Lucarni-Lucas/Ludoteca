@@ -17,7 +17,10 @@ export default defineConfig({
           environment: "node",
           // Cada test de persistencia levanta su propio Postgres en memoria.
           hookTimeout: 30_000,
-          include: ["tests/{adapter,app,config,model,persistence,security,service,shared}/**/*.test.{ts,tsx}"],
+          include: [
+            "tests/{adapter,app,config,model,persistence,security,service,shared}/**/*.test.{ts,tsx}",
+            "tests/i18n/**/*.test.ts",
+          ],
         },
       },
       {
@@ -25,7 +28,7 @@ export default defineConfig({
         test: {
           name: "jsdom",
           environment: "jsdom",
-          include: ["tests/{components,hooks}/**/*.test.{ts,tsx}"],
+          include: ["tests/{components,hooks}/**/*.test.{ts,tsx}", "tests/i18n/**/*.test.tsx"],
           setupFiles: ["tests/setup-dom.ts"],
         },
       },

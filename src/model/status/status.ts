@@ -1,17 +1,9 @@
-import { formatDayMonth } from "@/model/game/date-format";
 import type { StatusChangeEntry } from "@/model/journal/journal-entry";
 import { STATUS_GROUPS, type StatusGroup } from "@/model/status/status-group";
 
 export const STATUS_COLORS = ["lime", "amber", "gray", "blue", "coral"] as const;
 
 export type StatusColor = (typeof STATUS_COLORS)[number];
-
-export const STATUS_GROUP_LABELS: Readonly<Record<StatusGroup, string>> = {
-  in_progress: "En curso",
-  not_started: "Sin empezar",
-  finished: "Terminado",
-  dropped: "Dejado",
-};
 
 export const WISHLIST_KEY = "wishlist";
 export const BACKLOG_KEY = "backlog";
@@ -27,6 +19,10 @@ export type Status = Readonly<{
 
 export type DefaultStatus = Omit<Status, "id">;
 
+/**
+ * Los nombres en español son la marca de «no lo renombró», no texto para mostrar: lo que se ve sale del
+ * catálogo, en `status.defaults.<system_key>` (design.md §8).
+ */
 export const DEFAULT_STATUSES: readonly DefaultStatus[] = [
   { group: "in_progress", name: "Jugando", color: "lime", position: 1, systemKey: "playing" },
   { group: "in_progress", name: "En pausa", color: "lime", position: 2, systemKey: "paused" },
@@ -42,7 +38,6 @@ export const DEFAULT_STATUSES: readonly DefaultStatus[] = [
 
 export type StatusGroupView = Readonly<{
   group: StatusGroup;
-  label: string;
   statuses: readonly Status[];
 }>;
 
@@ -50,7 +45,6 @@ export type StatusGroupView = Readonly<{
 export function groupStatuses(statuses: readonly Status[]): readonly StatusGroupView[] {
   return STATUS_GROUPS.map((group) => ({
     group,
-    label: STATUS_GROUP_LABELS[group],
     statuses: statuses.filter((status) => status.group === group).toSorted((a, b) => a.position - b.position),
   }));
 }
@@ -95,9 +89,22 @@ export function finishedOn(status: Pick<Status, "group">, statusSince: string): 
   return status.group === "finished" ? statusSince : null;
 }
 
-export function statusSinceLabel(status: Pick<Status, "group">, statusSince: string): string {
-  const date = formatDayMonth(statusSince);
-  const detail = finishedOn(status, statusSince) ? `lo terminaste el ${date}` : `desde el ${date}`;
+export type StatusSince = Readonly<{
+  group: StatusGroup;
+  date: string;
+  /** En Terminado, la fecha es la del fin: «lo terminaste el…» en lugar de «desde el…». */
+  finished: boolean;
+}>;
 
-  return `${STATUS_GROUP_LABELS[status.group]} · ${detail}`;
+export function statusSince(status: Pick<Status, "group">, since: string): StatusSince {
+  return { group: status.group, date: since, finished: finishedOn(status, since) !== null };
+}
+
+/**
+ * Un estado de fábrica que conserva su nombre de fábrica se muestra con el nombre por defecto del idioma
+ * elegido; cualquier otro nombre, tal cual. Compara con el de su propio `system_key`.
+ */
+export function hasDefaultName(status: Pick<Status, "name" | "systemKey">): boolean {
+  const original = DEFAULT_STATUSES.find((value) => value.systemKey === status.systemKey);
+  return status.systemKey !== null && original?.name === status.name;
 }

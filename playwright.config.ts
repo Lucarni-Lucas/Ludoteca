@@ -12,6 +12,8 @@ import {
 } from "./tests/e2e/support/constants.ts";
 
 const BUILD_AND_START_TIMEOUT_MS = 5 * 60 * 1000;
+const MOBILE = { width: 390, height: 844 };
+const DESKTOP = { width: 1440, height: 900 };
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -27,8 +29,11 @@ export default defineConfig({
   },
   projects: [
     // Los tests con @desktop o @mobile describen algo que solo existe en ese ancho.
-    { name: "mobile", grepInvert: /@desktop/, use: { viewport: { width: 390, height: 844 } } },
-    { name: "desktop", grepInvert: /@mobile/, use: { viewport: { width: 1440, height: 900 } } },
+    // En inglés corren solo los de idioma (@i18n): el resto de la app ya se recorre en español (design.md §13).
+    { name: "mobile-es", grepInvert: [/@desktop/, /@i18n/], use: { viewport: MOBILE, locale: "es-AR" } },
+    { name: "desktop-es", grepInvert: [/@mobile/, /@i18n/], use: { viewport: DESKTOP, locale: "es-AR" } },
+    { name: "mobile-en", grep: /@i18n/, grepInvert: /@desktop/, use: { viewport: MOBILE, locale: "en-US" } },
+    { name: "desktop-en", grep: /@i18n/, grepInvert: /@mobile/, use: { viewport: DESKTOP, locale: "en-US" } },
   ],
   webServer: [
     {
