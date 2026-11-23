@@ -69,12 +69,16 @@ Todo lo que se puede accionar SHALL ser un botón o un link, alcanzable con el t
 - **WHEN** el usuario recorre una pantalla con la tecla Tab
 - **THEN** cada control recibe el foco en orden y el foco se ve
 
-### Requirement: Textos en español rioplatense
-Todos los textos de la interfaz SHALL estar en español rioplatense, con voseo.
+### Requirement: Textos en el idioma elegido
+Todos los textos de la interfaz SHALL estar en el idioma elegido. En español, SHALL usar el rioplatense, con voseo.
 
 #### Scenario: Llamado a la acción
-- **WHEN** la app invita a cargar un juego
+- **WHEN** la app está en español e invita a cargar un juego
 - **THEN** usa formas como «Agregá» o «Cargalo», no «Agrega» ni «Añade»
+
+#### Scenario: Llamado a la acción en inglés
+- **WHEN** la app está en inglés e invita a cargar un juego
+- **THEN** usa el mismo mensaje en inglés, por ejemplo «Add a game»
 
 ### Requirement: Ayuda de los términos propios
 Junto a los términos propios de Ludoteca, donde se eligen o se activan (formularios, ficha y filtros), el sistema SHALL mostrar un botón «?» que abre una explicación breve. Los términos son: Sin interés, Año de lanzamiento, Duración, Familia, Otro, A mano, Ya no lo tengo y Sin fin. El «?» va pegado al término que explica, sin romper la fila de botones o campos donde está. La explicación se cierra tocando afuera, con Escape o tocando otra vez el «?».
