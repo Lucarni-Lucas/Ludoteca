@@ -1,6 +1,14 @@
 import type { IgdbGameData, IgdbSearchResult } from "@/model/game/catalog";
+import { isMultiplayerOnly } from "@/model/import/game-modes";
+import type { MatchedGame } from "@/model/import/import-entry";
 
-import type { IgdbGameDto, IgdbInvolvedCompanyDto, IgdbSearchGameDto, IgdbTimeToBeatDto } from "./dto/igdb-dto";
+import type {
+  IgdbBatchGameDto,
+  IgdbGameDto,
+  IgdbInvolvedCompanyDto,
+  IgdbSearchGameDto,
+  IgdbTimeToBeatDto,
+} from "./dto/igdb-dto";
 
 const IMAGE_BASE_URL = "https://images.igdb.com/igdb/image/upload";
 const COVER_SMALL = "t_cover_small";
@@ -49,4 +57,9 @@ export function toGameData(game: IgdbGameDto, timeToBeat: IgdbTimeToBeatDto | un
     // IGDB no informa si un juego es sin fin: lo marca cada usuario.
     endless: false,
   };
+}
+
+export function toMatchedGame(game: IgdbBatchGameDto, timeToBeat: IgdbTimeToBeatDto | undefined): MatchedGame {
+  const modes = (game.game_modes ?? []).flatMap((mode) => (mode.slug ? [mode.slug] : []));
+  return { ...toGameData(game, timeToBeat), multiplayerOnly: isMultiplayerOnly(modes) };
 }

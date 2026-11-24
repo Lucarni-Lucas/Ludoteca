@@ -9,6 +9,9 @@ import {
   DB_URL,
   IGDB_PORT,
   IGDB_URL,
+  STEAM_API_KEY,
+  STEAM_PORT,
+  STEAM_URL,
 } from "./tests/e2e/support/constants.ts";
 
 const BUILD_AND_START_TIMEOUT_MS = 5 * 60 * 1000;
@@ -52,6 +55,11 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
+      command: "node tests/e2e/support/steam-server.mts",
+      port: STEAM_PORT,
+      reuseExistingServer: false,
+    },
+    {
       // Con el build de producción: las variables públicas se fijan al compilar, y es lo que se despliega.
       command: `npx next build && npx next start -p ${APP_PORT}`,
       url: `${APP_URL}/login`,
@@ -67,6 +75,8 @@ export default defineConfig({
         TWITCH_CLIENT_SECRET: "secreto-e2e",
         IGDB_API_URL: `${IGDB_URL}/v4`,
         TWITCH_TOKEN_URL: `${IGDB_URL}/token`,
+        STEAM_API_KEY,
+        STEAM_API_URL: STEAM_URL,
       },
     },
   ],

@@ -19,7 +19,8 @@
       "en": "English",
       "updated": "Language updated",
       "unchanged": "Already in English"
-    }
+    },
+    "import": "Import"
   },
   "errors": {
     "INVALID_REQUEST": "The request isn’t valid.",
@@ -47,7 +48,17 @@
     "RELEASE_YEAR_OUT_OF_RANGE": "Enter a year between {min} and {max}",
     "STATUS_NOT_FOUND": "We couldn’t find that status.",
     "STORE_NOT_FOUND": "We couldn’t find that store.",
-    "INVALID_STORE_NAME": "Write a store name with letters or numbers."
+    "INVALID_STORE_NAME": "Write a store name with letters or numbers.",
+    "INVALID_IMPORT_DECISION": "That option doesn't apply to this game.",
+    "INVALID_STEAM_PROFILE": "Paste your Steam profile link or your SteamID.",
+    "STEAM_NOT_CONFIGURED": "The Steam key isn’t set up yet.",
+    "STEAM_PROFILE_NOT_FOUND": "We couldn’t find that Steam profile. Check the link.",
+    "STEAM_GAMES_PRIVATE": "Your Steam games are private. In Steam, go to your profile › Edit Profile › Privacy Settings and set “Game details” to Public.",
+    "STEAM_UNAVAILABLE": "We couldn’t reach Steam. Try again.",
+    "STEAM_TIMEOUT": "Steam took too long to respond. Try again.",
+    "UNKNOWN_IMPORT_FILE": "I don’t recognize this file. Upload the IGN or Playnite export, as JSON.",
+    "IMPORT_FILE_TOO_LARGE": "The file can’t be larger than {max} MB.",
+    "IMPORT_ENTRY_NOT_FOUND": "We couldn’t find that game in the review."
   },
   "validation": {
     "titleRequired": "Enter the game’s title",
@@ -123,7 +134,7 @@
     },
     "duration": {
       "term": "Length",
-      "text": "How long it takes on average to finish it, according to IGDB or what you enter. It’s not your hours played."
+      "text": "How long it takes on average to finish it, according to IGDB, HowLongToBeat or what you enter. It’s not your hours played."
     },
     "family": {
       "term": "Family",
@@ -259,7 +270,8 @@
     "empty": "You haven’t added any games yet.",
     "emptyAction": "Add a game",
     "noResults": "No games match this combination of filters.",
-    "clearFilters": "Clear filters"
+    "clearFilters": "Clear filters",
+    "emptyImport": "Import your library"
   },
   "game": {
     "back": "Library",
@@ -288,7 +300,8 @@
       "withSource": "{duration} · {source}",
       "sources": {
         "own": "yours",
-        "igdb": "IGDB"
+        "igdb": "IGDB",
+        "hltb": "HowLongToBeat"
       }
     },
     "score": {
@@ -418,6 +431,157 @@
       "status": "Status",
       "manualHint": "It’s marked as “added by hand”. If it ever shows up on IGDB, you can link it without losing your score or your history.",
       "save": "Save game"
+    }
+  },
+  "import": {
+    "title": "Import",
+    "description": "Bring your games from IGN, Playnite and Steam. We match them with IGDB and only ask you about the doubtful ones.",
+    "descriptionShort": "Bring your games from IGN, Playnite and Steam. Nothing enters your library until you confirm.",
+    "sources": {
+      "title": "Sources",
+      "note": "Nothing enters your library until you confirm. You can leave the review halfway and continue another day.",
+      "games": "{count, plural, one {# game} other {# games}}",
+      "readOn": "read on {date}",
+      "fetchedOn": "fetched on {date}",
+      "summaryRead": "{count, plural, one {# game} other {# games}} · read on {date}",
+      "summaryFetched": "{count, plural, one {# game} other {# games}} · fetched on {date}",
+      "notLoaded": "You haven’t uploaded the file yet",
+      "upload": "Upload file",
+      "uploadAnother": "Upload another file",
+      "uploadAnotherShort": "Upload another",
+      "uploading": "Uploading…",
+      "loaded": "{count, plural, one {We read # game.} other {We read # games.}}",
+      "skipped": "{count, plural, one {# game without a store wasn’t read.} other {# games without a store weren’t read.}}",
+      "ign": {
+        "name": "IGN",
+        "code": "IGN",
+        "detail": "Exported file · statuses and scores"
+      },
+      "playnite": {
+        "name": "Playnite",
+        "code": "PN",
+        "detail": "Exported file · Epic and what’s installed from Steam"
+      },
+      "steam": {
+        "name": "Steam",
+        "code": "ST",
+        "detail": "With your account · public profile",
+        "profileLabel": "Your profile link or SteamID",
+        "profilePlaceholder": "steamcommunity.com/id/…",
+        "connect": "Connect",
+        "connecting": "Connecting…",
+        "refresh": "Fetch again",
+        "refreshing": "Fetching…",
+        "connected": "{count, plural, one {We fetched # game from Steam.} other {We fetched # games from Steam.}}"
+      }
+    },
+    "progress": {
+      "label": "Matching with IGDB",
+      "count": "{done} of {total}",
+      "hint": "You can start reviewing what’s already matched.",
+      "retry": "Try again"
+    },
+    "review": {
+      "title": "Review",
+      "nav": "Review groups",
+      "rule": "Each game already has our suggestion selected. If you choose another option, it moves to “Ready”. To move the selected option without changing it, select the game and tap “Move to Ready”.",
+      "readyRule": "This is what enters your library when you confirm. “Review again” sends a game back to its group.",
+      "upToDate": "{count, plural, one {# was already up to date in your library.} other {# were already up to date in your library.}}",
+      "empty": "There are no games in this group.",
+      "awaitingSteam": "Connect your Steam account to know which ones are yours.",
+      "selection": "Selection",
+      "selectAll": "Select all {count}",
+      "select": "Select {title}",
+      "selected": "{count, plural, one {# selected} other {# selected}}",
+      "passToReady": "Move to Ready",
+      "copyKind": "Copy type",
+      "copyKindStore": "Copy type on {store}",
+      "cancel": "Cancel",
+      "backToReview": "Review again",
+      "optionsFor": "What to do with {title}",
+      "otherStatus": "Status of {title}",
+      "otherKind": "Copy type of {title}",
+      "apply": "Apply",
+      "searchAgain": "Search with another name",
+      "searchLabel": "Name on IGDB",
+      "pick": "Choose",
+      "inLibrary": "Already in your library · adds {count, plural, one {# copy} other {# copies}}",
+      "showMore": "Show {count} more",
+      "movedToReady": "“{title}” moved to “Ready” with “{choice}”.",
+      "movedManyToReady": "{count, plural, one {# game moved to “Ready”.} other {# games moved to “Ready”.}}",
+      "movedBack": "“{title}” went back to review.",
+      "unchanged": "There was nothing to move to “Ready”.",
+      "origin": {
+        "ign": "IGN · {statuses}",
+        "ignScored": "IGN · {statuses} · {score}",
+        "store": "{store} · {kind}",
+        "storeHours": "{store} · {kind} · {hours} h",
+        "steamPc": "Steam · on your PC"
+      },
+      "ignStatus": {
+        "playing": "Playing",
+        "paused": "Paused",
+        "backlog": "Backlog",
+        "beat": "Beat",
+        "quit": "Quit",
+        "wishlist": "Wishlist"
+      }
+    },
+    "groups": {
+      "review": {
+        "name": "To review",
+        "hint": "More than one candidate or two statuses",
+        "explanation": "IGDB returned more than one similar game, or IGN has them with two statuses. Choose the right one."
+      },
+      "not_found": {
+        "name": "Not found",
+        "hint": "IGDB doesn’t know them",
+        "explanation": "We couldn’t find them on IGDB in any way. You can search with another name, add them by hand or not import them."
+      },
+      "family": {
+        "name": "Is it from your family?",
+        "hint": "Steam on your PC that your account doesn’t own",
+        "explanation": "They’re installed on your PC but your Steam account doesn’t own them: your family probably lends them to you."
+      },
+      "endless": {
+        "name": "Is it endless?",
+        "hint": "Completed games that are multiplayer only",
+        "explanation": "IGN has them as finished, but on IGDB they’re multiplayer only: a game like that doesn’t end."
+      },
+      "play": {
+        "name": "Will you ever play it?",
+        "hint": "Backlog with no score or 0 h",
+        "explanation": "You own them in some store, but they have no score or you never opened them. “Not interested” doesn’t show in the library but counts for “Do I own it?”."
+      },
+      "status": {
+        "name": "Choose a status",
+        "hint": "You played them and they weren’t on IGN",
+        "explanation": "They have hours played but didn’t come from IGN, so we don’t know their status."
+      },
+      "ready": {
+        "name": "Ready",
+        "hint": "No doubts or already decided",
+        "explanation": "What had no doubts and what you already decided in the other groups."
+      }
+    },
+    "choices": {
+      "search": "None: search with another name",
+      "otherStatus": "Another status",
+      "manual": "Add by hand",
+      "exclude": "Don’t import",
+      "otherKind": "Another type",
+      "endless": "Played · endless",
+      "completed": "Completed",
+      "keep": "Backlog",
+      "notInterested": "Not interested"
+    },
+    "confirm": {
+      "ready": "In “Ready”: <n>{games}</n> games and <n>{copies}</n> copies",
+      "explanation": "“Confirm import” adds everything in “Ready” to your library: what had no doubts and what you already decided in the other groups. The rest keeps waiting here.",
+      "action": "Confirm import",
+      "confirming": "Confirming…",
+      "nothingReady": "There’s nothing in “Ready” to confirm yet.",
+      "summary": "{games, plural, one {# game} other {# games}} and {copies, plural, one {# copy} other {# copies}} came in · {notInterested} marked “Not interested” · {excluded} not imported"
     }
   }
 }

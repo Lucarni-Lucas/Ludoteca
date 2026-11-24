@@ -50,6 +50,27 @@
       "when": 1795393733719,
       "tag": "0006_create_user_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795469240058,
+      "tag": "0007_add_copy_store_game_id_and_hltb",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795469414491,
+      "tag": "0008_create_store_connection",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795469625372,
+      "tag": "0009_create_import_tables",
+      "breakpoints": true
     }
   ]
 }

@@ -21,10 +21,18 @@
   /* Colores con significado */
   --color-accent: #c8f25a;
   --color-on-accent: #0e1014;
+  /* La línea de lo que pasó a «Listos» y el resumen de la importación. */
+  --color-accent-soft: rgba(200, 242, 90, 0.08);
+  --color-accent-border: rgba(200, 242, 90, 0.4);
+  --color-accent-border-soft: rgba(200, 242, 90, 0.3);
+  /* La opción marcada de una fila de la revisión. */
+  --color-accent-chosen: rgba(200, 242, 90, 0.12);
   --color-warning: #ffc66b;
   --color-warning-bg: rgba(255, 198, 107, 0.13);
   --color-danger: #ff9c8a;
   --color-danger-bg: rgba(255, 156, 138, 0.13);
+  /* «No importar»: una opción que descarta, más suave que un error. */
+  --color-danger-soft: #ffc2b7;
 
   /* Grupos de estados */
   --color-status-in-progress: #c8f25a;
@@ -131,6 +139,7 @@
   --space-32: 32px;
   --space-36: 36px;
   --space-40: 40px;
+  --space-48: 48px;
   --space-64: 64px;
 
   /* Radios */

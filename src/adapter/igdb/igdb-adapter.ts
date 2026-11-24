@@ -1,10 +1,20 @@
 import type { IgdbEnv } from "@/config/env";
 import type { IgdbGameData, IgdbSearchResult } from "@/model/game/catalog";
+import type { MatchedGame } from "@/model/import/import-entry";
 import { logger } from "@/shared/logger";
+import { chunk } from "@/shared/chunk";
 
-import type { IgdbGameDto, IgdbSearchGameDto, IgdbTimeToBeatDto } from "./dto/igdb-dto";
+import type {
+  IgdbBatchGameDto,
+  IgdbBatchTimeToBeatDto,
+  IgdbExternalGameDto,
+  IgdbGameDto,
+  IgdbMultiqueryDto,
+  IgdbSearchGameDto,
+  IgdbTimeToBeatDto,
+} from "./dto/igdb-dto";
 import { IgdbRateLimitError, IgdbTimeoutError, IgdbUnavailableError } from "./errors";
-import { toGameData, toSearchResult } from "./igdb-mapper";
+import { toGameData, toMatchedGame, toSearchResult } from "./igdb-mapper";
 import { createIgdbTokenProvider, type IgdbTokenStore } from "./igdb-token";
 
 const DEFAULT_TIMEOUT_MS = 8000;
@@ -32,17 +42,72 @@ const GAME_FIELDS = [
   "involved_companies.company.name",
 ].join(",");
 
+// IGDB acepta 4 pedidos por segundo: entre uno y otro, al menos esto (design.md §7).
+export const MIN_REQUEST_INTERVAL_MS = 250;
+const MULTIQUERY_SIZE = 10;
+// El máximo de resultados por consulta de IGDB.
+const MAX_RESULTS = 500;
+const BATCH_GAME_FIELDS = `${GAME_FIELDS},game_modes.slug`;
+
+/** Los ids de `external_game_sources` verificados contra IGDB real (design.md §7). */
+const EXTERNAL_SOURCES = { steam: 1, gog: 5 } as const;
+
+export type ExternalStore = keyof typeof EXTERNAL_SOURCES;
+
 export type IgdbAdapter = Readonly<{
   search(text: string, signal?: AbortSignal): Promise<readonly IgdbSearchResult[]>;
   getGame(igdbId: number): Promise<IgdbGameData | null>;
+  /** El juego de IGDB de cada ID en la tienda que IGDB conoce. */
+  findByExternalIds(store: ExternalStore, uids: readonly string[]): Promise<ReadonlyMap<string, number>>;
+  /** Los resultados de cada título: primero por nombre exacto, de a 10, y si no, con `search`. */
+  searchMany(titles: readonly string[]): Promise<ReadonlyMap<string, readonly IgdbSearchResult[]>>;
+  /** Los datos de cada juego pedido; una edición trae los de su juego base. */
+  getGamesData(igdbIds: readonly number[]): Promise<ReadonlyMap<number, MatchedGame>>;
 }>;
+
+/** El reloj y la espera de la separación entre pedidos; los tests los reemplazan. */
+export type RequestPacing = Readonly<{
+  intervalMs: number;
+  now: () => number;
+  sleep: (ms: number) => Promise<void>;
+}>;
+
+const DEFAULT_PACING: RequestPacing = {
+  intervalMs: MIN_REQUEST_INTERVAL_MS,
+  now: () => performance.now(),
+  sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+};
 
 type IgdbAdapterDependencies = Readonly<{
   getEnv: () => IgdbEnv;
   tokenStore: IgdbTokenStore;
   timeoutMs?: number;
   now?: () => number;
+  pacing?: RequestPacing;
 }>;
+
+function quoted(values: readonly string[]): string {
+  return values.map((value) => `"${escapeSearchText(value)}"`).join(",");
+}
+
+function exactNameQuery(label: number, title: string): string {
+  return `query games "${label}" { ${SEARCH_FIELDS} where name ~ "${escapeSearchText(title)}" & ${SEARCH_FILTER}; limit ${SEARCH_LIMIT}; };`;
+}
+
+/** Reserva el próximo turno antes de esperar: dos pedidos a la vez no salen juntos. */
+function createPacer({ intervalMs, now, sleep }: RequestPacing) {
+  let nextSlot = 0;
+
+  return async function waitTurn(): Promise<void> {
+    const current = now();
+    const slot = Math.max(current, nextSlot);
+    nextSlot = slot + intervalMs;
+
+    if (slot > current) {
+      await sleep(slot - current);
+    }
+  };
+}
 
 /** Las comillas del texto no pueden cerrar la consulta de Apicalypse. */
 function escapeSearchText(text: string): string {
@@ -85,7 +150,9 @@ export function createIgdbAdapter({
   tokenStore,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   now = Date.now,
+  pacing = DEFAULT_PACING,
 }: IgdbAdapterDependencies): IgdbAdapter {
+  const waitTurn = createPacer(pacing);
   // Las credenciales se leen al primer pedido: sin ellas, la biblioteca sigue andando.
   const tokens = createIgdbTokenProvider({
     tokenUrl: () => getEnv().TWITCH_TOKEN_URL,
@@ -95,8 +162,9 @@ export function createIgdbAdapter({
     now,
   });
 
-  function send(endpoint: string, body: string, token: string, signal?: AbortSignal): Promise<Response> {
+  async function send(endpoint: string, body: string, token: string, signal?: AbortSignal): Promise<Response> {
     const { IGDB_API_URL, TWITCH_CLIENT_ID } = getEnv();
+    await waitTurn();
     const timeout = AbortSignal.timeout(timeoutMs);
 
     return fetch(`${IGDB_API_URL}/${endpoint}`, {
@@ -147,7 +215,104 @@ export function createIgdbAdapter({
     return times[0];
   }
 
+  async function searchExactNames(titles: readonly string[]): Promise<Map<string, readonly IgdbSearchResult[]>> {
+    const found = new Map<string, readonly IgdbSearchResult[]>();
+
+    for (const group of chunk(titles, MULTIQUERY_SIZE)) {
+      const body = group.map((title, index) => exactNameQuery(index, title)).join(" ");
+      const answers = await query<IgdbMultiqueryDto<IgdbSearchGameDto>>("multiquery", body);
+
+      for (const answer of answers) {
+        const title = group[Number(answer.name)];
+        const results = (answer.result ?? []).map(toSearchResult);
+
+        if (title !== undefined && results.length > 0) {
+          found.set(title, results);
+        }
+      }
+    }
+
+    return found;
+  }
+
+  async function fetchBatchGames(igdbIds: readonly number[]): Promise<readonly IgdbBatchGameDto[]> {
+    const games: IgdbBatchGameDto[] = [];
+
+    for (const ids of chunk(igdbIds, MAX_RESULTS)) {
+      const body = `fields ${BATCH_GAME_FIELDS}; where id = (${ids.join(",")}); limit ${MAX_RESULTS};`;
+      games.push(...(await query<IgdbBatchGameDto>("games", body)));
+    }
+
+    return games;
+  }
+
+  async function fetchTimesToBeat(igdbIds: readonly number[]): Promise<ReadonlyMap<number, IgdbTimeToBeatDto>> {
+    const times = new Map<number, IgdbTimeToBeatDto>();
+
+    for (const ids of chunk(igdbIds, MAX_RESULTS)) {
+      const body = `fields game_id,normally; where game_id = (${ids.join(",")}); limit ${MAX_RESULTS};`;
+
+      for (const time of await query<IgdbBatchTimeToBeatDto>("game_time_to_beats", body)) {
+        times.set(time.game_id, time);
+      }
+    }
+
+    return times;
+  }
+
   return {
+    async findByExternalIds(store, uids) {
+      const found = new Map<string, number>();
+
+      for (const group of chunk([...new Set(uids)], MAX_RESULTS)) {
+        const body = `fields uid,game; where external_game_source = ${EXTERNAL_SOURCES[store]} & uid = (${quoted(group)}); limit ${MAX_RESULTS};`;
+
+        for (const external of await query<IgdbExternalGameDto>("external_games", body)) {
+          if (external.game !== undefined && !found.has(external.uid)) {
+            found.set(external.uid, external.game);
+          }
+        }
+      }
+
+      return found;
+    },
+
+    async searchMany(titles) {
+      const unique = [...new Set(titles)];
+      const found = await searchExactNames(unique);
+
+      for (const title of unique.filter((value) => !found.has(value))) {
+        found.set(title, (await query<IgdbSearchGameDto>("games", searchBody(title))).map(toSearchResult));
+      }
+
+      return found;
+    },
+
+    async getGamesData(igdbIds) {
+      const requested = await fetchBatchGames([...new Set(igdbIds)]);
+      const byId = new Map(requested.map((game) => [game.id, game]));
+      // version_parent es el juego principal de una edición: se guardan los datos del base.
+      const missingBases = [...new Set(requested.flatMap((game) => game.version_parent ?? []))].filter((id) => !byId.has(id));
+
+      for (const base of await fetchBatchGames(missingBases)) {
+        byId.set(base.id, base);
+      }
+
+      const baseOf = (game: IgdbBatchGameDto) => byId.get(game.version_parent ?? game.id);
+      const times = await fetchTimesToBeat([...new Set(requested.map((game) => game.version_parent ?? game.id))]);
+      const games = new Map<number, MatchedGame>();
+
+      for (const game of requested) {
+        const base = baseOf(game);
+
+        if (base) {
+          games.set(game.id, toMatchedGame(base, times.get(base.id)));
+        }
+      }
+
+      return games;
+    },
+
     async search(text, signal) {
       const games = await query<IgdbSearchGameDto>("games", searchBody(text), signal);
       return games.map(toSearchResult);

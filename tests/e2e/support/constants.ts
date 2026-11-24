@@ -20,3 +20,11 @@ export const DATABASE_STATUS_PATH = "/__test/database-status";
 
 export const ALLOWED_ACCOUNT = { email: "permitido@ludoteca.test", name: "Lucía Prueba" };
 export const OTHER_ACCOUNT = { email: "ajeno@ludoteca.test", name: "Alguien Ajeno" };
+
+export const STEAM_PORT = 54394;
+export const STEAM_URL = `http://127.0.0.1:${STEAM_PORT}`;
+export const STEAM_API_KEY = "clave-steam-e2e";
+/** La cuenta pública del servidor falso de Steam, y una con los juegos privados. */
+export const STEAM_PUBLIC_ID = "76561190000000001";
+export const STEAM_PRIVATE_ID = "76561190000000002";
+export const STEAM_PUBLIC_VANITY = "lucia-prueba";

@@ -26,6 +26,13 @@ El sistema SHALL permitir conectar una cuenta de Steam con su SteamID o el link 
 - **WHEN** los detalles de juego del perfil son privados
 - **THEN** el usuario ve que tiene que poner «Detalles del juego» como público en la privacidad de Steam
 
+### Requirement: Acceso a la importación
+El sistema SHALL ofrecer la importación desde Ajustes y, con la biblioteca vacía, desde el aviso de la biblioteca, junto a agregar un juego.
+
+#### Scenario: Biblioteca vacía
+- **WHEN** el usuario todavía no cargó ningún juego y abre la biblioteca
+- **THEN** ve «Agregá tu primer juego» y «Importar tu biblioteca»
+
 ### Requirement: Revisión antes de confirmar
 Lo importado MUST NOT entrar a la biblioteca hasta que el usuario confirme. La revisión SHALL guardarse para retomarla en otro momento.
 
@@ -53,6 +60,10 @@ Los estados de IGN SHALL pasar así: Playing a Jugando, Paused a En pausa, Beat 
 
 #### Scenario: Backlog sin copia
 - **WHEN** un juego en Backlog en IGN no tiene copias en ninguna fuente
+- **THEN** se sugiere «Quiero jugarlo»
+
+#### Scenario: Wishlist de IGN
+- **WHEN** un juego llega de IGN como Wishlist
 - **THEN** se sugiere «Quiero jugarlo»
 
 #### Scenario: Dos estados a la vez
@@ -83,6 +94,17 @@ Cada juego de la cuenta de Steam SHALL sumar una copia «Steam · Comprado» con
 #### Scenario: Steam por dos caminos
 - **WHEN** Hades llega desde la cuenta de Steam y también desde el archivo de Playnite
 - **THEN** Hades tiene una sola copia de Steam
+
+### Requirement: Juegos de Steam de la familia
+Un juego que el archivo de Playnite trae de Steam y que la cuenta de Steam del usuario no tiene SHALL agruparse en «¿Es de tu familia?», con la sugerencia de una copia «Steam · Familia». El usuario la acepta, la cambia por otro tipo o no lo importa, de a uno o en lote. Si la cuenta de Steam todavía no se conectó, esos juegos esperan en ese grupo hasta conectarla.
+
+#### Scenario: Juego instalado de un familiar
+- **WHEN** Playnite trae Portal 2 de Steam y la cuenta de Steam del usuario no tiene Portal 2
+- **THEN** Portal 2 aparece en «¿Es de tu familia?» con la sugerencia «Steam · Familia»
+
+#### Scenario: Juego propio instalado
+- **WHEN** Playnite trae Celeste de Steam y la cuenta de Steam del usuario tiene Celeste
+- **THEN** Celeste tiene una sola copia «Steam · Comprado» y no aparece en «¿Es de tu familia?»
 
 ### Requirement: Fuentes que se juntan
 Si un mismo juego llega de varias fuentes, el sistema SHALL juntarlo en un solo juego: el estado y el puntaje salen de IGN y las copias de Steam y Playnite, sin importar el orden en que se importen.
@@ -119,19 +141,34 @@ Los juegos que no se pudieron cruzar con IGDB SHALL agruparse con tres opciones:
 - **WHEN** un juego de IGN no aparece en IGDB por ningún camino
 - **THEN** queda en «No lo encontré» con esas tres opciones
 
+### Requirement: Opción marcada en cada juego
+En cada grupo, las opciones de un juego SHALL mostrarse como una elección de una sola opción, con la sugerencia ya marcada: ningún juego queda sin decidir.
+
+#### Scenario: Sugerencia marcada
+- **WHEN** el usuario abre «¿Lo vas a jugar alguna vez?» y 112 Operator llega de Epic con 0 h
+- **THEN** 112 Operator tiene marcada la opción «Pendiente» entre «Pendiente», «Sin interés» y «No importar»
+
 ### Requirement: Grupo «Listos»
-Los juegos sin nada dudoso SHALL agruparse en «Listos» y pueden confirmarse sin revisarlos de a uno.
+Los juegos sin nada dudoso y los que el usuario ya decidió en cualquier otro grupo SHALL agruparse en «Listos». Elegir otra opción en un juego, o pasar los seleccionados con lo que tienen marcado, MUST llevarlos a «Listos», y la pantalla SHALL decirlo. «Confirmar importación» confirma todo lo que está en «Listos» y los demás grupos siguen esperando.
+
+#### Scenario: Decidir pasa a «Listos»
+- **WHEN** el usuario elige «Sin interés» para Beholder en «¿Lo vas a jugar alguna vez?»
+- **THEN** Beholder pasa a «Listos» y la pantalla dice «Beholder pasó a «Listos» con «Sin interés».»
+
+#### Scenario: Pasar lo marcado en lote
+- **WHEN** el usuario selecciona Portal 2 y Watch Dogs en «¿Es de tu familia?» y toca «Pasar a Listos»
+- **THEN** los dos pasan a «Listos» con la copia «Steam · Familia»
 
 #### Scenario: Confirmar lo que está listo
-- **WHEN** el usuario confirma el grupo «Listos»
-- **THEN** esos juegos entran a la biblioteca con lo sugerido
+- **WHEN** el usuario confirma la importación con juegos en «Listos» y otros en «Para revisar»
+- **THEN** los de «Listos» entran a la biblioteca con lo marcado y los de «Para revisar» siguen esperando
 
 ### Requirement: Duración desde HowLongToBeat
-Si IGDB no tiene duración para un juego y el archivo de IGN trae la de HowLongToBeat, el sistema SHALL usar la duración principal de HowLongToBeat.
+Si IGDB no tiene duración para un juego y el archivo de IGN trae la de HowLongToBeat, el sistema SHALL usar la duración principal de HowLongToBeat y la ficha MUST decir que sale de HowLongToBeat. No cuenta como una corrección del usuario.
 
 #### Scenario: Duración de respaldo
 - **WHEN** IGDB no tiene duración para 60 Seconds! y el archivo de IGN trae 2.3 h de HowLongToBeat
-- **THEN** el juego entra con una duración estimada de 2.3 h
+- **THEN** el juego entra con una duración estimada de 2.3 h y la ficha muestra «unas 2.3 h · HowLongToBeat»
 
 ### Requirement: No pisar lo que ya está
 Si un juego importado ya está en la biblioteca, la importación MUST NOT cambiar su estado ni su puntaje; solo suma las copias que falten.

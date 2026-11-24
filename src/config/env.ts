@@ -24,6 +24,14 @@ const igdbEnvSchema = z.object({
   TWITCH_TOKEN_URL: z.url().default(DEFAULT_TWITCH_TOKEN_URL),
 });
 
+const DEFAULT_STEAM_API_URL = "https://api.steampowered.com";
+
+// Aparte, como IGDB: sin la clave de Steam, el resto de la app y las otras fuentes de importación andan.
+const steamEnvSchema = z.object({
+  STEAM_API_KEY: z.string().min(1),
+  STEAM_API_URL: z.url().default(DEFAULT_STEAM_API_URL),
+});
+
 const storageEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
   SUPABASE_SECRET_KEY: z.string().min(1),
@@ -33,6 +41,7 @@ export type PublicEnv = z.infer<typeof publicEnvSchema>;
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 export type IgdbEnv = z.infer<typeof igdbEnvSchema>;
 export type StorageEnv = z.infer<typeof storageEnvSchema>;
+export type SteamEnv = z.infer<typeof steamEnvSchema>;
 
 type EnvSource = Readonly<Record<string, string | undefined>>;
 
@@ -64,10 +73,15 @@ export function parseStorageEnv(source: EnvSource): StorageEnv {
   return parseEnv(storageEnvSchema, source);
 }
 
+export function parseSteamEnv(source: EnvSource): SteamEnv {
+  return parseEnv(steamEnvSchema, source);
+}
+
 let cachedPublicEnv: PublicEnv | undefined;
 let cachedServerEnv: ServerEnv | undefined;
 let cachedIgdbEnv: IgdbEnv | undefined;
 let cachedStorageEnv: StorageEnv | undefined;
+let cachedSteamEnv: SteamEnv | undefined;
 
 export function getPublicEnv(): PublicEnv {
   cachedPublicEnv ??= parsePublicEnv({
@@ -92,4 +106,25 @@ export function getIgdbEnv(): IgdbEnv {
 export function getStorageEnv(): StorageEnv {
   cachedStorageEnv ??= parseStorageEnv(process.env);
   return cachedStorageEnv;
+}
+
+/** La clave viaja en la query de cada pedido a Steam: solo la lee el adapter de Steam, que nunca registra URLs. */
+export function getSteamEnv(): SteamEnv {
+  cachedSteamEnv ??= parseSteamEnv(process.env);
+  return cachedSteamEnv;
+}
+
+/** Como `getSteamEnv`, pero sin la clave devuelve `null`: que falte no es un error, la pantalla lo dice. */
+export function findSteamEnv(): SteamEnv | null {
+  if (cachedSteamEnv) {
+    return cachedSteamEnv;
+  }
+
+  const parsed = steamEnvSchema.safeParse(process.env);
+
+  if (parsed.success) {
+    cachedSteamEnv = parsed.data;
+  }
+
+  return cachedSteamEnv ?? null;
 }

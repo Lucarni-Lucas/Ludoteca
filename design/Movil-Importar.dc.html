@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ludoteca · Importar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Space+Grotesk:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#0E1014}
+a{color:#ECEEF2}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; min-height: 1900px; box-sizing: border-box; padding-bottom: 120px; background: #0E1014; color: #ECEEF2; font: 400 15px/1.45 Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+
+  <div style="padding: 60px 20px 0">
+    <h1 style="margin: 0; font: 700 34px/1 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif; letter-spacing: -0.03em">Importar</h1>
+    <p style="margin: 8px 0 0; color: #9AA3B2; font-size: 14px">Traé tus juegos de IGN, Playnite y Steam. Nada entra a tu biblioteca hasta que confirmes.</p>
+  </div>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">De dónde</h2>
+    <div style="border-radius: 14px; background: #161A21; border: 1px solid #2A303B; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px; border-bottom: 1px solid #222832">
+          <span aria-hidden="true" style="flex: none; width: 40px; height: 40px; border-radius: 10px; background: #1E232C; display: grid; place-items: center; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace">IGN</span>
+          <div style="flex: 1; min-width: 0">
+            <p style="margin: 0; font-weight: 600">IGN</p>
+            <p style="margin: 2px 0 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #9AA3B2"><span style="flex: none; width: 7px; height: 7px; border-radius: 99px; background: #C8F25A"></span>303 juegos · leído el 23 nov</p>
+          </div>
+          <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap; border: 1px solid #3A414E; background: transparent; color: #ECEEF2">Subir otro</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px; border-bottom: 1px solid #222832">
+          <span aria-hidden="true" style="flex: none; width: 40px; height: 40px; border-radius: 10px; background: #1E232C; display: grid; place-items: center; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace">PN</span>
+          <div style="flex: 1; min-width: 0">
+            <p style="margin: 0; font-weight: 600">Playnite</p>
+            <p style="margin: 2px 0 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #9AA3B2"><span style="flex: none; width: 7px; height: 7px; border-radius: 99px; background: #C8F25A"></span>233 juegos · leído el 23 nov</p>
+          </div>
+          <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap; border: 1px solid #3A414E; background: transparent; color: #ECEEF2">Subir otro</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px; border-bottom: 1px solid #222832">
+          <span aria-hidden="true" style="flex: none; width: 40px; height: 40px; border-radius: 10px; background: #1E232C; display: grid; place-items: center; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace">ST</span>
+          <div style="flex: 1; min-width: 0">
+            <p style="margin: 0; font-weight: 600">Steam</p>
+            <p style="margin: 2px 0 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #9AA3B2"><span style="flex: none; width: 7px; height: 7px; border-radius: 99px; background: #C8F25A"></span>412 juegos · traídos hoy</p>
+          </div>
+          <button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap; border: 1px solid #3A414E; background: transparent; color: #ECEEF2">Traer de nuevo</button>
+        </div>
+    </div>
+  </section>
+
+  <section style="padding: 20px 20px 0">
+    <div role="status" style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; background: #161A21; border: 1px solid #2A303B">
+      <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 14px"><span>Cruzando con IGDB</span><span style="font: 500 13px/1.4 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">240 de 303</span></div>
+      <div aria-hidden="true" style="height: 6px; border-radius: 99px; background: #1E232C; overflow: hidden"><div style="width: 79%; height: 100%; background: #C8F25A"></div></div>
+      <p style="margin: 0; font-size: 12px; color: #9AA3B2">Podés ir revisando lo que ya cruzó.</p>
+    </div>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Revisión</h2>
+    <nav aria-label="Grupos de la revisión" style="display: flex; flex-wrap: wrap; gap: 8px">
+        <a href="#" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; text-decoration: none; font: 500 14px/1 Inter, system-ui, sans-serif; border: 1px solid #2A303B; color: #C5CCD8">Para revisar<span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">6</span></a>
+        <a href="#" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; text-decoration: none; font: 500 14px/1 Inter, system-ui, sans-serif; border: 1px solid #2A303B; color: #C5CCD8">No lo encontré<span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">3</span></a>
+        <a href="#" aria-current="true" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; text-decoration: none; font: 500 14px/1 Inter, system-ui, sans-serif; background: #1E232C; box-shadow: inset 0 0 0 1px #C8F25A; color: #ECEEF2">¿Es de tu familia?<span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">8</span></a>
+        <a href="#" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; text-decoration: none; font: 500 14px/1 Inter, system-ui, sans-serif; border: 1px solid #2A303B; color: #C5CCD8">¿Es sin fin?<span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">4</span></a>
+        <a href="#" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; text-decoration: none; font: 500 14px/1 Inter, system-ui, sans-serif; border: 1px solid #2A303B; color: #C5CCD8">¿Lo vas a jugar alguna vez?<span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">167</span></a>
+        <a href="#" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; text-decoration: none; font: 500 14px/1 Inter, system-ui, sans-serif; border: 1px solid #2A303B; color: #C5CCD8">Elegí un estado<span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">41</span></a>
+        <a href="#" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; text-decoration: none; font: 500 14px/1 Inter, system-ui, sans-serif; border: 1px solid #2A303B; color: #C5CCD8">Listos<span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #C8F25A">237</span></a>
+    </nav>
+    <p style="margin: 0; font-size: 12px; color: #9AA3B2">58 ya estaban al día en tu biblioteca.</p>
+  </section>
+
+  <section aria-labelledby="grupo-actual" style="padding: 24px 20px 0; display: flex; flex-direction: column; gap: 12px">
+    <div>
+      <h2 id="grupo-actual" style="margin: 0; font: 700 24px/1.15 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif">¿Es de tu familia?</h2>
+      <p style="margin: 6px 0 0; font-size: 14px; color: #9AA3B2">Están instalados en tu PC pero tu cuenta de Steam no los tiene: seguramente te los presta tu familia.</p>
+      <p style="margin: 8px 0 0; font-size: 13px; color: #C5CCD8">Cada juego ya tiene marcada nuestra sugerencia. Si elegís otra opción, pasa a «Listos». Para pasar lo marcado sin cambiarlo, seleccionalo y tocá «Pasar a Listos».</p>
+    </div>
+
+      <div role="group" aria-label="Selección" style="display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-radius: 14px; border: 1px solid #C8F25A; background: #1E232C">
+        <span style="font-weight: 600">2 seleccionados</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px"><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap; border: 0; background: #C8F25A; color: #0E1014">Pasar a Listos</button><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap; border: 1px solid #3A414E; background: transparent; color: #ECEEF2">Comprado</button><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap; border: 1px solid #3A414E; background: transparent; color: #FFC2B7">No importar</button><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap; border: 1px solid #3A414E; background: transparent; color: #ECEEF2">Otro tipo</button><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap; border: 0; background: transparent; color: #C5CCD8">Cancelar</button></div>
+      </div>
+      <p role="status" style="margin: 0; display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 12px; background: rgba(200,242,90,0.08); border: 1px solid rgba(200,242,90,0.3); font-size: 14px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C8F25A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>«Portal» pasó a «Listos» con «Comprado».</p>
+      <div style="border-radius: 14px; background: #161A21; border: 1px solid #2A303B; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 8px; padding: 4px 14px 4px 4px; border-bottom: 1px solid #222832">
+          <button type="button" role="checkbox" aria-checked="false" aria-label="Seleccionar los 8" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 6px; border: 2px solid #3A414E; background: transparent; display: grid; place-items: center"></span></button>
+          <span style="flex: 1; font-size: 14px; color: #C5CCD8">Seleccionar los 8</span>
+        </div>
+        <ul style="list-style: none; margin: 0; padding: 0">
+        <li style="display: flex; flex-direction: column; gap: 10px; padding: 10px 14px 14px 4px; border-bottom: 1px solid #222832">
+          <div style="display: flex; align-items: flex-start; gap: 8px">
+            <button type="button" role="checkbox" aria-checked="true" aria-label="Seleccionar Portal 2" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 6px; border: 2px solid #C8F25A; background: #C8F25A; display: grid; place-items: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0E1014" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg></span></button>
+            <span aria-hidden="true" style="flex: none; width: 48px; height: 64px; border-radius: 6px; background: #3A2F45 repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 10px); display: grid; place-items: center; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #C5CCD8">P2</span>
+            <div style="flex: 1; min-width: 0; padding-top: 4px">
+              <p style="margin: 0; font-weight: 600">Portal 2 <span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">2011</span></p>
+              <div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px"><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 6px; background: rgba(255,198,107,0.13); color: #FFC66B; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.02em; white-space: nowrap">Steam · en tu PC</span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 6px; background: #1E232C; color: #C5CCD8; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.02em; white-space: nowrap">IGN · Beat · 9</span></div>
+            </div>
+          </div>
+          <div style="padding-left: 10px"><div role="radiogroup" aria-label="Copia de Steam de Portal 2" style="flex: none; display: flex; flex-wrap: wrap; gap: 6px"><button type="button" role="radio" aria-checked="true" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #C8F25A; background: rgba(200,242,90,0.12); color: #ECEEF2; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #C8F25A; display: grid; place-items: center"><span style="width: 6px; height: 6px; border-radius: 99px; background: #C8F25A"></span></span>Familia</button><button type="button" role="radio" aria-checked="false" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #3A414E; display: grid; place-items: center"></span>Comprado</button><button type="button" role="radio" aria-checked="false" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #3A414E; display: grid; place-items: center"></span>Otro tipo</button><button type="button" role="radio" aria-checked="false" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #FFC2B7; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #3A414E; display: grid; place-items: center"></span>No importar</button></div></div>
+        </li>
+        <li style="display: flex; flex-direction: column; gap: 10px; padding: 10px 14px 14px 4px; border-bottom: 1px solid #222832">
+          <div style="display: flex; align-items: flex-start; gap: 8px">
+            <button type="button" role="checkbox" aria-checked="true" aria-label="Seleccionar Watch Dogs" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 6px; border: 2px solid #C8F25A; background: #C8F25A; display: grid; place-items: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0E1014" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg></span></button>
+            <span aria-hidden="true" style="flex: none; width: 48px; height: 64px; border-radius: 6px; background: #2B4146 repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 10px); display: grid; place-items: center; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #C5CCD8">WD</span>
+            <div style="flex: 1; min-width: 0; padding-top: 4px">
+              <p style="margin: 0; font-weight: 600">Watch Dogs <span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">2014</span></p>
+              <div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px"><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 6px; background: rgba(255,198,107,0.13); color: #FFC66B; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.02em; white-space: nowrap">Steam · en tu PC</span></div>
+            </div>
+          </div>
+          <div style="padding-left: 10px"><div role="radiogroup" aria-label="Copia de Steam de Watch Dogs" style="flex: none; display: flex; flex-wrap: wrap; gap: 6px"><button type="button" role="radio" aria-checked="true" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #C8F25A; background: rgba(200,242,90,0.12); color: #ECEEF2; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #C8F25A; display: grid; place-items: center"><span style="width: 6px; height: 6px; border-radius: 99px; background: #C8F25A"></span></span>Familia</button><button type="button" role="radio" aria-checked="false" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #3A414E; display: grid; place-items: center"></span>Comprado</button><button type="button" role="radio" aria-checked="false" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #3A414E; display: grid; place-items: center"></span>Otro tipo</button><button type="button" role="radio" aria-checked="false" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #FFC2B7; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #3A414E; display: grid; place-items: center"></span>No importar</button></div></div>
+        </li>
+        <li style="display: flex; flex-direction: column; gap: 10px; padding: 10px 14px 14px 4px;">
+          <div style="display: flex; align-items: flex-start; gap: 8px">
+            <button type="button" role="checkbox" aria-checked="false" aria-label="Seleccionar Euro Truck Simulator 2" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 6px; border: 2px solid #3A414E; background: transparent; display: grid; place-items: center"></span></button>
+            <span aria-hidden="true" style="flex: none; width: 48px; height: 64px; border-radius: 6px; background: #2F4236 repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 10px); display: grid; place-items: center; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #C5CCD8">ET</span>
+            <div style="flex: 1; min-width: 0; padding-top: 4px">
+              <p style="margin: 0; font-weight: 600">Euro Truck Simulator 2 <span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">2012</span></p>
+              <div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px"><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 6px; background: rgba(255,198,107,0.13); color: #FFC66B; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.02em; white-space: nowrap">Steam · en tu PC</span></div>
+            </div>
+          </div>
+          <div style="padding-left: 10px"><div role="radiogroup" aria-label="Copia de Steam de Euro Truck Simulator 2" style="flex: none; display: flex; flex-wrap: wrap; gap: 6px"><button type="button" role="radio" aria-checked="true" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #C8F25A; background: rgba(200,242,90,0.12); color: #ECEEF2; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #C8F25A; display: grid; place-items: center"><span style="width: 6px; height: 6px; border-radius: 99px; background: #C8F25A"></span></span>Familia</button><button type="button" role="radio" aria-checked="false" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #3A414E; display: grid; place-items: center"></span>Comprado</button><button type="button" role="radio" aria-checked="false" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #3A414E; display: grid; place-items: center"></span>Otro tipo</button><button type="button" role="radio" aria-checked="false" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; box-sizing: border-box; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #FFC2B7; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap"><span aria-hidden="true" style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 99px; border: 2px solid #3A414E; display: grid; place-items: center"></span>No importar</button></div></div>
+        </li>
+        </ul>
+        <div style="padding: 6px 14px 10px"><button type="button" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap; border: 0; background: transparent; color: #C5CCD8">Ver 5 más</button></div>
+      </div>
+  </section>
+
+  <section style="padding: 24px 20px 0">
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; background: #161A21; border: 1px solid #2A303B">
+      <div>
+        <p style="margin: 0; font: 700 17px/1.25 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif">En «Listos»: <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 500">237</span> juegos y <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 500">252</span> copias</p>
+        <p style="margin: 4px 0 0; font-size: 13px; color: #9AA3B2">«Confirmar importación» suma a tu biblioteca todo lo que está en «Listos», también lo que ya decidiste en los otros grupos. Lo demás sigue esperando acá.</p>
+      </div>
+      <button type="button" style="display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 10px; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer; white-space: nowrap; border: 0; background: #C8F25A; color: #0E1014">Confirmar importación</button>
+    </div>
+  </section>
+
+  <nav aria-label="Secciones" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; padding: 6px 8px 26px; background: rgba(14,16,20,0.97); border-top: 1px solid #222832">
+    <a href="Movil-Biblioteca.dc.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #9AA3B2; font: 500 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="4.5" height="16" rx="1"></rect><rect x="9.5" y="4" width="4.5" height="16" rx="1"></rect><path d="M15.6 5.4l3.9-1 3.6 14.5-3.9 1z"></path></svg>
+      Biblioteca
+    </a>
+    <a href="Movil-LoTengo.dc.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #9AA3B2; font: 500 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      ¿Lo tengo?
+    </a>
+    <a href="Movil-Suscripciones.dc.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #9AA3B2; font: 500 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path><path d="M7 15h4"></path></svg>
+      Suscripciones
+    </a>
+    <a href="Movil-Tiendas.dc.html" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 52px; text-decoration: none; color: #9AA3B2; font: 500 11px/1 Inter, system-ui, sans-serif">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path></svg>
+      Tiendas
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1900}}'>
+class Component extends DCLogic {
+  // Pantalla estática: los grupos, las filas y las cantidades son de ejemplo (design.md §15).
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

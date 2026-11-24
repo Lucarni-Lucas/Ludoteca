@@ -9,6 +9,8 @@ export const SECTIONS = [
 export type SectionId = (typeof SECTIONS)[number]["id"];
 
 const SETTINGS_PATH = "/settings";
+// Importar es una opción de Ajustes aunque viva en su propia ruta: el avatar se marca igual.
+const IMPORT_PATH = "/import";
 const GAME_DETAIL_PATH = "/games";
 
 function isWithin(pathname: string, base: string): boolean {
@@ -25,5 +27,5 @@ export function sectionForPath(pathname: string): SectionId | null {
 }
 
 export function isSettingsPath(pathname: string): boolean {
-  return isWithin(pathname, SETTINGS_PATH);
+  return isWithin(pathname, SETTINGS_PATH) || isWithin(pathname, IMPORT_PATH);
 }

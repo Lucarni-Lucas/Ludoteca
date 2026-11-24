@@ -31,17 +31,26 @@ export type LibraryGame = Readonly<{
   copies: readonly Copy[];
   /** El total que cargó el usuario; `null` si no cargó ninguno (design.md §20). */
   manualPlayedMinutes: number | null;
+  /** La duración principal de HowLongToBeat que trajo IGN al importar; no es una corrección (`04` §16). */
+  hltbHours?: number;
 }>;
 
-type GameData = Pick<LibraryGame, "catalog" | "corrections">;
+type GameData = Pick<LibraryGame, "catalog" | "corrections" | "hltbHours">;
 
 export function effectiveEndless(game: GameData): boolean {
   return game.corrections.endless ?? game.catalog.endless;
 }
 
-/** Un juego sin fin no tiene duración, aunque el catálogo o una corrección vieja digan otra cosa. */
+/**
+ * La tuya, si no la de IGDB, si no la de HowLongToBeat (`04` §16). Un juego sin fin no tiene duración,
+ * aunque el catálogo o una corrección vieja digan otra cosa.
+ */
 export function effectiveHours(game: GameData): number | null {
-  return effectiveEndless(game) ? null : (game.corrections.estimatedHours ?? game.catalog.estimatedHours);
+  if (effectiveEndless(game)) {
+    return null;
+  }
+
+  return game.corrections.estimatedHours ?? game.catalog.estimatedHours ?? game.hltbHours ?? null;
 }
 
 export function effectiveCover(game: GameData): string | null {
@@ -66,7 +75,7 @@ export function durationInfo(game: GameData): DurationInfo {
   return hours === null ? { type: "unknown" } : { type: "hours", hours };
 }
 
-export type DurationSource = "own" | "igdb";
+export type DurationSource = "own" | "igdb" | "hltb";
 
 /** De dónde sale la duración que se muestra; `null` si no hay ninguna o el juego es sin fin. */
 export function durationSource(game: GameData & Pick<LibraryGame, "source">): DurationSource | null {
@@ -76,6 +85,10 @@ export function durationSource(game: GameData & Pick<LibraryGame, "source">): Du
 
   if (game.corrections.estimatedHours !== null) {
     return "own";
+  }
+
+  if (game.catalog.estimatedHours === null) {
+    return "hltb";
   }
 
   return isManual(game) ? null : "igdb";

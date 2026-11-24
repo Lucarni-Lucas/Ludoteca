@@ -110,11 +110,13 @@ library_game        de cada usuario
   user_id, catalog_game_id (único por usuario), status_id, status_since,
   score (0.0–10.0, opcional), review, not_interested, played_minutes_manual,
   correcciones propias: estimated_hours, endless, cover_url
+  hltb_hours: duración principal de HowLongToBeat que trajo IGN (no es una corrección)
 
 copy                cómo lo tenés (de 0 a n por juego)
   library_game_id, store_id, kind: purchased | free | subscription | family | physical | other,
   kind_detail (texto corto, solo para other: ej. «Regalo»),
   store_game_id (ej. el appid de Steam), origin: sync | import | manual,
+  única (user_id, store_id, store_game_id): las copias a mano, sin ID, no chocan,
   acquired_on, playtime_minutes (lo que dice la tienda), family_owner,
   subscription_id, intentional_duplicate,
   lost_at, lost_reason: left_family | subscription_ended | sold | other
@@ -143,8 +145,14 @@ user_settings       idioma, etiquetas del puntaje prendidas, días de aviso, can
 score_label         nombre propio de la etiqueta de un rango del puntaje: user_id, range_start, name
 push_subscription   una por dispositivo
 notification_log    avisos ya mandados (para que el cron no los repita)
-store_connection    cuenta de Steam (SteamID) y última sincronización
-import_batch, import_item   importación: fila original, cruce con IGDB, sugerencia y decisión
+store_connection    una cuenta por tienda y usuario: store_id, account_id (SteamID64), last_synced_at
+import_item         una fila por cada fila de cada fuente: source (ign | playnite | steam), source_key,
+                    lo leído (título, año, tienda, ID en la tienda, horas, estados y puntaje de IGN,
+                    HowLongToBeat), el cruce (match_state, candidates) y la decisión sobre su copia
+                    (copy_kind, excluded); única (user_id, source, source_key)
+import_entry        un juego a revisar por cada juego de IGDB (o por fila que no cruzó): igdb_id,
+                    catalog_game_id, multiplayer_only y las respuestas (status_key, endless_answer,
+                    play_answer, excluded, manual_title); única (user_id, igdb_id)
 ```
 
 **Reglas del modelo:**
@@ -159,7 +167,7 @@ import_batch, import_item   importación: fila original, cruce con IGDB, sugeren
 4. **«Sin fin» es algo del juego**, no solo un estado. Un juego sin fin no tiene duración estimada, pero sí horas jugadas.
 5. **Horas jugadas:** si cargaste un total a mano, vale ese. Si no, se suma lo que dicen las tiendas. Si ninguna tienda lo sabe, se suman las sesiones del diario. Así no se cuentan dos veces.
 6. **Estados con `system_key`:** aunque renombres un estado por defecto, la app sabe cuál es (ej. que «Quiero jugarlo» es la wishlist). Que un estado pida motivo depende de su propia marca `asks_reason`.
-7. **La importación se guarda en tablas aparte** hasta que la confirmás, así la revisión se puede hacer en varias tandas.
+7. **La importación se guarda en tablas aparte** hasta que la confirmás, así la revisión se puede hacer en varias tandas. No hay `import_batch`: la revisión abierta son las filas sin `confirmed_at`, y las confirmadas quedan como historia para reconocerlas al reimportar (`04` design.md §4).
 
 **No se guardan, se calculan:** el veredicto de «¿Lo tengo?», el aviso de duplicado, los totales por moneda, el «vence pronto» y las horas del mes de cada suscripción.
 
@@ -182,7 +190,7 @@ import_batch, import_item   importación: fila original, cruce con IGDB, sugeren
 | Filtros en PC | Todos permiten elegir varias opciones, y se suma el rango de puntaje (como en el celu). |
 | Estadísticas | Oculta en el menú hasta que exista. |
 | Celu | Se agrega un acceso a Ajustes. |
-| Revisión de importación | Pantalla nueva. No está en el lienzo y se define en la spec de `04-importacion`. |
+| Revisión de importación | Pantalla nueva, diseñada en `04-importacion`: `design/Escritorio-Importar.dc.html` y `design/Movil-Importar.dc.html`. Se llega desde Ajustes y desde la biblioteca vacía. |
 | GOG y Microsoft Store | No se sincronizan solas en la v1 (el diseño las mostraba como sincronizadas). GOG entra por la importación de Playnite; Microsoft Store se carga a mano. |
 | Fecha en que conseguiste un juego | Opcional: ni Steam ni Playnite la informan. |
 | Monedas | Código ISO libre; ARS y USD como sugerencias. Los totales se agrupan por código. |
@@ -214,12 +222,22 @@ import_batch, import_item   importación: fila original, cruce con IGDB, sugeren
 | Beat y Quit a la vez (Overwatch) | Lo decidís en la revisión |
 
 - Los puntajes enteros pasan tal cual: 8 queda como 8.0.
-- **Cruce con IGDB:** primero por el ID de tienda (IGDB guarda el ID de cada juego en Steam, Epic, GOG, etc.). Si no hay ID, por título, y los dudosos quedan para revisar.
-- **La importación es una revisión, no un volcado.** Separa en grupos:
-  - «¿Es sin fin?»: juegos completados que IGDB marca como solo multijugador; sugiere «Jugado».
-  - «¿Lo vas a jugar alguna vez?»: pendientes sin puntaje o con 0 h en Steam; podés dejarlos en Pendiente, pasarlos a Quiero jugarlo o marcarlos «Sin interés».
-  - «No lo encontré»: sin cruce con IGDB.
-- **Reimportar no duplica:** cada copia se reconoce por tienda + ID en la tienda.
+- **Cruce con IGDB:** primero por el ID de tienda: Steam y GOG. El ID de Epic que trae Playnite no es el que guarda IGDB, así que Epic cruza por título (verificado, `04` design.md §7). Por título, primero el nombre exacto de a 10 por pedido y después la búsqueda de a uno; los dudosos quedan para revisar.
+- **La importación es una revisión, no un volcado.** Cada juego está en un solo grupo, el primero que le toca, y sus opciones son una elección de una sola opción con la sugerencia ya marcada:
+
+  | Grupo | Le toca si… | Opciones (marcada primero) |
+  |---|---|---|
+  | Para revisar | Varios candidatos de IGDB, o dos estados de IGN | El candidato más parecido; o el estado de `status` |
+  | No lo encontré | Sin cruce con IGDB | Cargar a mano (o No importar si no es un juego) · No importar · «Buscar con otro nombre» aparte |
+  | ¿Es de tu familia? | Steam de tu PC que tu cuenta no tiene | Familia · Comprado · Otro tipo · No importar |
+  | ¿Es sin fin? | Completado y solo multijugador en IGDB | Jugado · sin fin · Completado |
+  | ¿Lo vas a jugar alguna vez? | Pendiente de IGN sin puntaje, o con 0 h en todas sus copias | Pendiente · Sin interés · No importar |
+  | Elegí un estado | No vino de IGN y tiene horas jugadas | Un estado, con Pendiente |
+  | Listos | Nada dudoso, o ya decidido | «Volver a revisar» |
+
+- **Todo lo decidido pasa a «Listos».** Elegir otra opción la guarda y lleva el juego a «Listos»; «Pasar a Listos» guarda lo marcado sin cambiarlo, de a uno o en lote. «Confirmar importación» suma todo lo que está en «Listos» y lo demás sigue esperando.
+- **Un juego que ya está en tu biblioteca** solo suma las copias que le falten: ni el estado ni el puntaje cambian.
+- **Reimportar no duplica:** cada copia se reconoce por tienda + ID en la tienda, y un juego nunca recibe dos copias de la misma tienda desde la importación.
 
 ---
 
@@ -253,7 +271,7 @@ También queda para después sincronizar solas Epic, GOG o Xbox. Cada una sería
 ## 9. Se resuelve dentro de cada cambio, con `/opsx:explore`
 
 - El endpoint de los gratis de Epic y cada cuánto consultarlo (etapa 9).
-- El formato exacto del export de Playnite (etapa 4).
-- El diseño visual de la pantalla de revisión de importación (etapa 4).
-- Cómo detectar «solo multijugador» en IGDB (etapa 4).
+- ~~El formato exacto del export de Playnite (etapa 4).~~ Resuelto en `04-importacion` (design.md §5): PlayniteLibraryExporter con `schemaVersion = 1`; cada juego trae `sourceName`, `providerGameId`, `playtimeSeconds` y `releaseDate`, y los de Steam son solo los instalados, con 0 h.
+- ~~El diseño visual de la pantalla de revisión de importación (etapa 4).~~ Resuelto en `04-importacion` (design.md §15): `design/Escritorio-Importar.dc.html` y `design/Movil-Importar.dc.html`.
+- ~~Cómo detectar «solo multijugador» en IGDB (etapa 4).~~ Resuelto en `04-importacion` (design.md §7): IGDB lista modos de juego y ninguno es `single-player`; un juego sin modos cargados no cuenta.
 - ~~Cómo mostrar en el idioma elegido los nombres por defecto que hoy se guardan en la base, sin pisar los que renombre el usuario (etapa 3).~~ Resuelto en `03-idiomas` (design.md §8): un estado con `system_key` que conserva su nombre de fábrica se muestra con el nombre por defecto del idioma elegido; cualquier otro nombre, tal cual. Sin migración.

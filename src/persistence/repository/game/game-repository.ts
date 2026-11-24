@@ -10,12 +10,7 @@ import type { GameRemovalPlan } from "@/model/game/removal";
 import type { StatusChangePlan } from "@/model/status/status";
 import type { Database } from "@/persistence/db";
 import { toCopy, toNewCopyRow } from "@/persistence/mapper/copy/copy-mapper";
-import {
-  toCatalogUpdate,
-  toIgdbCatalogRow,
-  toLibraryGame,
-  toManualCatalogRow,
-} from "@/persistence/mapper/game/game-mapper";
+import { toCatalogUpdate, toLibraryGame, toManualCatalogRow } from "@/persistence/mapper/game/game-mapper";
 import { toStatus } from "@/persistence/mapper/status/status-mapper";
 import { copy } from "@/persistence/sql/copy/copy";
 import { catalogGame } from "@/persistence/sql/game/catalog-game";
@@ -23,6 +18,7 @@ import { libraryGame } from "@/persistence/sql/game/library-game";
 import { status } from "@/persistence/sql/status/status";
 import { store } from "@/persistence/sql/store/store";
 
+import { upsertIgdbCatalogs } from "./catalog-writer";
 import { writeStatusChange } from "./status-change-writer";
 
 export type GameRepository = Readonly<{
@@ -75,15 +71,8 @@ function listCopyRows(db: Database, userId: string) {
 }
 
 async function upsertIgdbCatalog(tx: Database, data: IgdbGameData): Promise<string> {
-  await tx.insert(catalogGame).values(toIgdbCatalogRow(data)).onConflictDoNothing({ target: catalogGame.igdbId });
-
-  const [row] = await tx
-    .select({ id: catalogGame.id })
-    .from(catalogGame)
-    .where(eq(catalogGame.igdbId, data.igdbId))
-    .limit(1);
-
-  return row.id;
+  const ids = await upsertIgdbCatalogs(tx, [data]);
+  return ids.get(data.igdbId) ?? "";
 }
 
 async function insertLibraryEntry(

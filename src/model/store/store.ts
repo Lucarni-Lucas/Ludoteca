@@ -16,6 +16,11 @@ export const KNOWN_STORE_NAMES = [
   "Amazon Games",
 ] as const;
 
+/** Los slugs de las tiendas conocidas con reglas propias al importar (`drizzle/0003`). */
+export const STEAM_SLUG = "steam";
+export const EPIC_GAMES_SLUG = "epic-games";
+export const GOG_SLUG = "gog";
+
 export type Store = Readonly<{
   id: string;
   name: string;

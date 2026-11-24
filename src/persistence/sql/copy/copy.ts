@@ -1,12 +1,13 @@
-import { date, index, integer, pgEnum, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { date, index, integer, pgEnum, pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
 
-import { COPY_KINDS, LOST_REASONS } from "../../../model/copy/copy";
+import { COPY_KINDS, COPY_ORIGINS, LOST_REASONS } from "../../../model/copy/copy";
 import { primaryId, timestamps } from "../columns";
 import { libraryGame } from "../game/library-game";
 import { store } from "../store/store";
 
 export const copyKindEnum = pgEnum("copy_kind", COPY_KINDS);
 export const lostReasonEnum = pgEnum("lost_reason", LOST_REASONS);
+export const copyOriginEnum = pgEnum("copy_origin", COPY_ORIGINS);
 
 export const copy = pgTable(
   "copy",
@@ -28,11 +29,16 @@ export const copy = pgTable(
     kindDetail: text("kind_detail"),
     lostAt: date("lost_at", { mode: "string" }),
     lostReason: lostReasonEnum("lost_reason"),
+    // El ID del juego en su tienda: con la tienda, es lo que reconoce una copia al reimportar.
+    storeGameId: text("store_game_id"),
+    origin: copyOriginEnum("origin").notNull().default("manual"),
     ...timestamps(),
   },
   (table) => [
     index("copy_user_id_idx").on(table.userId),
     index("copy_library_game_id_idx").on(table.libraryGameId),
     index("copy_store_id_idx").on(table.storeId),
+    // Postgres no compara los vacíos: dos copias a mano de la misma tienda, sin ID en la tienda, no chocan.
+    unique("copy_user_store_game_unique").on(table.userId, table.storeId, table.storeGameId),
   ],
 ).enableRLS();

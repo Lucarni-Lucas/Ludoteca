@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2025-10-01T12:30:00Z",
+  "generator": {
+    "name": "Playnite Library Exporter",
+    "version": "1.0.0.0"
+  },
+  "playnite": {
+    "databaseGameCount": 9
+  },
+  "export": {
+    "totalGames": 9,
+    "databaseGameCount": 9,
+    "excludedGameCount": 0,
+    "steamAppIdCount": 2,
+    "formats": [
+      "json"
+    ],
+    "automatic": false,
+    "trigger": "manual"
+  },
+  "games": [
+    {
+      "playniteId": "20000000-0000-4000-8000-000000000001",
+      "name": "Grand Theft Auto V",
+      "providerGameId": "9d2d0eb64d5c44529cece33fe2a46482",
+      "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+      "sourceId": "10000000-0000-4000-8000-0000000000e1",
+      "sourceName": "Epic",
+      "steamAppIdConfidence": "none",
+      "isInstalled": false,
+      "hidden": false,
+      "favorite": false,
+      "platforms": [
+        "PC (Windows)"
+      ],
+      "genres": [],
+      "categories": [],
+      "tags": [],
+      "playtimeSeconds": 5430,
+      "added": "2025-10-01T12:00:00Z",
+      "modified": "2025-10-01T12:00:00Z",
+      "releaseDate": "2013-9-17",
+      "sortingName": "Grand Theft Auto 5"
+    },
+    {
+      "playniteId": "20000000-0000-4000-8000-000000000002",
+      "name": "112 Operator",
+      "providerGameId": "3f1a0c2b9e8d4d7a8b6c5e4f3a2b1c0d",
+      "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+      "sourceId": "10000000-0000-4000-8000-0000000000e1",
+      "sourceName": "Epic",
+      "steamAppIdConfidence": "none",
+      "isInstalled": false,
+      "hidden": false,
+      "favorite": false,
+      "platforms": [
+        "PC (Windows)"
+      ],
+      "genres": [],
+      "categories": [],
+      "tags": [],
+      "playtimeSeconds": 0,
+      "added": "2025-10-01T12:00:00Z",
+      "modified": "2025-10-01T12:00:00Z",
+      "releaseDate": "2022-4-26"
+    },
+    {
+      "playniteId": "20000000-0000-4000-8000-000000000003",
+      "name": "Rocket League",
+      "providerGameId": "Sugar",
+      "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+      "sourceId": "10000000-0000-4000-8000-0000000000e1",
+      "sourceName": "Epic",
+      "steamAppIdConfidence": "none",
+      "isInstalled": false,
+      "hidden": false,
+      "favorite": false,
+      "platforms": [
+        "PC (Windows)"
+      ],
+      "genres": [],
+      "categories": [],
+      "tags": [],
+      "playtimeSeconds": 36000,
+      "added": "2025-10-01T12:00:00Z",
+      "modified": "2025-10-01T12:00:00Z",
+      "releaseDate": "2015-7-7"
+    },
+    {
+      "playniteId": "20000000-0000-4000-8000-000000000004",
+      "name": "Celeste",
+      "providerGameId": "504230",
+      "pluginId": "cb91dfc9-b977-43bf-8e70-55f46e410fab",
+      "sourceId": "10000000-0000-4000-8000-000000000051",
+      "sourceName": "Steam",
+      "steamAppIdConfidence": "exact",
+      "isInstalled": true,
+      "hidden": false,
+      "favorite": false,
+      "platforms": [
+        "PC (Windows)"
+      ],
+      "genres": [],
+      "categories": [],
+      "tags": [],
+      "playtimeSeconds": 0,
+      "added": "2025-10-01T12:00:00Z",
+      "modified": "2025-10-01T12:00:00Z",
+      "releaseDate": "2018-1-25",
+      "steamAppId": 504230,
+      "steamAppIdSource": "playnite-provider-game-id",
+      "installDirectory": "C:Steamsteamappscommon${name}"
+    },
+    {
+      "playniteId": "20000000-0000-4000-8000-000000000005",
+      "name": "Portal 2",
+      "providerGameId": "620",
+      "pluginId": "cb91dfc9-b977-43bf-8e70-55f46e410fab",
+      "sourceId": "10000000-0000-4000-8000-000000000051",
+      "sourceName": "Steam",
+      "steamAppIdConfidence": "exact",
+      "isInstalled": true,
+      "hidden": false,
+      "favorite": false,
+      "platforms": [
+        "PC (Windows)"
+      ],
+      "genres": [],
+      "categories": [],
+      "tags": [],
+      "playtimeSeconds": 0,
+      "added": "2025-10-01T12:00:00Z",
+      "modified": "2025-10-01T12:00:00Z",
+      "releaseDate": "2011-4-18",
+      "steamAppId": 620,
+      "steamAppIdSource": "playnite-provider-game-id",
+      "installDirectory": "C:Steamsteamappscommon${name}"
+    },
+    {
+      "playniteId": "20000000-0000-4000-8000-000000000006",
+      "name": "Barony",
+      "providerGameId": "a1b2c3d4e5f60718293a4b5c6d7e8f90",
+      "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+      "sourceId": "10000000-0000-4000-8000-0000000000e1",
+      "sourceName": "Epic",
+      "steamAppIdConfidence": "none",
+      "isInstalled": false,
+      "hidden": false,
+      "favorite": false,
+      "platforms": [
+        "PC (Windows)"
+      ],
+      "genres": [],
+      "categories": [],
+      "tags": [],
+      "playtimeSeconds": 7200,
+      "added": "2025-10-01T12:00:00Z",
+      "modified": "2025-10-01T12:00:00Z",
+      "releaseDate": "2015-6-23"
+    },
+    {
+      "playniteId": "20000000-0000-4000-8000-000000000007",
+      "name": "Barony (Beta)",
+      "providerGameId": "b1c2d3e4f5a60718293a4b5c6d7e8f91",
+      "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+      "sourceId": "10000000-0000-4000-8000-0000000000e1",
+      "sourceName": "Epic",
+      "steamAppIdConfidence": "none",
+      "isInstalled": false,
+      "hidden": true,
+      "favorite": false,
+      "platforms": [
+        "PC (Windows)"
+      ],
+      "genres": [],
+      "categories": [],
+      "tags": [],
+      "playtimeSeconds": 1800,
+      "added": "2025-10-01T12:00:00Z",
+      "modified": "2025-10-01T12:00:00Z"
+    },
+    {
+      "playniteId": "20000000-0000-4000-8000-000000000008",
+      "name": "Q.U.B.E. 2 Soundtrack",
+      "providerGameId": "c1d2e3f4a5b60718293a4b5c6d7e8f92",
+      "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+      "sourceId": "10000000-0000-4000-8000-0000000000e1",
+      "sourceName": "Epic",
+      "steamAppIdConfidence": "none",
+      "isInstalled": false,
+      "hidden": false,
+      "favorite": false,
+      "platforms": [
+        "PC (Windows)"
+      ],
+      "genres": [],
+      "categories": [],
+      "tags": [],
+      "playtimeSeconds": 0,
+      "added": "2025-10-01T12:00:00Z",
+      "modified": "2025-10-01T12:00:00Z",
+      "releaseDate": "2018-3-13"
+    },
+    {
+      "playniteId": "20000000-0000-4000-8000-000000000009",
+      "name": "[REDACTED]",
+      "providerGameId": "d1e2f3a4b5c60718293a4b5c6d7e8f93",
+      "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+      "sourceId": "10000000-0000-4000-8000-0000000000e1",
+      "sourceName": "Epic",
+      "steamAppIdConfidence": "none",
+      "isInstalled": false,
+      "hidden": false,
+      "favorite": false,
+      "platforms": [
+        "PC (Windows)"
+      ],
+      "genres": [],
+      "categories": [],
+      "tags": [],
+      "playtimeSeconds": 0,
+      "added": "2025-10-01T12:00:00Z",
+      "modified": "2025-10-01T12:00:00Z"
+    }
+  ]
+}

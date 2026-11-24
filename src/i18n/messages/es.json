@@ -19,7 +19,8 @@
       "en": "English",
       "updated": "Idioma actualizado",
       "unchanged": "Ya estaba en español"
-    }
+    },
+    "import": "Importar"
   },
   "errors": {
     "INVALID_REQUEST": "El pedido no es válido.",
@@ -47,7 +48,17 @@
     "RELEASE_YEAR_OUT_OF_RANGE": "Poné un año entre {min} y {max}",
     "STATUS_NOT_FOUND": "No encontramos ese estado.",
     "STORE_NOT_FOUND": "No encontramos esa tienda.",
-    "INVALID_STORE_NAME": "Escribí un nombre de tienda con letras o números."
+    "INVALID_STORE_NAME": "Escribí un nombre de tienda con letras o números.",
+    "INVALID_IMPORT_DECISION": "Esa opción no vale para este juego.",
+    "INVALID_STEAM_PROFILE": "Pegá el link de tu perfil de Steam o tu SteamID.",
+    "STEAM_NOT_CONFIGURED": "Falta configurar la clave de Steam.",
+    "STEAM_PROFILE_NOT_FOUND": "No encontramos ese perfil de Steam. Revisá el link.",
+    "STEAM_GAMES_PRIVATE": "Tus juegos de Steam son privados. En Steam, andá a tu perfil › Editar perfil › Privacidad y poné «Detalles del juego» como Público.",
+    "STEAM_UNAVAILABLE": "No pudimos consultar Steam. Probá de nuevo.",
+    "STEAM_TIMEOUT": "Steam tardó demasiado en responder. Probá de nuevo.",
+    "UNKNOWN_IMPORT_FILE": "No reconozco este archivo. Subí el export de IGN o el de Playnite, en JSON.",
+    "IMPORT_FILE_TOO_LARGE": "El archivo no puede pesar más de {max} MB.",
+    "IMPORT_ENTRY_NOT_FOUND": "No encontramos ese juego en la revisión."
   },
   "validation": {
     "titleRequired": "Poné el título del juego",
@@ -123,7 +134,7 @@
     },
     "duration": {
       "term": "Duración",
-      "text": "Cuánto se tarda en promedio en terminarlo, según IGDB o lo que cargues vos. No son tus horas jugadas."
+      "text": "Cuánto se tarda en promedio en terminarlo, según IGDB, HowLongToBeat o lo que cargues vos. No son tus horas jugadas."
     },
     "family": {
       "term": "Familia",
@@ -259,7 +270,8 @@
     "empty": "Todavía no cargaste ningún juego.",
     "emptyAction": "Agregá tu primer juego",
     "noResults": "No hay juegos con esta combinación de filtros.",
-    "clearFilters": "Limpiar filtros"
+    "clearFilters": "Limpiar filtros",
+    "emptyImport": "Importar tu biblioteca"
   },
   "game": {
     "back": "Biblioteca",
@@ -288,7 +300,8 @@
       "withSource": "{duration} · {source}",
       "sources": {
         "own": "tuya",
-        "igdb": "IGDB"
+        "igdb": "IGDB",
+        "hltb": "HowLongToBeat"
       }
     },
     "score": {
@@ -418,6 +431,157 @@
       "status": "Estado",
       "manualHint": "Queda marcado como «agregado a mano». Si algún día aparece en IGDB, lo podés vincular sin perder tu puntaje ni tu historial.",
       "save": "Guardar juego"
+    }
+  },
+  "import": {
+    "title": "Importar",
+    "description": "Traé tus juegos de IGN, Playnite y Steam. Los cruzamos con IGDB y te preguntamos solo lo dudoso.",
+    "descriptionShort": "Traé tus juegos de IGN, Playnite y Steam. Nada entra a tu biblioteca hasta que confirmes.",
+    "sources": {
+      "title": "De dónde",
+      "note": "Nada entra a tu biblioteca hasta que confirmes. Podés dejar la revisión a la mitad y seguir otro día.",
+      "games": "{count, plural, one {# juego} other {# juegos}}",
+      "readOn": "leído el {date}",
+      "fetchedOn": "traídos el {date}",
+      "summaryRead": "{count, plural, one {# juego} other {# juegos}} · leído el {date}",
+      "summaryFetched": "{count, plural, one {# juego} other {# juegos}} · traídos el {date}",
+      "notLoaded": "Todavía no subiste el archivo",
+      "upload": "Subir archivo",
+      "uploadAnother": "Subir otro archivo",
+      "uploadAnotherShort": "Subir otro",
+      "uploading": "Subiendo…",
+      "loaded": "{count, plural, one {Leímos # juego.} other {Leímos # juegos.}}",
+      "skipped": "{count, plural, one {# juego sin tienda no se leyó.} other {# juegos sin tienda no se leyeron.}}",
+      "ign": {
+        "name": "IGN",
+        "code": "IGN",
+        "detail": "Archivo exportado · estados y puntajes"
+      },
+      "playnite": {
+        "name": "Playnite",
+        "code": "PN",
+        "detail": "Archivo exportado · Epic y lo instalado de Steam"
+      },
+      "steam": {
+        "name": "Steam",
+        "code": "ST",
+        "detail": "Con tu cuenta · perfil público",
+        "profileLabel": "Link de tu perfil o SteamID",
+        "profilePlaceholder": "steamcommunity.com/id/…",
+        "connect": "Conectar",
+        "connecting": "Conectando…",
+        "refresh": "Traer de nuevo",
+        "refreshing": "Trayendo…",
+        "connected": "{count, plural, one {Trajimos # juego de Steam.} other {Trajimos # juegos de Steam.}}"
+      }
+    },
+    "progress": {
+      "label": "Cruzando con IGDB",
+      "count": "{done} de {total}",
+      "hint": "Podés ir revisando lo que ya cruzó.",
+      "retry": "Reintentar"
+    },
+    "review": {
+      "title": "Revisión",
+      "nav": "Grupos de la revisión",
+      "rule": "Cada juego ya tiene marcada nuestra sugerencia. Si elegís otra opción, pasa a «Listos». Para pasar lo marcado sin cambiarlo, seleccionalo y tocá «Pasar a Listos».",
+      "readyRule": "Esto es lo que entra a tu biblioteca al confirmar. «Volver a revisar» devuelve un juego a su grupo.",
+      "upToDate": "{count, plural, one {# ya estaba al día en tu biblioteca.} other {# ya estaban al día en tu biblioteca.}}",
+      "empty": "No hay juegos en este grupo.",
+      "awaitingSteam": "Conectá tu cuenta de Steam para saber cuáles son tuyos.",
+      "selection": "Selección",
+      "selectAll": "Seleccionar los {count}",
+      "select": "Seleccionar {title}",
+      "selected": "{count, plural, one {# seleccionado} other {# seleccionados}}",
+      "passToReady": "Pasar a Listos",
+      "copyKind": "Tipo de copia",
+      "copyKindStore": "Tipo de copia en {store}",
+      "cancel": "Cancelar",
+      "backToReview": "Volver a revisar",
+      "optionsFor": "Qué hacer con {title}",
+      "otherStatus": "Estado de {title}",
+      "otherKind": "Tipo de copia de {title}",
+      "apply": "Aplicar",
+      "searchAgain": "Buscar con otro nombre",
+      "searchLabel": "Nombre en IGDB",
+      "pick": "Elegir",
+      "inLibrary": "Ya está en tu biblioteca · suma {count, plural, one {# copia} other {# copias}}",
+      "showMore": "Ver {count} más",
+      "movedToReady": "«{title}» pasó a «Listos» con «{choice}».",
+      "movedManyToReady": "{count, plural, one {# juego pasó a «Listos».} other {# juegos pasaron a «Listos».}}",
+      "movedBack": "«{title}» volvió a revisión.",
+      "unchanged": "No había nada para pasar a «Listos».",
+      "origin": {
+        "ign": "IGN · {statuses}",
+        "ignScored": "IGN · {statuses} · {score}",
+        "store": "{store} · {kind}",
+        "storeHours": "{store} · {kind} · {hours} h",
+        "steamPc": "Steam · en tu PC"
+      },
+      "ignStatus": {
+        "playing": "Playing",
+        "paused": "Paused",
+        "backlog": "Backlog",
+        "beat": "Beat",
+        "quit": "Quit",
+        "wishlist": "Wishlist"
+      }
+    },
+    "groups": {
+      "review": {
+        "name": "Para revisar",
+        "hint": "Tienen más de un candidato o dos estados",
+        "explanation": "IGDB dio más de un juego parecido, o IGN los tiene con dos estados. Elegí el que corresponde."
+      },
+      "not_found": {
+        "name": "No lo encontré",
+        "hint": "IGDB no los conoce",
+        "explanation": "No los encontramos en IGDB por ningún camino. Podés buscarlos con otro nombre, cargarlos a mano o no importarlos."
+      },
+      "family": {
+        "name": "¿Es de tu familia?",
+        "hint": "Steam de tu PC que tu cuenta no tiene",
+        "explanation": "Están instalados en tu PC pero tu cuenta de Steam no los tiene: seguramente te los presta tu familia."
+      },
+      "endless": {
+        "name": "¿Es sin fin?",
+        "hint": "Completados que son solo multijugador",
+        "explanation": "IGN los tiene como terminados, pero en IGDB son solo multijugador: un juego así no se termina."
+      },
+      "play": {
+        "name": "¿Lo vas a jugar alguna vez?",
+        "hint": "Pendientes sin puntaje o con 0 h",
+        "explanation": "Los tenés en alguna tienda, pero no tienen puntaje o nunca los abriste. «Sin interés» no se ve en la biblioteca pero cuenta para «¿Lo tengo?»."
+      },
+      "status": {
+        "name": "Elegí un estado",
+        "hint": "Los jugaste y no estaban en IGN",
+        "explanation": "Tienen horas jugadas pero no vinieron de IGN, así que no sabemos en qué estado están."
+      },
+      "ready": {
+        "name": "Listos",
+        "hint": "Sin dudas o ya decididos",
+        "explanation": "Lo que no tenía dudas y lo que ya decidiste en los otros grupos."
+      }
+    },
+    "choices": {
+      "search": "Ninguno: buscar con otro nombre",
+      "otherStatus": "Otro estado",
+      "manual": "Cargar a mano",
+      "exclude": "No importar",
+      "otherKind": "Otro tipo",
+      "endless": "Jugado · sin fin",
+      "completed": "Completado",
+      "keep": "Pendiente",
+      "notInterested": "Sin interés"
+    },
+    "confirm": {
+      "ready": "En «Listos»: <n>{games}</n> juegos y <n>{copies}</n> copias",
+      "explanation": "«Confirmar importación» suma a tu biblioteca todo lo que está en «Listos»: lo que no tenía dudas y lo que ya decidiste en los otros grupos. Lo demás sigue esperando acá.",
+      "action": "Confirmar importación",
+      "confirming": "Confirmando…",
+      "nothingReady": "Todavía no hay nada en «Listos» para confirmar.",
+      "summary": "Entraron {games, plural, one {# juego} other {# juegos}} y {copies, plural, one {# copia} other {# copias}} · {notInterested, plural, one {# marcado «Sin interés»} other {# marcados «Sin interés»}} · {excluded} sin importar"
     }
   }
 }

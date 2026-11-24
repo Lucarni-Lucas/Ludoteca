@@ -24,6 +24,8 @@ export const libraryGame = pgTable(
     estimatedHours: hoursColumn("estimated_hours"),
     endless: boolean("endless"),
     coverUrl: text("cover_url"),
+    // La duración principal de HowLongToBeat que trajo IGN: no es una corrección, así que no va en estimated_hours.
+    hltbHours: hoursColumn("hltb_hours"),
     ...timestamps(),
   },
   (table) => [

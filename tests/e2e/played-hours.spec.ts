@@ -88,7 +88,7 @@ test.describe("ayuda de «Duración»", () => {
     const button = page.getByRole("button", { name: "Qué es «Duración»" }).filter({ visible: true }).first();
     await button.click();
     const text = page
-      .getByText("Cuánto se tarda en promedio en terminarlo, según IGDB o lo que cargues vos. No son tus horas jugadas.")
+      .getByText("Cuánto se tarda en promedio en terminarlo, según IGDB, HowLongToBeat o lo que cargues vos. No son tus horas jugadas.")
       .filter({ visible: true });
     await expect(text).toHaveCount(1);
 

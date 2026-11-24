@@ -11,6 +11,9 @@ type FakeGame = Readonly<{
   versionParent?: number;
   developer?: string;
   normallySeconds?: number;
+  /** Los slugs de `game_modes`; sin modos, como muchos juegos de IGDB. */
+  modes?: readonly string[];
+  steamAppId?: string;
 }>;
 
 const SECONDS_PER_HOUR = 3600;
@@ -26,8 +29,27 @@ const GAMES: readonly FakeGame[] = [
   { id: 6, name: "Outer Wilds", year: 2019, developer: "Mobius Digital", normallySeconds: 17 * SECONDS_PER_HOUR },
   { id: 7, name: "Frostpunk", year: 2018, developer: "11 bit studios", normallySeconds: 12 * SECONDS_PER_HOUR },
   { id: 8, name: "Disco Elysium", year: 2019, developer: "ZA/UM", normallySeconds: 22 * SECONDS_PER_HOUR },
-  { id: 9, name: "8BitMMO", year: 2013, developer: "Archive Entertainment" },
+  { id: 9, name: "8BitMMO", year: 2013, developer: "Archive Entertainment", steamAppId: "250420" },
+  // Los de las muestras de importación (tests/adapter/ign y tests/adapter/playnite).
+  { id: 10, name: "20 Minutes Till Dawn", year: 2022, steamAppId: "1966900", normallySeconds: 4 * SECONDS_PER_HOUR },
+  { id: 11, name: "60 Seconds!", year: 2015, steamAppId: "368360" },
+  { id: 12, name: "Among Us", year: 2018, steamAppId: "945360", modes: ["multiplayer", "co-operative"] },
+  { id: 13, name: "Overwatch", year: 2016, modes: ["multiplayer"] },
+  { id: 14, name: "Overwatch 2", year: 2022, modes: ["multiplayer"] },
+  { id: 15, name: "Celeste", year: 2018, steamAppId: "504230", modes: ["single-player"], normallySeconds: 8 * SECONDS_PER_HOUR },
+  { id: 16, name: "Portal 2", year: 2011, steamAppId: "620", modes: ["single-player", "co-operative"] },
+  { id: 17, name: "Grand Theft Auto V", year: 2013, modes: ["single-player", "multiplayer"] },
+  { id: 18, name: "112 Operator", year: 2022, modes: ["single-player"] },
+  { id: 19, name: "Rocket League", year: 2015, modes: ["multiplayer"] },
+  { id: 20, name: "Barony", year: 2015, modes: ["single-player", "co-operative"] },
 ];
+
+// La fuente de Steam en external_games, verificada contra IGDB real (04 design.md §7).
+const STEAM_SOURCE = 1;
+const STEAM_APP_IDS = new Map([
+  ["367520", 1],
+  ...GAMES.flatMap((game) => (game.steamAppId ? [[game.steamAppId, game.id] as const] : [])),
+]);
 
 function toGameDto(game: FakeGame) {
   return {
@@ -37,7 +59,15 @@ function toGameDto(game: FakeGame) {
     url: `https://www.igdb.com/games/${game.id}`,
     version_parent: game.versionParent,
     involved_companies: game.developer ? [{ developer: true, company: { name: game.developer } }] : [],
+    game_modes: game.modes?.map((slug) => ({ slug })),
   };
+}
+
+/** Los ids de `where id = 3;` o `where id = (3,4);`, como los manda el adapter. */
+function idsIn(body: string, field: string): readonly number[] {
+  const list = new RegExp(String.raw`where ${field} = \(([\d,]+)\)`).exec(body)?.[1];
+  const single = new RegExp(String.raw`where ${field} = (\d+);`).exec(body)?.[1];
+  return (list ?? single ?? "").split(",").filter(Boolean).map(Number);
 }
 
 function matchGames(body: string): readonly FakeGame[] {
@@ -54,15 +84,44 @@ function matchGames(body: string): readonly FakeGame[] {
     return GAMES.filter((game) => game.name.toLowerCase().startsWith(prefix));
   }
 
-  const id = Number(/where id = (\d+);/.exec(body)?.[1]);
-  return GAMES.filter((game) => game.id === id);
+  // La importación busca primero el nombre exacto, sin distinguir mayúsculas: `where name ~ "Hades" & …`.
+  const exact = /where name ~ "([^"]*)" &/.exec(body)?.[1]?.toLowerCase();
+
+  if (exact !== undefined) {
+    return GAMES.filter((game) => game.name.toLowerCase() === exact);
+  }
+
+  const ids = idsIn(body, "id");
+  return GAMES.filter((game) => ids.includes(game.id));
 }
 
 function timesToBeat(body: string) {
-  const id = Number(/where game_id = (\d+);/.exec(body)?.[1]);
-  const game = GAMES.find((candidate) => candidate.id === id);
+  const ids = idsIn(body, "game_id");
 
-  return game?.normallySeconds === undefined ? [] : [{ normally: game.normallySeconds }];
+  return GAMES.filter((game) => ids.includes(game.id) && game.normallySeconds !== undefined).map((game) => ({
+    game_id: game.id,
+    normally: game.normallySeconds,
+  }));
+}
+
+function externalGames(body: string) {
+  const source = Number(/external_game_source = (\d+)/.exec(body)?.[1]);
+  const uids = [...(/uid = \(([^)]*)\)/.exec(body)?.[1] ?? "").matchAll(/"([^"]*)"/g)].map(([, uid]) => uid);
+
+  return source === STEAM_SOURCE
+    ? uids.flatMap((uid) => {
+        const game = STEAM_APP_IDS.get(uid);
+        return game === undefined ? [] : [{ uid, game }];
+      })
+    : [];
+}
+
+/** Cada `query games "0" { … };` responde como si fuera un pedido a /games. */
+function multiquery(body: string) {
+  return [...body.matchAll(/query games "([^"]+)" \{([^}]*)\};/g)].map(([, name, query]) => ({
+    name,
+    result: matchGames(query).map(toGameDto),
+  }));
 }
 
 async function readBody(request: IncomingMessage): Promise<string> {
@@ -90,6 +149,10 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
       return sendJson(response, matchGames(await readBody(request)).map(toGameDto));
     case "/v4/game_time_to_beats":
       return sendJson(response, timesToBeat(await readBody(request)));
+    case "/v4/external_games":
+      return sendJson(response, externalGames(await readBody(request)));
+    case "/v4/multiquery":
+      return sendJson(response, multiquery(await readBody(request)));
     default:
       return sendJson(response, { message: pathname }, 404);
   }

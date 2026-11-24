@@ -101,7 +101,7 @@ describe("HelpTip de la duración", () => {
 
     expectHelp(
       "Duración",
-      "Cuánto se tarda en promedio en terminarlo, según IGDB o lo que cargues vos. No son tus horas jugadas.",
+      "Cuánto se tarda en promedio en terminarlo, según IGDB, HowLongToBeat o lo que cargues vos. No son tus horas jugadas.",
     );
   });
 });

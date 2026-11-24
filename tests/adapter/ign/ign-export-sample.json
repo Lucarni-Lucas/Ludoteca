@@ -1,0 +1,251 @@
+{
+ "count": 9,
+ "errors": [],
+ "exportedAt": "2025-03-02T14:30:00.000Z",
+ "records": [
+  {
+   "added": "2025-03-02T14:10:00.000Z",
+   "alt": [
+    "Twenty Minutes Till Dawn"
+   ],
+   "dev": [
+    "Flanne"
+   ],
+   "flags": [
+    "archived"
+   ],
+   "hltb": [
+    3.7,
+    12.4,
+    29.5
+   ],
+   "ignId": "00000000-0000-4000-8000-000000000001",
+   "itchId": null,
+   "name": "20 Minutes Till Dawn",
+   "platforms": [],
+   "review": null,
+   "score": 5,
+   "scoredAt": "2025-03-02T14:11:00.000Z",
+   "slug": "20-minutes-till-dawn",
+   "status": "quit",
+   "steamId": 1966900,
+   "updated": "2025-03-02T14:10:00.000Z",
+   "year": 2022
+  },
+  {
+   "added": "2025-03-02T14:12:00.000Z",
+   "alt": [],
+   "dev": [
+    "Robot Gentleman"
+   ],
+   "flags": [
+    "completed"
+   ],
+   "hltb": [
+    2.3,
+    6.8,
+    28.6
+   ],
+   "ignId": "00000000-0000-4000-8000-000000000002",
+   "itchId": null,
+   "name": "60 Seconds!",
+   "platforms": [],
+   "review": null,
+   "score": 8,
+   "scoredAt": "2025-03-02T14:13:00.000Z",
+   "slug": "60-seconds",
+   "status": "beat",
+   "steamId": 368360,
+   "updated": "2025-03-02T14:12:00.000Z",
+   "year": 2015
+  },
+  {
+   "added": "2025-03-02T14:14:00.000Z",
+   "alt": [],
+   "dev": [
+    "Archive Entertainment"
+   ],
+   "flags": [
+    "backlog"
+   ],
+   "hltb": [
+    2.5,
+    null,
+    26.9
+   ],
+   "ignId": "00000000-0000-4000-8000-000000000003",
+   "itchId": null,
+   "name": "8BitMMO",
+   "platforms": [],
+   "review": null,
+   "score": null,
+   "scoredAt": null,
+   "slug": "8bit-mmo",
+   "status": "backlog",
+   "steamId": 250420,
+   "updated": "2025-03-02T14:14:00.000Z",
+   "year": 2001
+  },
+  {
+   "added": "2025-03-02T14:15:00.000Z",
+   "alt": [],
+   "dev": [
+    "Innersloth"
+   ],
+   "flags": [
+    "completed"
+   ],
+   "hltb": [
+    9,
+    17.9,
+    29.7
+   ],
+   "ignId": "00000000-0000-4000-8000-000000000004",
+   "itchId": null,
+   "name": "Among Us",
+   "platforms": [],
+   "review": null,
+   "score": 6,
+   "scoredAt": "2025-03-02T14:16:00.000Z",
+   "slug": "among-us",
+   "status": "beat",
+   "steamId": 945360,
+   "updated": "2025-03-02T14:15:00.000Z",
+   "year": 2018
+  },
+  {
+   "added": "2025-03-02T14:17:00.000Z",
+   "alt": [
+    "Blizzard's Overwatch",
+    "Over Watch"
+   ],
+   "dev": [
+    "Blizzard Entertainment"
+   ],
+   "flags": [
+    "completed",
+    "archived"
+   ],
+   "hltb": [
+    93.3,
+    147.2,
+    600.1
+   ],
+   "ignId": "00000000-0000-4000-8000-000000000005",
+   "itchId": null,
+   "name": "Overwatch",
+   "platforms": [],
+   "review": null,
+   "score": 5,
+   "scoredAt": "2025-03-02T14:18:00.000Z",
+   "slug": "overwatch",
+   "status": "beat",
+   "steamId": null,
+   "updated": "2025-03-02T14:18:00.000Z",
+   "year": 2022
+  },
+  {
+   "added": "2025-03-02T14:19:00.000Z",
+   "alt": [],
+   "dev": [
+    "Naughty Dog Software"
+   ],
+   "flags": [
+    "completed"
+   ],
+   "hltb": null,
+   "ignId": "00000000-0000-4000-8000-000000000006",
+   "itchId": null,
+   "name": "Crash Bandicoot",
+   "platforms": [],
+   "review": null,
+   "score": 9,
+   "scoredAt": "2025-03-02T14:20:00.000Z",
+   "slug": "crash-bandicoot",
+   "status": "beat",
+   "steamId": null,
+   "updated": "2025-03-02T14:19:00.000Z",
+   "year": 1996
+  },
+  {
+   "added": "2025-03-02T14:21:00.000Z",
+   "alt": [],
+   "dev": [
+    "Matt Makes Games Inc.",
+    "Extremely OK Games"
+   ],
+   "flags": [
+    "playing"
+   ],
+   "hltb": [
+    8.3,
+    14.7,
+    39.2
+   ],
+   "ignId": "00000000-0000-4000-8000-000000000007",
+   "itchId": "216996",
+   "name": "Celeste",
+   "platforms": [],
+   "review": null,
+   "score": null,
+   "scoredAt": null,
+   "slug": "celeste",
+   "status": "playing",
+   "steamId": 504230,
+   "updated": "2025-03-02T14:21:00.000Z",
+   "year": 2018
+  },
+  {
+   "added": "2025-03-02T14:23:00.000Z",
+   "alt": [],
+   "dev": [
+    "Estudio Faro"
+   ],
+   "flags": [
+    "paused"
+   ],
+   "hltb": [
+    14.5,
+    20,
+    31
+   ],
+   "ignId": "00000000-0000-4000-8000-000000000008",
+   "itchId": null,
+   "name": "Cartas del Faro",
+   "platforms": [],
+   "review": null,
+   "score": 7,
+   "scoredAt": "2025-03-02T14:24:00.000Z",
+   "slug": "cartas-del-faro",
+   "status": "paused",
+   "steamId": null,
+   "updated": "2025-03-02T14:23:00.000Z",
+   "year": 2021
+  },
+  {
+   "added": "2025-03-02T14:25:00.000Z",
+   "alt": [],
+   "dev": [
+    "Estudio Bruma"
+   ],
+   "flags": [
+    "wishlist"
+   ],
+   "hltb": null,
+   "ignId": "00000000-0000-4000-8000-000000000009",
+   "itchId": null,
+   "name": "Bruma Eterna",
+   "platforms": [],
+   "review": null,
+   "score": null,
+   "scoredAt": null,
+   "slug": "bruma-eterna",
+   "status": "wishlist",
+   "steamId": null,
+   "updated": "2025-03-02T14:25:00.000Z",
+   "year": 2026
+  }
+ ],
+ "total": 9,
+ "withScore": 6
+}

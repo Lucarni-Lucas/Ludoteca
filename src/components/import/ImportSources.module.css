@@ -1,0 +1,228 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.title {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 500 var(--text-11) / 1 var(--font-mono);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* En el celu, una sola tarjeta con una fila por fuente (Movil-Importar.dc.html). */
+.grid {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-field-search);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12);
+  min-width: 0;
+  padding: var(--space-12) var(--space-12) var(--space-12) var(--space-14);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.card:last-child {
+  border-bottom: 0;
+}
+
+.heading {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.code {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  font: 500 var(--text-11) / 1 var(--font-mono);
+}
+
+.headingText {
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: var(--text-15);
+  font-weight: 600;
+}
+
+.detail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-13);
+}
+
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-10);
+}
+
+.count {
+  font: 500 var(--text-26) / 1 var(--font-mono);
+}
+
+.when,
+.notLoaded,
+.note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-13);
+}
+
+.notLoaded {
+  display: none;
+}
+
+.actions {
+  flex: none;
+  display: flex;
+  gap: var(--space-8);
+}
+
+/* Lo que no entra en la fila baja a su propio renglón. */
+.steamForm,
+.ok,
+.error {
+  flex: 1 1 100%;
+}
+
+.steamForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.steamRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.steamRow > input {
+  flex: 1 1 160px;
+  width: auto;
+}
+
+.ok,
+.error {
+  margin: 0;
+  font-size: var(--text-14);
+}
+
+.ok {
+  color: var(--color-text-soft);
+}
+
+.error {
+  color: var(--color-danger);
+}
+
+.silent {
+  display: contents;
+}
+
+.wideOnly {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .title {
+    color: var(--color-text);
+    font: 700 var(--text-22) / 1.2 var(--font-heading);
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+    gap: var(--space-16);
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .card {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: var(--space-14);
+    padding: var(--space-18);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+  }
+
+  .card:last-child {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .heading {
+    flex: none;
+  }
+
+  .code {
+    width: var(--touch-target);
+    height: var(--touch-target);
+    font-size: var(--text-12);
+  }
+
+  .name {
+    font-size: var(--text-16);
+  }
+
+  .notLoaded {
+    display: block;
+  }
+
+  .steamForm,
+  .ok,
+  .error {
+    flex: none;
+  }
+
+  .wideOnly {
+    display: revert;
+  }
+
+  .narrowOnly {
+    display: none;
+  }
+
+  .summary.wideOnly {
+    display: flex;
+  }
+}

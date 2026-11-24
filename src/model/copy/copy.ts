@@ -1,8 +1,11 @@
 export const COPY_KINDS = ["purchased", "free", "subscription", "family", "physical", "other"] as const;
 export const LOST_REASONS = ["left_family", "subscription_ended", "sold", "other"] as const;
+/** Cómo llegó la copia: cargada a mano, por una importación o por la sincronización de una tienda (`05`). */
+export const COPY_ORIGINS = ["manual", "import", "sync"] as const;
 
 export type CopyKind = (typeof COPY_KINDS)[number];
 export type LostReason = (typeof LOST_REASONS)[number];
+export type CopyOrigin = (typeof COPY_ORIGINS)[number];
 
 const OWN_COPY_KINDS: readonly CopyKind[] = ["purchased", "free", "physical", "other"];
 

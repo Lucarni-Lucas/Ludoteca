@@ -41,6 +41,8 @@ export function toLibraryGame({ library, catalog }: GameRow, status: Status, cop
     manualPlayedMinutes: library.playedMinutesManual,
     addedAt: library.createdAt.toISOString(),
     copies,
+    // Solo aparece si vino de una importación: los juegos de siempre conservan su forma.
+    ...(library.hltbHours === null ? {} : { hltbHours: library.hltbHours }),
   };
 }
 

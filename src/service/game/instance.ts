@@ -24,7 +24,7 @@ let libraryService: LibraryService | undefined;
 let coverService: CoverService | undefined;
 let playedHoursService: PlayedHoursService | undefined;
 
-function getIgdbAdapter(): IgdbAdapter {
+export function getIgdbAdapter(): IgdbAdapter {
   if (!igdbAdapter) {
     const tokens = createProviderTokenRepository(getDatabase());
 

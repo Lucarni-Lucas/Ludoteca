@@ -13,6 +13,7 @@
     "Escritorio-Estados.dc.html": { "x": 7600, "y": 0, "w": 1440, "h": 1300, "title": "Escritorio · Ajustes de estados", "expand": "fill", "is_interactive": true },
     "Escritorio-Suscripciones.dc.html": { "x": 9120, "y": 0, "w": 1440, "h": 1250, "title": "Escritorio · Suscripciones", "expand": "fill", "is_interactive": true },
     "Escritorio-Tiendas.dc.html": { "x": 10640, "y": 0, "w": 1440, "h": 1200, "title": "Escritorio · Tiendas y avisos", "expand": "fill", "is_interactive": true },
+    "Escritorio-Importar.dc.html": { "x": 12160, "y": 0, "w": 1440, "h": 2000, "title": "Escritorio · Importar", "expand": "fill", "is_interactive": true },
     "Movil-Biblioteca.dc.html": { "x": 0, "y": 2500, "w": 390, "h": 844, "title": "Móvil · Biblioteca", "is_interactive": true, "radius": 36 },
     "Movil-Filtros.dc.html": { "x": 470, "y": 2500, "w": 390, "h": 1400, "title": "Móvil · Filtros", "is_interactive": true, "radius": 36 },
     "Movil-Juego.dc.html": { "x": 940, "y": 2500, "w": 390, "h": 1380, "title": "Móvil · Ficha del juego", "is_interactive": true, "radius": 36 },
@@ -22,7 +23,8 @@
     "Movil-Agregar.dc.html": { "x": 470, "y": 4380, "w": 390, "h": 844, "title": "Móvil · Agregar juego", "is_interactive": true, "radius": 36 },
     "Movil-AgregarManual.dc.html": { "x": 940, "y": 4380, "w": 390, "h": 1320, "title": "Móvil · Agregar a mano", "is_interactive": true, "radius": 36 },
     "Movil-Suscripciones.dc.html": { "x": 1410, "y": 4380, "w": 390, "h": 1540, "title": "Móvil · Suscripciones", "is_interactive": true, "radius": 36 },
-    "Movil-Tiendas.dc.html": { "x": 1880, "y": 4380, "w": 390, "h": 1480, "title": "Móvil · Tiendas y avisos", "is_interactive": true, "radius": 36 }
+    "Movil-Tiendas.dc.html": { "x": 1880, "y": 4380, "w": 390, "h": 1480, "title": "Móvil · Tiendas y avisos", "is_interactive": true, "radius": 36 },
+    "Movil-Importar.dc.html": { "x": 2350, "y": 4380, "w": 390, "h": 1900, "title": "Móvil · Importar", "is_interactive": true, "radius": 36 }
   },
   "order": [
     "Main.dc.html",
@@ -33,6 +35,7 @@
     "Escritorio-Estados.dc.html",
     "Escritorio-Suscripciones.dc.html",
     "Escritorio-Tiendas.dc.html",
+    "Escritorio-Importar.dc.html",
     "Movil-Biblioteca.dc.html",
     "Movil-Filtros.dc.html",
     "Movil-Juego.dc.html",
@@ -42,12 +45,13 @@
     "Movil-Agregar.dc.html",
     "Movil-AgregarManual.dc.html",
     "Movil-Suscripciones.dc.html",
-    "Movil-Tiendas.dc.html"
+    "Movil-Tiendas.dc.html",
+    "Movil-Importar.dc.html"
   ],
   "notes": {
-    "fila-escritorio": { "x": 0, "y": -300, "text": "Escritorio", "kind": "title1", "maxW": 12080 },
+    "fila-escritorio": { "x": 0, "y": -300, "text": "Escritorio", "kind": "title1", "maxW": 13600 },
     "fila-biblioteca": { "x": 0, "y": 2240, "text": "Móvil · Biblioteca y juegos", "kind": "title1", "maxW": 2270 },
-    "fila-buscar": { "x": 0, "y": 4120, "text": "Móvil · Buscar, agregar y pagar", "kind": "title1", "maxW": 2270 }
+    "fila-buscar": { "x": 0, "y": 4120, "text": "Móvil · Buscar, agregar y pagar", "kind": "title1", "maxW": 2740 }
   },
   "designSystems": []
 }

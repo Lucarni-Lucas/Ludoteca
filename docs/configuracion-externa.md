@@ -215,7 +215,7 @@ Hacé esto **antes del `/opsx:propose 04-importacion`**: el diseño del importad
 
 1. En [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey), con tu cuenta de Steam. Pide una cuenta no limitada (que haya gastado al menos USD 5); con tu biblioteca, la tenés.
 2. **Domain name:** la URL de Vercel sin `https://`. Es solo informativo.
-3. Copiá la clave a `.env.local` y a Vercel. Es secreta.
+3. Copiá la clave a `.env.local` y a Vercel (Production y Preview) como `STEAM_API_KEY`. Es secreta y va solo en el servidor, nunca en una variable `NEXT_PUBLIC_`. Sin ella, la app anda igual y la fuente Steam de `/import` dice que falta configurarla.
 
 ### Privacidad del perfil de Steam
 
@@ -229,7 +229,7 @@ Tené a mano el link de tu perfil o tu SteamID64: lo vas a pegar en Ludoteca al 
 ### Playnite, para Epic y GOG
 
 1. Bajá Playnite de [playnite.link](https://playnite.link) e instalalo (es para Windows).
-2. **Add-ons** (F9) › **Libraries**: configurá **Epic Games** y **GOG** e iniciá sesión en cada una con tu cuenta.
+2. **Add-ons** (F9) › **Libraries**: configurá **Epic Games** y **GOG** e iniciá sesión en cada una con tu cuenta. Dejá también la de **Steam**, sin iniciar sesión: así Playnite lista los juegos de Steam instalados en tu PC, y la importación detecta cuáles son de tu familia (los que tu cuenta no tiene).
 3. Menú principal › **Update game library**. Esperá a que aparezcan tus 211 juegos de Epic.
 4. Instalá el exportador **PlayniteLibraryExport**: de [su repo](https://github.com/Dawnflare/PlayniteLibraryExport), bajá el archivo `.pext` de la carpeta `dist`, cerrá Playnite y hacé doble clic en el `.pext`.
 5. Abrí Playnite y andá a **Extensions › Playnite Library Exporter › Export library now**. Elegí JSON.
