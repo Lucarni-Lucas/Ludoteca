@@ -110,12 +110,12 @@ describe("useImportReview", () => {
     actions.decideAction.mockResolvedValue({ ok: true, data: LOADED });
     const { result } = renderHookWithIntl(() => useImportReview(EMPTY));
 
-    let saved = false;
+    let saved: unknown = null;
     await act(async () => {
       saved = await result.current.decide(["entrada"], { kind: "accept" });
     });
 
-    expect(saved).toBe(true);
+    expect(saved).toEqual(LOADED);
     expect(actions.decideAction).toHaveBeenCalledWith(["entrada"], { kind: "accept" });
     expect(result.current.overview).toEqual(LOADED);
   });

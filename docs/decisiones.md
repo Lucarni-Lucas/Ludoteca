@@ -202,9 +202,9 @@ import_entry        un juego a revisar por cada juego de IGDB (o por fila que no
 
 | Fuente | Qué aporta | Cómo |
 |---|---|---|
-| **IGN** (303 juegos) | Estado y puntaje de lo que jugaste. | Ya exportado a JSON. Está en el proyecto Ludoteca de claude.ai (`datos/ign-export.json`), **no en el repo** porque el repo es público. |
+| **IGN** (303 juegos) | Estado y puntaje de lo que jugaste. | Ya exportado a JSON. Está en el proyecto Ludoteca de claude.ai (`datos/ign-export.json`), **no en el repo** porque el repo es público. Para volver a sacarlo, la guía «¿Cómo lo saco?» de `/import` ofrece un marcador del navegador (ver abajo). |
 | **Steam** | Copias de Steam y horas jugadas. | API oficial, se sincroniza sola. |
-| **Playnite** (211 juegos de Epic, y GOG si hay) | Copias de las demás tiendas. | Lo instalás en Windows, iniciás sesión en las tiendas, exportás a JSON y lo subís. |
+| **Playnite** (211 juegos de Epic, y GOG si hay) | Copias de las demás tiendas. | Lo instalás en Windows, iniciás sesión en las tiendas, exportás a JSON y lo subís. Los pasos del exportador están en la guía «¿Cómo lo saco?» de `/import`. |
 | **A mano** | Microsoft Store, itch.io, Switch, físicos. | Formulario de agregar. |
 
 **Qué trae el export de IGN:** 303 juegos (162 Beat, 76 Backlog, 37 Quit, 18 Paused, 10 Playing), 220 con puntaje entero, 259 con ID de Steam y 274 con duraciones de HowLongToBeat. Ninguno trae plataforma ni reseña.
@@ -222,20 +222,28 @@ import_entry        un juego a revisar por cada juego de IGDB (o por fila que no
 | Beat y Quit a la vez (Overwatch) | Lo decidís en la revisión |
 
 - Los puntajes enteros pasan tal cual: 8 queda como 8.0.
-- **Cruce con IGDB:** primero por el ID de tienda: Steam y GOG. El ID de Epic que trae Playnite no es el que guarda IGDB, así que Epic cruza por título (verificado, `04` design.md §7). Por título, primero el nombre exacto de a 10 por pedido y después la búsqueda de a uno; los dudosos quedan para revisar.
-- **La importación es una revisión, no un volcado.** Cada juego está en un solo grupo, el primero que le toca, y sus opciones son una elección de una sola opción con la sugerencia ya marcada:
+- **Cruce con IGDB:** primero por el ID de tienda: Steam y GOG. El ID de Epic que trae Playnite no es el que guarda IGDB, así que Epic cruza por título (verificado, `04` design.md §7). Por título, primero el nombre exacto de a 10 por pedido y después la búsqueda de a uno. Un solo resultado con el mismo nombre cruza aunque el año no coincida: el año de Epic suele ser el de la tienda (20XX llega con 2020 y en IGDB es de 2017). Varios con el mismo nombre, o uno solo con otro nombre, quedan para elegir.
+- **La importación es una revisión, no un volcado.** Cada juego está en un solo grupo, el primero que le toca. Hay dos clases de grupo:
+  - **Preguntas de a un juego** (1 a 3): la respuesta no se puede adivinar, así que **ninguna opción viene marcada**. Cada juego dice cómo llegó («En Epic: Castlevania Anniversary Collection · 2019») y los candidatos se ven con portada, nombre completo y año.
+  - **Grupos de lote** (4 a 7): las opciones son una elección de una sola opción con la sugerencia ya marcada, y «Pasar a Listos» la guarda en los seleccionados.
 
-  | Grupo | Le toca si… | Opciones (marcada primero) |
-  |---|---|---|
-  | Para revisar | Varios candidatos de IGDB, o dos estados de IGN | El candidato más parecido; o el estado de `status` |
-  | No lo encontré | Sin cruce con IGDB | Cargar a mano (o No importar si no es un juego) · No importar · «Buscar con otro nombre» aparte |
-  | ¿Es de tu familia? | Steam de tu PC que tu cuenta no tiene | Familia · Comprado · Otro tipo · No importar |
-  | ¿Es sin fin? | Completado y solo multijugador en IGDB | Jugado · sin fin · Completado |
-  | ¿Lo vas a jugar alguna vez? | Pendiente de IGN sin puntaje, o con 0 h en todas sus copias | Pendiente · Sin interés · No importar |
-  | Elegí un estado | No vino de IGN y tiene horas jugadas | Un estado, con Pendiente |
-  | Listos | Nada dudoso, o ya decidido | «Volver a revisar» |
+  | # | Grupo | Le toca si… | Opciones (marcada primero en los de lote) |
+  |---|---|---|---|
+  | 1 | ¿Cuál de estos es? | Varios candidatos de IGDB, o uno solo con otro nombre | Un candidato por tarjeta, «Ninguno, lo busco yo» y No importar. Con un solo candidato de otro nombre: «¿Es este juego?» con Sí · No, lo busco yo · No importar |
+  | 2 | ¿Cómo lo dejaste? | Dos estados de IGN (Overwatch) | Un botón por estado en palabras («Lo terminaste», «Lo abandonaste») · Otro estado · No importar |
+  | 3 | No lo encontré | Sin cruce con IGDB | Buscar con otro nombre · Cargar a mano · No importar; a lo que no parece un juego se le suma una línea que lo dice |
+  | 4 | ¿Es de tu familia? | Steam de tu PC que tu cuenta no tiene | Familia · Comprado · Otro tipo · No importar |
+  | 5 | ¿Es sin fin? | Completado y solo multijugador en IGDB | Jugado · sin fin · Completado |
+  | 6 | ¿Lo vas a jugar alguna vez? | Pendiente de IGN sin puntaje, o con 0 h en todas sus copias | Pendiente · Sin interés · No importar |
+  | 7 | Elegí un estado | No vino de IGN y tiene horas jugadas | Un estado, con Pendiente |
+  | 8 | Listos para importar | Nada dudoso, o ya decidido | Cómo va a entrar («Entra como Pendiente · Epic Games · Gratis») y «Volver a revisar» |
 
-- **Todo lo decidido pasa a «Listos».** Elegir otra opción la guarda y lleva el juego a «Listos»; «Pasar a Listos» guarda lo marcado sin cambiarlo, de a uno o en lote. «Confirmar importación» suma todo lo que está en «Listos» y lo demás sigue esperando.
+- **Todo lo decidido pasa a «Listos para importar».** Elegir una opción la guarda y lleva el juego ahí; en los grupos de lote, «Pasar a Listos» guarda lo marcado sin cambiarlo, de a uno o en lote. En las preguntas de a un juego, la barra de selección solo ofrece «No importar». El tipo de copia se cambia en lote con «¿Cómo lo conseguiste?». «Confirmar importación» suma todo lo que está en «Listos para importar» y lo demás sigue esperando.
+- **«Volver a revisar»** devuelve el juego a su grupo sin la decisión, también un candidato elegido, y el aviso dice adónde volvió. Los avisos de cada acción son flotantes, abajo de la pantalla.
+- **«Empezar de nuevo»** borra, previa confirmación, los archivos subidos, lo traído de Steam y lo decidido sin confirmar. No toca la biblioteca, lo ya importado ni la cuenta de Steam conectada.
+- **La revisión vence a los 7 días sin tocarla** (subir un archivo, traer de Steam, decidir, buscar con otro nombre o confirmar). Se chequea al abrir `/import`: si venció, se descarta como «Empezar de nuevo» y la pantalla lo avisa. No hay cron.
+- **Al confirmar**, de cada juego confirmado queda solo lo que necesita reimportar sin duplicar: la fuente, su ID en la fuente y en qué quedó. El resto de lo que usó la revisión se borra.
+- **Guías «¿Cómo lo saco?»:** cada fuente de archivo tiene la suya. La de Playnite explica el exportador (link a la página de su autor, Ludoteca no lo hospeda). La de IGN ofrece un **marcador del navegador** que, en www.ign.com con la sesión abierta, pide la biblioteca y los puntajes a la API de IGN (`mollusk.apis.ign.com/graphql`) y descarga `ign-export.json` con el mismo formato de siempre. Corre solo en el navegador y no manda nada a Ludoteca ni a terceros; la guía avisa que puede dejar de andar si IGN cambia su página.
 - **Un juego que ya está en tu biblioteca** solo suma las copias que le falten: ni el estado ni el puntaje cambian.
 - **Reimportar no duplica:** cada copia se reconoce por tienda + ID en la tienda, y un juego nunca recibe dos copias de la misma tienda desde la importación.
 

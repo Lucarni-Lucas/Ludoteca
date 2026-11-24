@@ -131,33 +131,76 @@ describe("reviewGame", () => {
   });
 
   describe("grupos y opción marcada", () => {
-    it("Título ambiguo: queda en «Para revisar» con el primer candidato marcado", () => {
-      const candidate = { igdbId: 1, baseIgdbId: 1, title: "Overwatch", year: 2016, coverUrl: null };
-      const overwatch = entry("Overwatch", [ignItem("Overwatch", { matchState: "candidates", candidates: [candidate] })], {
+    it("Elegir entre varios", () => {
+      const candidates = [1996, 1997, 2004, 2017, 2020].map((year, index) => ({
+        igdbId: index + 1,
+        baseIgdbId: index + 1,
+        title: "Crash Bandicoot",
+        year,
+        coverUrl: `https://images.igdb.com/crash-${year}.jpg`,
+      }));
+      const crash = entry("Crash Bandicoot", [ignItem("Crash Bandicoot", { year: 1996, matchState: "candidates", candidates })], {
         igdbId: null,
         catalogGameId: null,
         catalog: null,
       });
 
-      const game = review(overwatch);
+      const game = review(crash);
 
-      expect(game.group).toBe("review");
-      expect(game.choices).toEqual([{ kind: "candidate", candidate }, { kind: "search" }]);
-      expect(game.marked).toEqual({ kind: "candidate", candidate });
+      expect(game).toMatchObject({ group: "which", marked: null, isThisQuestion: false });
+      expect(game.origins).toEqual([expect.objectContaining({ source: "ign", title: "Crash Bandicoot", year: 1996 })]);
+      expect(game.choices).toEqual([
+        ...candidates.map((candidate) => ({ kind: "candidate", candidate })),
+        { kind: "search" },
+        { kind: "exclude" },
+      ]);
     });
 
-    it("dos estados de IGN quedan en «Para revisar» con el del status marcado", () => {
+    it("Un solo candidato con otro nombre", () => {
+      const candidate = {
+        igdbId: 9,
+        baseIgdbId: 9,
+        title: "Castlevania: Anniversary Collection - Ultimate Edition",
+        year: 2019,
+        coverUrl: null,
+      };
+      const castlevania = entry(
+        "Castlevania Anniversary Collection",
+        [playniteItem("Castlevania Anniversary Collection", EPIC, "castle", { year: 2019, matchState: "candidates", candidates: [candidate] })],
+        { igdbId: null, catalogGameId: null, catalog: null },
+      );
+
+      const game = review(castlevania);
+
+      expect(game).toMatchObject({ group: "which", isThisQuestion: true, marked: null });
+      expect(game.origins[0]).toMatchObject({ source: "playnite", storeName: "Epic Games", year: 2019 });
+      expect(game.choices).toEqual([{ kind: "candidate", candidate }, { kind: "search" }, { kind: "exclude" }]);
+    });
+
+    it("Terminado y abandonado", () => {
       const overwatch = entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["beat", "quit"] })]);
 
       const game = review(overwatch);
 
-      expect(game.group).toBe("review");
+      expect(game).toMatchObject({ group: "how_left", marked: null });
       expect(game.choices).toEqual([
         { kind: "status", statusKey: "completed" },
         { kind: "status", statusKey: "abandoned" },
         { kind: "other_status" },
+        { kind: "exclude" },
       ]);
-      expect(game.marked).toEqual({ kind: "status", statusKey: "completed" });
+    });
+
+    it("sin saber qué juego es, «¿Cuál de estos es?» va antes que «¿Cómo lo dejaste?»", () => {
+      const candidates = [1, 2].map((igdbId) => ({ igdbId, baseIgdbId: igdbId, title: "Doom", year: 1993 + igdbId, coverUrl: null }));
+      const doom = entry("Doom", [ignItem("Doom", { ignStatuses: ["beat", "quit"], matchState: "candidates", candidates })], {
+        igdbId: null,
+        catalog: null,
+      });
+
+      const game = review(doom);
+
+      expect(game.group).toBe("which");
     });
 
     it("Juego viejo sin cruce", () => {
@@ -170,12 +213,12 @@ describe("reviewGame", () => {
       const game = review(crash);
 
       expect(game.group).toBe("not_found");
-      expect(game.choices).toEqual([{ kind: "manual" }, { kind: "exclude" }]);
-      expect(game.marked).toEqual({ kind: "manual" });
+      expect(game.choices).toEqual([{ kind: "search" }, { kind: "manual" }, { kind: "exclude" }]);
+      expect(game.marked).toBeNull();
       expect(game.title).toBe("Crash Bandicoot");
     });
 
-    it("una entrada que no es juego sin base va a «No lo encontré» con «No importar» marcado", () => {
+    it("una entrada que no es juego sin base va a «No lo encontré» con su marca y sin opción marcada", () => {
       const redacted = entry("[REDACTED]", [playniteItem("[REDACTED]", EPIC, "x", { matchState: "not_found" })], {
         igdbId: null,
         catalogGameId: null,
@@ -184,7 +227,7 @@ describe("reviewGame", () => {
 
       const game = review(redacted);
 
-      expect(game).toMatchObject({ group: "not_found", nonGame: true, marked: { kind: "exclude" } });
+      expect(game).toMatchObject({ group: "not_found", nonGame: true, marked: null });
     });
 
     it("Juego multijugador terminado", () => {
@@ -227,7 +270,7 @@ describe("reviewGame", () => {
       expect(game.suggestion.statusKey).toBe("backlog");
     });
 
-    it("un juego sin nada dudoso está en «Listos» sin opciones", () => {
+    it("un juego sin nada dudoso está en «Listos para importar» sin opciones", () => {
       const celeste = entry("Celeste", [ignItem("Celeste", { ignStatuses: ["playing"], ignScore: 9 }), steamItem("Celeste", "504230", 600)]);
 
       const game = review(celeste);
@@ -235,7 +278,7 @@ describe("reviewGame", () => {
       expect(game).toMatchObject({ group: "ready", choices: [], marked: null, decided: false });
     });
 
-    it("lo decidido pasa a «Listos» aunque le tocara otro grupo", () => {
+    it("lo decidido pasa a «Listos para importar» aunque le tocara otro grupo", () => {
       const amongUs = entry("Among Us", [ignItem("Among Us", { ignStatuses: ["beat"] })], {
         multiplayerOnly: true,
         answers: { endlessAnswer: true },
@@ -246,9 +289,37 @@ describe("reviewGame", () => {
       expect(game).toMatchObject({ group: "ready", decided: true, suggestion: { statusKey: "played", endless: true } });
     });
 
+    it("Cómo va a entrar", () => {
+      const operator = entry("112 Operator", [playniteItem("112 Operator", EPIC, "operator", { playtimeMinutes: 0 })], {
+        answers: { playAnswer: "keep" },
+      });
+
+      const game = review(operator);
+
+      expect(game).toMatchObject({
+        group: "ready",
+        manual: false,
+        libraryGameId: null,
+        suggestion: { statusKey: "backlog", notInterested: false, endless: false },
+      });
+      expect(game.suggestion.copies).toEqual([expect.objectContaining({ store: EPIC, kind: "free", excluded: false })]);
+    });
+
+    it("un juego cargado a mano lo dice en «Listos para importar»", () => {
+      const crash = entry("Crash", [ignItem("Crash Bandicoot", { matchState: "not_found", ignStatuses: ["beat"] })], {
+        igdbId: null,
+        catalog: null,
+        answers: { manualTitle: "Crash Bandicoot" },
+      });
+
+      const game = review(crash);
+
+      expect(game).toMatchObject({ group: "ready", manual: true, title: "Crash Bandicoot", suggestion: { statusKey: "completed" } });
+    });
+
     it("un candidato elegido es una decisión", () => {
       const candidate = { igdbId: 1, baseIgdbId: 1, title: "Overwatch", year: 2016, coverUrl: null };
-      const overwatch = entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["backlog"], candidates: [candidate] })]);
+      const overwatch = entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["backlog"], matchState: "candidates", candidates: [candidate], chosenIgdbId: 1 })]);
 
       const game = review(overwatch);
 
@@ -268,7 +339,7 @@ describe("reviewGame", () => {
   });
 
   describe("juego que ya está en la biblioteca", () => {
-    it("solo suma las copias que faltan y va a «Listos» sin tocar estado ni grupo", () => {
+    it("solo suma las copias que faltan y va a «Listos para importar» sin tocar estado ni grupo", () => {
       const hades = entry("Hades", [ignItem("Hades", { ignStatuses: ["backlog"] }), playniteItem("Hades", EPIC, "hades")]);
       const library = [{ catalogGameId: hades.catalogGameId ?? "", libraryGameId: "game-1", copies: [{ storeId: STEAM.id, storeGameId: null }] }];
 
@@ -302,7 +373,16 @@ describe("buildReview", () => {
 
     const result = buildReview(openReview(entries, library), CONNECTED);
 
-    expect(result.groups.map((group) => group.group)).toEqual(["review", "not_found", "family", "endless", "play", "status", "ready"]);
+    expect(result.groups.map((group) => group.group)).toEqual([
+      "which",
+      "how_left",
+      "not_found",
+      "family",
+      "endless",
+      "play",
+      "status",
+      "ready",
+    ]);
     expect(gamesInGroup(result, "ready").map((game) => game.title)).toEqual(["Abzû", "Zelda"]);
     expect(gamesInGroup(result, "endless").map((game) => game.title)).toEqual(["Among Us"]);
     expect(result).toMatchObject({ excluded: 1, upToDate: 1 });

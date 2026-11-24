@@ -27,17 +27,31 @@ describe("titleKey", () => {
 
 describe("matchByTitle", () => {
   it("Título ambiguo", () => {
-    const row = { titles: ["Overwatch", "Blizzard's Overwatch"], year: 2022 };
-    const results = [result(1, "Overwatch", 2016), result(2, "Overwatch 2", 2022), result(3, "Tetris", 1984)];
+    const row = { titles: ["Crash Bandicoot"], year: null };
+    const results = [
+      result(1, "Crash Bandicoot", 1996),
+      result(2, "Crash Bandicoot", 2004),
+      result(3, "Crash Bandicoot: The Wrath of Cortex", 2001),
+      result(4, "Spyro the Dragon", 1998),
+    ];
 
     const match = matchByTitle(row, results);
 
-    expect(match).toEqual({ kind: "candidates", candidates: [results[0], results[1]] });
+    expect(match).toEqual({ kind: "candidates", candidates: [results[0], results[1], results[2]] });
   });
 
-  it.each([2017, 2018, 2019])("uno igual con año %s (±1) cruza", (year) => {
-    const row = { titles: ["Celeste"], year };
-    const results = [result(10, "Celeste", 2018), result(11, "Celeste Classic", 2015)];
+  it("Mismo nombre, otro año", () => {
+    const row = { titles: ["20XX"], year: 2020 };
+    const results = [result(10, "20XX", 2017)];
+
+    const match = matchByTitle(row, results);
+
+    expect(match).toEqual({ kind: "matched", result: results[0] });
+  });
+
+  it("uno igual cruza aunque haya otros parecidos", () => {
+    const row = { titles: ["Overwatch", "Blizzard's Overwatch"], year: 2022 };
+    const results = [result(1, "Overwatch", 2016), result(2, "Overwatch 2", 2022), result(3, "Tetris", 1984)];
 
     const match = matchByTitle(row, results);
 
@@ -62,8 +76,17 @@ describe("matchByTitle", () => {
     expect(match.kind).toBe("matched");
   });
 
-  it("varios con la misma clave quedan como candidatos", () => {
+  it("varios con la misma clave quedan como candidatos, el de año más cercano primero", () => {
     const row = { titles: ["Doom"], year: 2016 };
+    const results = [result(1, "DOOM", 1993), result(2, "Doom", 2016), result(3, "Doom", null)];
+
+    const match = matchByTitle(row, results);
+
+    expect(match).toEqual({ kind: "candidates", candidates: [results[1], results[0], results[2]] });
+  });
+
+  it("sin año en la fila, los de la misma clave quedan en el orden de IGDB", () => {
+    const row = { titles: ["Doom"], year: null };
     const results = [result(1, "DOOM", 1993), result(2, "Doom", 2016)];
 
     const match = matchByTitle(row, results);
@@ -80,13 +103,13 @@ describe("matchByTitle", () => {
     expect(match).toEqual({ kind: "matched", result: results[0] });
   });
 
-  it("uno igual sin año en IGDB queda para revisar", () => {
+  it("uno igual sin año en IGDB cruza igual", () => {
     const row = { titles: ["Cartas"], year: 2020 };
     const results = [result(1, "Cartas", null)];
 
     const match = matchByTitle(row, results);
 
-    expect(match).toEqual({ kind: "candidates", candidates: results });
+    expect(match).toEqual({ kind: "matched", result: results[0] });
   });
 
   it("sin ninguno igual, los que tienen todas las palabras quedan como candidatos, hasta 5", () => {

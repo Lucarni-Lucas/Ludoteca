@@ -20,13 +20,20 @@ function sourceOf(value: string | string[] | undefined): ImportSource | undefine
 
 export default async function ImportPage({ searchParams }: ImportPageProps) {
   const user = await requireSessionUser();
-  const [overview, statuses, params] = await Promise.all([
-    getImportService().getOverview(user.id),
+  // Abrir la pantalla es lo único que chequea el vencimiento: no hace falta un cron (design.md §18).
+  const [{ expired, ...overview }, statuses, params] = await Promise.all([
+    getImportService().openImport(user.id),
     getStatusService().listStatuses(user.id),
     searchParams,
   ]);
 
   return (
-    <ImportScreen initial={overview} statuses={statuses} avatarInitial={avatarInitial(user)} focusSource={sourceOf(params.source)} />
+    <ImportScreen
+      initial={overview}
+      expired={expired}
+      statuses={statuses}
+      avatarInitial={avatarInitial(user)}
+      focusSource={sourceOf(params.source)}
+    />
   );
 }

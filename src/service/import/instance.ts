@@ -1,4 +1,5 @@
 import { readIgnExport } from "@/adapter/ign/ign-adapter";
+import { buildIgnBookmarklet } from "@/adapter/ign/ign-bookmarklet";
 import { readPlayniteExport } from "@/adapter/playnite/playnite-adapter";
 import { createSteamAdapter } from "@/adapter/steam/steam-adapter";
 import { findSteamEnv } from "@/config/env";
@@ -8,6 +9,7 @@ import { createStoreConnectionRepository } from "@/persistence/repository/store/
 import { createStoreRepository } from "@/persistence/repository/store/store-repository";
 import { createStoreResolver } from "@/service/copy/store-resolver";
 import { getIgdbAdapter } from "@/service/game/instance";
+import { createImportGuideService, type ImportGuideService } from "@/service/import/guide-service";
 import { createImportService, type ImportService } from "@/service/import/import-service";
 import { getStatusService } from "@/service/status/instance";
 import { clock } from "@/shared/clock";
@@ -34,4 +36,11 @@ export function getImportService(): ImportService {
   }
 
   return importService;
+}
+
+let guideService: ImportGuideService | undefined;
+
+export function getImportGuideService(): ImportGuideService {
+  guideService ??= createImportGuideService({ buildIgnBookmarklet });
+  return guideService;
 }

@@ -9,23 +9,31 @@ import { renderWithIntl } from "../../i18n/render-with-intl";
 const READY = { games: 237, copies: 252 };
 
 describe("ConfirmCard", () => {
-  it("dice lo que está en «Listos» y confirma", async () => {
+  it("dice lo que está en «Listos para importar» y confirma", async () => {
     const onConfirm = vi.fn();
     renderWithIntl(<ConfirmCard ready={READY} confirming={false} summary={null} errorMessage={null} onConfirm={onConfirm} />);
 
     await userEvent.click(screen.getByRole("button", { name: "Confirmar importación" }));
 
-    expect(screen.getByText(/En «Listos»:/)).toHaveTextContent("En «Listos»: 237 juegos y 252 copias");
+    expect(screen.getByText(/En «Listos para importar»:/)).toHaveTextContent("En «Listos para importar»: 237 juegos y 252 copias");
     expect(onConfirm).toHaveBeenCalledOnce();
   });
 
-  it("con «Listos» vacío el botón está deshabilitado y lo dice", () => {
+  it("con un juego y una copia lo dice en singular", () => {
+    const ready = { games: 1, copies: 1 };
+
+    renderWithIntl(<ConfirmCard ready={ready} confirming={false} summary={null} errorMessage={null} onConfirm={vi.fn()} />);
+
+    expect(screen.getByText(/En «Listos para importar»:/)).toHaveTextContent("En «Listos para importar»: 1 juego y 1 copia");
+  });
+
+  it("con «Listos para importar» vacío el botón está deshabilitado y lo dice", () => {
     const ready = { games: 0, copies: 0 };
 
     renderWithIntl(<ConfirmCard ready={ready} confirming={false} summary={null} errorMessage={null} onConfirm={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "Confirmar importación" })).toBeDisabled();
-    expect(screen.getByText("Todavía no hay nada en «Listos» para confirmar.")).toBeInTheDocument();
+    expect(screen.getByText("Todavía no hay nada en «Listos para importar» para confirmar.")).toBeInTheDocument();
   });
 
   it.each([

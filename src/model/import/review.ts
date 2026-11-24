@@ -10,6 +10,7 @@ import type {
 } from "@/model/import/import-entry";
 import type { IgnStatus, ImportSource } from "@/model/import/import-row";
 import { detectNonGame } from "@/model/import/non-game";
+import { titleKey } from "@/model/import/title-match";
 import { normalizeText } from "@/model/game/normalize-text";
 import { BACKLOG_KEY } from "@/model/status/status";
 
@@ -17,9 +18,16 @@ const COMPLETED_KEY = "completed";
 export const PLAYED_KEY = "played";
 
 /** En este orden: cada juego está en el primero que le toca (design.md §9). */
-export const REVIEW_GROUPS = ["review", "not_found", "family", "endless", "play", "status", "ready"] as const;
+export const REVIEW_GROUPS = ["which", "how_left", "not_found", "family", "endless", "play", "status", "ready"] as const;
 
 export type ReviewGroup = (typeof REVIEW_GROUPS)[number];
+
+/** Las preguntas de a un juego: la respuesta no se puede adivinar, así que no hay opción marcada. */
+const QUESTION_GROUPS: readonly ReviewGroup[] = ["which", "how_left", "not_found"];
+
+export function isQuestionGroup(group: ReviewGroup): boolean {
+  return QUESTION_GROUPS.includes(group);
+}
 
 /** Una opción de una sola elección (radio) en la fila de un juego. */
 export type ReviewChoice =
@@ -37,10 +45,14 @@ export type ReviewChoice =
   | Readonly<{ kind: "keep" }>
   | Readonly<{ kind: "not_interested" }>;
 
-/** De dónde vino cada fila, para mostrar «IGN · Beat · 9» o «Steam · 48 h». */
+/** De dónde vino cada fila, para «IGN · Beat · 9» o «En Epic: Castlevania Anniversary Collection · 2019». */
 export type ReviewOrigin = Readonly<{
   source: ImportSource;
   storeName: string | null;
+  storeSlug: string | null;
+  /** El nombre y el año con que llegó, antes de cruzar con IGDB. */
+  title: string;
+  year: number | null;
   ignStatuses: readonly IgnStatus[];
   ignScore: number | null;
   playtimeMinutes: number | null;
@@ -66,10 +78,16 @@ export type ReviewGame = Readonly<{
   origins: readonly ReviewOrigin[];
   group: ReviewGroup;
   choices: readonly ReviewChoice[];
-  /** La opción marcada: la sugerencia o lo que el usuario eligió. `null` si el grupo no ofrece opciones. */
+  /** La sugerencia marcada en los grupos de lote. `null` en las preguntas de a un juego y en «Listos para importar». */
   marked: ReviewChoice | null;
+  /** Un solo candidato con otro nombre: la pregunta es «¿Es este juego?». */
+  isThisQuestion: boolean;
+  /** Entra cargado a mano, con el título que trajo. */
+  manual: boolean;
+  /** Las filas del juego: después de «Volver a revisar» dicen adónde volvió, aunque cambie de juego a revisar. */
+  itemIds: readonly string[];
   suggestion: ReviewSuggestion;
-  /** El usuario decidió algo: en «Listos» se puede volver a revisar. */
+  /** El usuario decidió algo: en «Listos para importar» se puede volver a revisar. */
   decided: boolean;
   /** El juego ya está en la biblioteca: solo suma copias. */
   libraryGameId: string | null;
@@ -127,15 +145,15 @@ function hltbOf(items: readonly ImportItem[]): number | null {
   return items.find((item) => item.hltbMainHours !== null)?.hltbMainHours ?? null;
 }
 
-function hasChosenCandidate(entry: ImportEntry): boolean {
-  return entry.items.some((item) => item.matchState === "matched" && item.candidates.length > 0);
+function hasChosenGame(entry: ImportEntry): boolean {
+  return entry.items.some((item) => item.chosenIgdbId !== null);
 }
 
 function isDecided(entry: ImportEntry, copies: readonly SuggestedCopy[]): boolean {
   const { statusKey, endlessAnswer, playAnswer, manualTitle } = entry.answers;
   const answered = [statusKey, endlessAnswer, playAnswer, manualTitle].some((answer) => answer !== null);
 
-  return answered || copies.some((copy) => copy.chosen) || hasChosenCandidate(entry);
+  return answered || copies.some((copy) => copy.chosen) || hasChosenGame(entry);
 }
 
 function baseStatusKey(facts: EntryFacts): string {
@@ -156,8 +174,9 @@ function suggestionOf(facts: EntryFacts): ReviewSuggestion {
   };
 }
 
-function hasState(entry: ImportEntry, state: ImportItem["matchState"]): boolean {
-  return entry.items.some((item) => item.matchState === state);
+/** Una fila con un juego elegido ya no espera respuesta, aunque su cruce siga diciendo lo que dio. */
+function hasOpenState(entry: ImportEntry, state: ImportItem["matchState"]): boolean {
+  return entry.items.some((item) => item.matchState === state && item.chosenIgdbId === null);
 }
 
 function needsStatusChoice(facts: EntryFacts): boolean {
@@ -192,16 +211,25 @@ function isEndlessQuestion(facts: EntryFacts, suggestion: ReviewSuggestion): boo
   return suggestion.statusKey === COMPLETED_KEY && facts.entry.multiplayerOnly && facts.entry.answers.endlessAnswer === null;
 }
 
-/** «Para revisar» y «No lo encontré» van primero: sin saber qué juego es, lo demás no se puede decidir. */
-function groupOf(facts: EntryFacts, suggestion: ReviewSuggestion): ReviewGroup {
-  const { entry, decided } = facts;
-
-  if (!decided && (hasState(entry, "candidates") || needsStatusChoice(facts))) {
-    return "review";
+/** Las preguntas de a un juego van primero: sin saber qué juego es, lo demás no se puede decidir. */
+function questionOf(facts: EntryFacts): ReviewGroup | null {
+  if (hasOpenState(facts.entry, "candidates")) {
+    return "which";
   }
 
-  if (!decided && hasState(entry, "not_found")) {
-    return "not_found";
+  if (needsStatusChoice(facts)) {
+    return "how_left";
+  }
+
+  return hasOpenState(facts.entry, "not_found") ? "not_found" : null;
+}
+
+function groupOf(facts: EntryFacts, suggestion: ReviewSuggestion): ReviewGroup {
+  const { decided } = facts;
+  const question = decided ? null : questionOf(facts);
+
+  if (question) {
+    return question;
   }
 
   if (isFamilyQuestion(facts.copies) && !decided) {
@@ -223,8 +251,24 @@ function groupOf(facts: EntryFacts, suggestion: ReviewSuggestion): ReviewGroup {
   return isStatusQuestion(facts) ? "status" : "ready";
 }
 
+function openCandidateItem(entry: ImportEntry): ImportItem | undefined {
+  return entry.items.find((item) => item.matchState === "candidates" && item.chosenIgdbId === null);
+}
+
 function candidatesOf(entry: ImportEntry): readonly ImportCandidate[] {
-  return entry.items.find((item) => item.matchState === "candidates")?.candidates ?? [];
+  return openCandidateItem(entry)?.candidates ?? [];
+}
+
+/** Un solo candidato, y ninguno de los nombres con que llegó es el suyo. */
+function isThisQuestion(entry: ImportEntry): boolean {
+  const item = openCandidateItem(entry);
+
+  if (item?.candidates.length !== 1) {
+    return false;
+  }
+
+  const keys = new Set([item.title, ...item.altTitles].map(titleKey));
+  return !keys.has(titleKey(item.candidates[0].title));
 }
 
 function isNonGameEntry(entry: ImportEntry): boolean {
@@ -233,16 +277,16 @@ function isNonGameEntry(entry: ImportEntry): boolean {
 
 type ChoiceSet = Readonly<{ choices: readonly ReviewChoice[]; marked: ReviewChoice | null }>;
 
-function reviewChoices(facts: EntryFacts): ChoiceSet {
-  const candidates = candidatesOf(facts.entry);
+const EXCLUDE: ReviewChoice = { kind: "exclude" };
 
-  if (candidates.length > 0) {
-    const choices = [...candidates.map((candidate) => ({ kind: "candidate" as const, candidate })), { kind: "search" } as const];
-    return { choices, marked: choices[0] };
-  }
+function whichChoices(entry: ImportEntry): ChoiceSet {
+  const candidates = candidatesOf(entry).map((candidate) => ({ kind: "candidate" as const, candidate }));
+  return { choices: [...candidates, { kind: "search" }, EXCLUDE], marked: null };
+}
 
-  const choices = [...facts.ignStatusKeys.map((statusKey) => ({ kind: "status" as const, statusKey })), { kind: "other_status" } as const];
-  return { choices, marked: choices[0] };
+function howLeftChoices(facts: EntryFacts): ChoiceSet {
+  const statuses = facts.ignStatusKeys.map((statusKey) => ({ kind: "status" as const, statusKey }));
+  return { choices: [...statuses, { kind: "other_status" }, EXCLUDE], marked: null };
 }
 
 function familyChoices(copies: readonly SuggestedCopy[]): ChoiceSet {
@@ -259,17 +303,16 @@ function familyChoices(copies: readonly SuggestedCopy[]): ChoiceSet {
   return { choices, marked: choices[0] };
 }
 
-function notFoundChoices(entry: ImportEntry): ChoiceSet {
-  const choices = [{ kind: "manual" } as const, { kind: "exclude" } as const];
-  return { choices, marked: isNonGameEntry(entry) ? choices[1] : choices[0] };
-}
+const NOT_FOUND_CHOICES: ChoiceSet = { choices: [{ kind: "search" }, { kind: "manual" }, EXCLUDE], marked: null };
 
 function choicesOf(group: ReviewGroup, facts: EntryFacts): ChoiceSet {
   switch (group) {
-    case "review":
-      return reviewChoices(facts);
+    case "which":
+      return whichChoices(facts.entry);
+    case "how_left":
+      return howLeftChoices(facts);
     case "not_found":
-      return notFoundChoices(facts.entry);
+      return NOT_FOUND_CHOICES;
     case "family":
       return familyChoices(facts.copies);
     case "endless": {
@@ -277,7 +320,7 @@ function choicesOf(group: ReviewGroup, facts: EntryFacts): ChoiceSet {
       return { choices, marked: choices[0] };
     }
     case "play": {
-      const choices = [{ kind: "keep" } as const, { kind: "not_interested" } as const, { kind: "exclude" } as const];
+      const choices = [{ kind: "keep" } as const, { kind: "not_interested" } as const, EXCLUDE];
       return { choices, marked: choices[0] };
     }
     case "status":
@@ -291,6 +334,9 @@ function originOf(item: ImportItem): ReviewOrigin {
   return {
     source: item.source,
     storeName: item.store?.name ?? null,
+    storeSlug: item.store?.slug ?? null,
+    title: item.title,
+    year: item.year,
     ignStatuses: item.ignStatuses,
     ignScore: item.ignScore,
     playtimeMinutes: item.playtimeMinutes,
@@ -336,10 +382,13 @@ export function reviewGame(entry: ImportEntry, library: readonly LibraryMatch[],
     group,
     choices,
     marked,
+    isThisQuestion: group === "which" && isThisQuestion(entry),
+    manual: entry.answers.manualTitle !== null,
+    itemIds: entry.items.map((item) => item.id),
     suggestion,
     decided: facts.decided,
     libraryGameId: facts.library?.libraryGameId ?? null,
-    nonGame: hasState(entry, "not_found") && isNonGameEntry(entry),
+    nonGame: hasOpenState(entry, "not_found") && isNonGameEntry(entry),
   };
 }
 
@@ -383,7 +432,7 @@ export function gamesInGroup(review: ImportReview, group: ReviewGroup): readonly
 
 export type ReadyCounts = Readonly<{ games: number; copies: number }>;
 
-/** «En «Listos»: 237 juegos y 252 copias.» */
+/** «En «Listos para importar»: 237 juegos y 252 copias.» */
 export function countReady(review: ImportReview): ReadyCounts {
   const ready = gamesInGroup(review, "ready");
 

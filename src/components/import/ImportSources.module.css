@@ -111,6 +111,23 @@
   gap: var(--space-8);
 }
 
+/* En el celu, el botón queda al lado del nombre y «¿Cómo lo saco?» baja a su propio renglón. */
+.fileActions {
+  display: contents;
+}
+
+.guide {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  /* Alineado con el nombre: el ancho del código de la fuente más el espacio de la fila. */
+  padding-left: calc(40px + var(--space-12));
+  color: var(--color-text-soft);
+  font-size: var(--text-14);
+  font-weight: 500;
+}
+
 /* Lo que no entra en la fila baja a su propio renglón. */
 .steamForm,
 .ok,
@@ -206,6 +223,19 @@
 
   .notLoaded {
     display: block;
+  }
+
+  .fileActions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .guide {
+    flex: none;
+    padding: 0 var(--space-10);
+    border-radius: var(--radius-md);
   }
 
   .steamForm,

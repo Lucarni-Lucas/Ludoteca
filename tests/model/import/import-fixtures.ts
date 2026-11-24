@@ -29,6 +29,7 @@ export function item(overrides: Partial<ImportItem> = {}): ImportItem {
     steamAppId: null,
     matchState: "matched",
     candidates: [],
+    chosenIgdbId: null,
     entryId: null,
     copyKind: null,
     excluded: false,

@@ -32,8 +32,9 @@ export type ImportItem = Readonly<{
   hltbMainHours: number | null;
   steamAppId: string | null;
   matchState: MatchState;
-  /** Si la fila quedó `matched` y tiene candidatos, el usuario eligió uno: es una decisión. */
   candidates: readonly ImportCandidate[];
+  /** El juego que eligió el usuario entre los candidatos o con «Buscar con otro nombre»: es una decisión. */
+  chosenIgdbId: number | null;
   entryId: string | null;
   copyKind: CopyKind | null;
   excluded: boolean;

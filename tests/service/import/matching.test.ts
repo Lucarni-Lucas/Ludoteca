@@ -52,9 +52,9 @@ describe("advanceMatching", () => {
 
   it("Título ambiguo", async () => {
     const importRepo = createFakeImportRepo();
-    importRepo.state.pending = [ignItem("Overwatch", { ...pending, year: 2022 })];
-    const candidates = [searchResult(1, "Overwatch", 2016), searchResult(2, "Overwatch 2", 2022)];
-    const { service } = setup({ importRepo, igdb: createFakeIgdb({ titles: new Map([["Overwatch", candidates]]) }) });
+    importRepo.state.pending = [ignItem("Crash Bandicoot", { ...pending, year: 1996 })];
+    const candidates = [searchResult(1, "Crash Bandicoot", 1996), searchResult(2, "Crash Bandicoot", 2004)];
+    const { service } = setup({ importRepo, igdb: createFakeIgdb({ titles: new Map([["Crash Bandicoot", candidates]]) }) });
 
     await service.advanceMatching(USER_ID);
 

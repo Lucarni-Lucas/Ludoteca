@@ -1,18 +1,18 @@
 import type { CopyKind } from "@/model/copy/copy";
 import { InvalidImportDecisionError } from "@/model/import/errors";
 import type { DecisionWrite, ImportCandidate } from "@/model/import/import-entry";
-import type { ReviewChoice, ReviewGame } from "@/model/import/review";
+import { isQuestionGroup, type ReviewChoice, type ReviewGame } from "@/model/import/review";
 import { STEAM_SLUG } from "@/model/store/store";
 
 /** Lo que el usuario hace con uno o varios juegos de un grupo. */
 export type ImportDecision =
   /** Una de las opciones de la fila o de la barra de selección. */
   | Readonly<{ kind: "choose"; choice: ReviewChoice }>
-  /** «Pasar a Listos»: guarda la opción marcada como respuesta. */
+  /** «Pasar a Listos»: guarda la sugerencia marcada como respuesta. Solo en los grupos de lote. */
   | Readonly<{ kind: "accept" }>
   /** «Volver a revisar»: borra las respuestas y el juego vuelve a su grupo. */
   | Readonly<{ kind: "reset" }>
-  /** «Tipo de copia»: cambia el tipo de la copia de una tienda. */
+  /** «¿Cómo lo conseguiste?»: cambia el tipo de la copia de una tienda. */
   | Readonly<{ kind: "copy_kind"; storeId: string; copyKind: CopyKind }>;
 
 export type DecisionPlan = Readonly<{
@@ -113,13 +113,22 @@ function choiceWrite(game: ReviewGame, choice: ReviewChoice, context: DecisionCo
   return offeredWrite(game, choice);
 }
 
+/** En una pregunta de a un juego no hay nada marcado que guardar: elige el usuario. */
+function acceptWrite(game: ReviewGame, context: DecisionContext): GameWrite {
+  if (isQuestionGroup(game.group)) {
+    invalid();
+  }
+
+  // «Listos para importar», o Steam sin conectar: no hay nada que pasar.
+  return game.marked ? choiceWrite(game, game.marked, context) : NO_WRITE;
+}
+
 function gameWrite(game: ReviewGame, decision: ImportDecision, context: DecisionContext): GameWrite {
   switch (decision.kind) {
     case "choose":
       return choiceWrite(game, decision.choice, context);
     case "accept":
-      // Un juego sin opción marcada («Listos», o Steam sin conectar) no tiene nada que pasar.
-      return game.marked ? choiceWrite(game, game.marked, context) : NO_WRITE;
+      return acceptWrite(game, context);
     case "copy_kind":
       return copyWrite(game, decision.storeId, decision.copyKind, false);
     case "reset":
@@ -160,7 +169,7 @@ export function planDecision(
   return { writes: [...writes.values()], resets: [], candidates };
 }
 
-/** Lo que dice la línea de estado: «Beholder pasó a «Listos» con «Sin interés».» */
+/** Lo que dice el aviso: «Beholder pasó a «Listos para importar» con «Sin interés».» */
 export function decidedChoice(game: ReviewGame, decision: ImportDecision): ReviewChoice | null {
   if (decision.kind === "choose") {
     return decision.choice;

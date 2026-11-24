@@ -7,6 +7,7 @@ import {
 } from "@/model/import/confirm";
 import { type ImportDecision, planDecision } from "@/model/import/decision";
 import { ImportEntryNotFoundError, InvalidImportDecisionError, UnknownImportFileError } from "@/model/import/errors";
+import { isReviewExpired } from "@/model/import/expiry";
 import type {
   DecisionWrite,
   ImportCandidate,
@@ -22,7 +23,7 @@ import type { NewStoreConnection, StoreConnection } from "@/model/store/store-co
 import { findStoreByName, STEAM_SLUG, type Store } from "@/model/store/store";
 import type { Status } from "@/model/status/status";
 import type { StoreResolver } from "@/service/copy/store-resolver";
-import { type Clock, createClock } from "@/shared/clock";
+import { appDateOf, type Clock } from "@/shared/clock";
 import { InvalidRequestError } from "@/shared/app-error";
 
 import { createMatchingStep, type MatchingIgdb, type MatchingRepo } from "./matching";
@@ -36,6 +37,9 @@ type ImportRepo = MatchingRepo &
     clearDecision(userId: string, entryIds: readonly string[]): Promise<void>;
     matchEntry(userId: string, entryId: string, game: MatchedGame, chosen: ImportCandidate): Promise<void>;
     applyConfirmation(userId: string, plan: ReturnType<typeof planImportConfirmation>): Promise<void>;
+    discardOpenReview(userId: string): Promise<void>;
+    lastOpenActivityAt(userId: string): Promise<Date | null>;
+    touchOpenReview(userId: string): Promise<void>;
   }>;
 
 type FileReader = (content: unknown) => ImportFileRead | null;
@@ -80,6 +84,9 @@ export type ImportOverview = Readonly<{
   progress: MatchingProgress;
 }>;
 
+/** Lo que muestra `/import` al abrirla: si la revisión venció, ya se descartó y lo dice (design.md §18). */
+export type ImportOpened = ImportOverview & Readonly<{ expired: boolean }>;
+
 export type SteamConnected = Readonly<{ accountId: string; read: number }>;
 
 export type ImportService = Readonly<{
@@ -88,6 +95,10 @@ export type ImportService = Readonly<{
   connectSteam(userId: string, profile: string): Promise<SteamConnected>;
   refreshSteam(userId: string): Promise<SteamConnected>;
   getOverview(userId: string): Promise<ImportOverview>;
+  /** Al abrir la pantalla: descarta la revisión si pasaron `REVIEW_EXPIRY_DAYS` sin tocarla. */
+  openImport(userId: string): Promise<ImportOpened>;
+  /** «Empezar de nuevo». */
+  discardReview(userId: string): Promise<ImportOverview>;
   decide(userId: string, entryIds: readonly string[], decision: ImportDecision): Promise<ImportOverview>;
   searchAgain(userId: string, entryId: string, chosen: IgdbSearchResult): Promise<ImportOverview>;
   confirm(userId: string): Promise<ImportSummary>;
@@ -103,7 +114,7 @@ function parseJson(text: string): unknown {
 }
 
 function toSourceView({ source, itemCount, lastReadAt }: SourceSummary): SourceView {
-  return { source, itemCount, lastReadOn: createClock(() => new Date(lastReadAt)).today() };
+  return { source, itemCount, lastReadOn: appDateOf(lastReadAt) };
 }
 
 function progressOf(open: OpenReview): MatchingProgress {
@@ -152,6 +163,11 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
     return { review, ready: countReady(review), sources: sources.map(toSourceView), steam: steamNow, progress: progressOf(open) };
   }
 
+  async function isExpired(userId: string): Promise<boolean> {
+    const last = await importRepo.lastOpenActivityAt(userId);
+    return last !== null && isReviewExpired(appDateOf(last), clock.today());
+  }
+
   async function reviewGamesOf(userId: string, entryIds: readonly string[]): Promise<readonly ReviewGame[]> {
     const [open, steamNow] = await Promise.all([importRepo.listOpenReview(userId), steamConnection(userId)]);
     const context = { steamConnected: steamNow !== null };
@@ -197,6 +213,7 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
 
     await importRepo.upsertItems(userId, await resolveStores(userId, rows));
     await connections.save(userId, { storeId: store.id, accountId });
+    await importRepo.touchOpenReview(userId);
     return { accountId, read: rows.length };
   }
 
@@ -210,6 +227,7 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
       }
 
       await importRepo.upsertItems(userId, await resolveStores(userId, read.rows));
+      await importRepo.touchOpenReview(userId);
       return { source: read.source, read: read.rows.length, skipped: read.skipped };
     },
 
@@ -236,6 +254,21 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
 
     getOverview: overview,
 
+    async openImport(userId) {
+      const expired = await isExpired(userId);
+
+      if (expired) {
+        await importRepo.discardOpenReview(userId);
+      }
+
+      return { ...(await overview(userId)), expired };
+    },
+
+    async discardReview(userId) {
+      await importRepo.discardOpenReview(userId);
+      return overview(userId);
+    },
+
     async decide(userId, entryIds, decision) {
       const [games, statuses] = await Promise.all([reviewGamesOf(userId, entryIds), statusService.listStatuses(userId)]);
       const statusKeys = statuses.flatMap((status) => status.systemKey ?? []);
@@ -250,12 +283,14 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
       }
 
       await matchCandidates(userId, plan.candidates);
+      await importRepo.touchOpenReview(userId);
       return overview(userId);
     },
 
     async searchAgain(userId, entryId, chosen) {
       await reviewGamesOf(userId, [entryId]);
       await matchCandidates(userId, [{ entryId, candidate: chosen }]);
+      await importRepo.touchOpenReview(userId);
       return overview(userId);
     },
 
@@ -269,6 +304,8 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
         await importRepo.applyConfirmation(userId, part);
       }
 
+      // Lo que quedó sin confirmar sigue vivo: confirmar es tocar la importación.
+      await importRepo.touchOpenReview(userId);
       return plan.summary;
     },
   };

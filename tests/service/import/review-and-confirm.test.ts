@@ -15,7 +15,7 @@ function withReview(entries: Parameters<typeof openReview>[0], library: Paramete
 }
 
 describe("getOverview", () => {
-  it("arma la revisión con la cuenta de Steam conectada y cuenta lo que está en «Listos»", async () => {
+  it("arma la revisión con la cuenta de Steam conectada y cuenta lo que está en «Listos para importar»", async () => {
     const celeste = entry("Celeste", [ignItem("Celeste", { ignStatuses: ["playing"], ignScore: 9 }), steamItem("Celeste", "1", 60)]);
     const portal = entry("Portal 2", [playniteItem("Portal 2", STEAM, "620")]);
     const { service } = setup({ importRepo: withReview([celeste, portal]), connections: createFakeConnections(CONNECTED) });
@@ -74,13 +74,30 @@ describe("decide", () => {
     expect(importRepo.saveDecision).not.toHaveBeenCalled();
   });
 
+  it("Volver después de elegir un candidato", async () => {
+    const candidates = [
+      { igdbId: 1, baseIgdbId: 1, title: "Crash Bandicoot", year: 1996, coverUrl: null },
+      { igdbId: 2, baseIgdbId: 2, title: "Crash Bandicoot", year: 2004, coverUrl: null },
+    ];
+    const chosen = entry("Crash Bandicoot", [
+      ignItem("Crash Bandicoot", { ignStatuses: ["beat"], matchState: "candidates", candidates, chosenIgdbId: 1 }),
+    ]);
+    const { service, importRepo } = setup({ importRepo: withReview([chosen]) });
+    const before = await service.getOverview(USER_ID);
+
+    await service.decide(USER_ID, [chosen.id], { kind: "reset" });
+
+    expect(gamesInGroup(before.review, "ready").map((game) => game.title)).toEqual(["Crash Bandicoot"]);
+    expect(importRepo.clearDecision).toHaveBeenCalledWith(USER_ID, [chosen.id]);
+  });
+
   it("elegir un candidato trae sus datos de IGDB y lo vincula", async () => {
     const candidate = { igdbId: 7, baseIgdbId: 7, title: "Overwatch", year: 2016, coverUrl: null };
     const overwatch = entry("Overwatch", [ignItem("Overwatch", { matchState: "candidates", candidates: [candidate] })], { catalog: null });
     const igdb = createFakeIgdb({ games: new Map([[7, matchedGame(7, "Overwatch", { multiplayerOnly: true })]]) });
     const { service, importRepo } = setup({ importRepo: withReview([overwatch]), igdb });
 
-    await service.decide(USER_ID, [overwatch.id], { kind: "accept" });
+    await service.decide(USER_ID, [overwatch.id], { kind: "choose", choice: { kind: "candidate", candidate } });
 
     expect(importRepo.matchEntry).toHaveBeenCalledWith(USER_ID, overwatch.id, expect.objectContaining({ igdbId: 7 }), candidate);
   });

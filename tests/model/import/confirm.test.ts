@@ -129,7 +129,7 @@ describe("planImportConfirmation", () => {
     });
   });
 
-  it("un juego en «Listos» sin cruce ni «Cargar a mano» sigue esperando", () => {
+  it("un juego en «Listos para importar» sin cruce ni «Cargar a mano» sigue esperando", () => {
     const orphan = entry("Raro", [playniteItem("Raro", EPIC, "r", { matchState: "not_found", copyKind: "purchased" })], {
       igdbId: null,
       catalogGameId: null,
@@ -142,7 +142,7 @@ describe("planImportConfirmation", () => {
     expect(plan.entryIds).toEqual([]);
   });
 
-  it("un plan sin nada en «Listos» está vacío", () => {
+  it("un plan sin nada en «Listos para importar» está vacío", () => {
     const toReview = entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["beat", "quit"] })]);
 
     const plan = planImportConfirmation(openReview([toReview]), CONTEXT);

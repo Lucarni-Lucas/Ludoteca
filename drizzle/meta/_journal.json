@@ -71,6 +71,13 @@
       "when": 1795469625372,
       "tag": "0009_create_import_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795498108371,
+      "tag": "0010_add_import_item_chosen_igdb_id",
+      "breakpoints": true
     }
   ]
 }

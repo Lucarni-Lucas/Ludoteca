@@ -1,0 +1,90 @@
+{
+  "libraryPages": [
+    {
+      "data": {
+        "searchLibrary": {
+          "pageInfo": { "hasNext": true, "nextCursor": 100, "total": 3 },
+          "libraryObjects": [
+            {
+              "objectId": "10000000-0000-4000-8000-000000000001",
+              "playing": false,
+              "completed": true,
+              "archived": true,
+              "paused": false,
+              "wishlist": false,
+              "backlog": false,
+              "createdAt": "2025-01-10T12:00:00.000Z",
+              "updatedAt": "2025-02-01T12:00:00.000Z",
+              "platforms": [{ "name": "PC" }],
+              "object": {
+                "slug": "faro-del-sur",
+                "metadata": { "names": { "name": "Faro del Sur", "alt": ["South Lighthouse"] } },
+                "producers": [{ "name": "Estudio Inventado" }],
+                "objectRegions": [
+                  { "releases": [{ "date": "2023-05-02" }, { "date": "2022-11-30" }] },
+                  { "releases": [{ "date": "2024-01-15" }, { "date": null }] }
+                ],
+                "hl2bData": { "steam_id": 1234567, "itch_id": "0", "time": { "main": 13337, "main_plus": 36000, "completionist": 0 } }
+              }
+            },
+            {
+              "objectId": "10000000-0000-4000-8000-000000000002",
+              "playing": false,
+              "completed": false,
+              "archived": false,
+              "paused": false,
+              "wishlist": true,
+              "backlog": false,
+              "createdAt": "2025-01-11T12:00:00.000Z",
+              "updatedAt": "2025-01-11T12:00:00.000Z",
+              "platforms": [],
+              "object": {
+                "slug": "bruma-eterna",
+                "metadata": { "names": { "name": "Bruma Eterna", "alt": [] } },
+                "producers": [],
+                "objectRegions": [],
+                "hl2bData": null
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "data": {
+        "searchLibrary": {
+          "pageInfo": { "hasNext": false, "nextCursor": null, "total": 3 },
+          "libraryObjects": [
+            {
+              "objectId": "10000000-0000-4000-8000-000000000003",
+              "playing": false,
+              "completed": false,
+              "archived": false,
+              "paused": true,
+              "wishlist": false,
+              "backlog": false,
+              "createdAt": "2025-01-12T12:00:00.000Z",
+              "updatedAt": "2025-01-20T12:00:00.000Z",
+              "platforms": [{ "name": "PC" }, { "name": "Nintendo Switch" }],
+              "object": {
+                "slug": "cartas-del-faro",
+                "metadata": { "names": { "name": "Cartas del Faro", "alt": ["Lighthouse Letters"] } },
+                "producers": [{ "name": "Otro Estudio" }, { "name": "Editora Inventada" }],
+                "objectRegions": [{ "releases": [{ "date": "2019-08-20T00:00:00.000Z" }] }],
+                "hl2bData": "{\"steam_id\":0,\"itch_id\":\"5551\",\"time\":{\"main\":7200,\"main_plus\":null,\"completionist\":18000}}"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "reviews": {
+    "data": {
+      "usersReviewsByObjectIds": [
+        { "objectId": "10000000-0000-4000-8000-000000000001", "score": 9, "text": "", "createdAt": "2025-02-02T12:00:00.000Z" },
+        { "objectId": "10000000-0000-4000-8000-000000000003", "score": 7, "text": "Lindo, corto.", "createdAt": "2025-01-21T12:00:00.000Z" }
+      ]
+    }
+  }
+}

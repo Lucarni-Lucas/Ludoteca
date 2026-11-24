@@ -42,6 +42,13 @@ const GAMES: readonly FakeGame[] = [
   { id: 18, name: "112 Operator", year: 2022, modes: ["single-player"] },
   { id: 19, name: "Rocket League", year: 2015, modes: ["multiplayer"] },
   { id: 20, name: "Barony", year: 2015, modes: ["single-player", "co-operative"] },
+  // Los casos que aparecieron con los datos reales (04 tasks.md 8.10): varios con el mismo nombre, uno solo
+  // con otro nombre y el mismo nombre con otro año.
+  { id: 21, name: "Crash Bandicoot", year: 1996, modes: ["single-player"] },
+  { id: 22, name: "Crash Bandicoot", year: 2017, modes: ["single-player"] },
+  { id: 23, name: "Crash Bandicoot: The Wrath of Cortex", year: 2001, modes: ["single-player"] },
+  { id: 24, name: "Castlevania Anniversary Collection - Ultimate Edition", year: 2019, modes: ["single-player"] },
+  { id: 25, name: "20XX", year: 2017, modes: ["single-player", "co-operative"] },
 ];
 
 // La fuente de Steam en external_games, verificada contra IGDB real (04 design.md §7).

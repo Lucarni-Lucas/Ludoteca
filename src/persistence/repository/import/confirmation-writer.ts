@@ -17,6 +17,31 @@ import { chunk } from "@/shared/chunk";
 
 const INSERT_CHUNK_SIZE = 500;
 
+// `title` no admite vacío: queda en blanco.
+const CONFIRMED_ITEM_CLEANUP = {
+  title: "",
+  altTitles: [],
+  year: null,
+  storeId: null,
+  storeGameId: null,
+  playtimeMinutes: null,
+  ignStatuses: [],
+  ignScore: null,
+  hltbMainHours: null,
+  steamAppId: null,
+  candidates: [],
+  chosenIgdbId: null,
+  copyKind: null,
+} satisfies Partial<typeof importItem.$inferInsert>;
+
+const CONFIRMED_ENTRY_CLEANUP = {
+  statusKey: null,
+  endlessAnswer: null,
+  playAnswer: null,
+  manualTitle: null,
+  multiplayerOnly: false,
+} satisfies Partial<typeof importEntry.$inferInsert>;
+
 /** Los juegos de IGDB de una vez; uno que ya estaba (otra pestaña lo agregó) se reutiliza sin tocarlo. */
 async function insertIgdbGames(tx: Database, userId: string, games: readonly ConfirmedGame[]): Promise<Map<string, string>> {
   const rows = games.flatMap(({ target }) =>
@@ -126,11 +151,29 @@ async function markConfirmed(
   }
 }
 
+/**
+ * Lo confirmado guarda solo lo que necesita «Reimportar sin duplicar»: la fila, su fuente, su ID en la
+ * fuente y en qué quedó; el juego, su juego de IGDB y el de la biblioteca (design.md §18).
+ */
+async function cleanConfirmed(tx: Database, userId: string, entryIds: readonly string[]): Promise<void> {
+  for (const ids of chunk(entryIds, INSERT_CHUNK_SIZE)) {
+    await tx
+      .update(importItem)
+      .set(CONFIRMED_ITEM_CLEANUP)
+      .where(and(eq(importItem.userId, userId), inArray(importItem.entryId, ids)));
+    await tx
+      .update(importEntry)
+      .set(CONFIRMED_ENTRY_CLEANUP)
+      .where(and(eq(importEntry.userId, userId), inArray(importEntry.id, ids)));
+  }
+}
+
 /** Todo en una transacción: la confirmación entra entera o no entra. Sin entradas del diario (design.md §11). */
 export function writeConfirmation(db: Database, userId: string, plan: ImportConfirmationPlan): Promise<void> {
   return db.transaction(async (tx) => {
     const gameIds = await resolveGameIds(tx, userId, plan.games);
     await insertCopies(tx, userId, plan.games, gameIds);
     await markConfirmed(tx, userId, plan.entryIds, gameIds);
+    await cleanConfirmed(tx, userId, plan.entryIds);
   });
 }

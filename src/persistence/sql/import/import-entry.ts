@@ -9,7 +9,7 @@ export const importPlayAnswerEnum = pgEnum("import_play_answer", PLAY_ANSWERS);
 
 /**
  * Un juego a revisar. Las columnas de respuesta vacías son «mostrá la sugerencia»; con valor, el juego
- * está en «Listos». Sin `igdb_id` es una fila que todavía no cruzó: Postgres no compara los vacíos.
+ * está en «Listos para importar». Sin `igdb_id` es una fila que todavía no cruzó: Postgres no compara los vacíos.
  */
 export const importEntry = pgTable(
   "import_entry",

@@ -1,0 +1,93 @@
+{
+ "schemaVersion": 1,
+ "generatedAtUtc": "2025-11-01T12:30:00Z",
+ "generator": {
+  "name": "Playnite Library Exporter",
+  "version": "1.0.0.0"
+ },
+ "playnite": {
+  "databaseGameCount": 3
+ },
+ "export": {
+  "totalGames": 3,
+  "databaseGameCount": 3,
+  "excludedGameCount": 0,
+  "steamAppIdCount": 0,
+  "formats": [
+   "json"
+  ],
+  "automatic": false,
+  "trigger": "manual"
+ },
+ "games": [
+  {
+   "playniteId": "20000000-0000-4000-8000-000000000100",
+   "name": "Castlevania Anniversary Collection",
+   "providerGameId": "b1f2c3d4e5f60718293a4b5c6d7e8f01",
+   "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+   "sourceId": "10000000-0000-4000-8000-0000000000e1",
+   "sourceName": "Epic",
+   "steamAppIdConfidence": "none",
+   "isInstalled": false,
+   "hidden": false,
+   "favorite": false,
+   "platforms": [
+    "PC (Windows)"
+   ],
+   "genres": [],
+   "categories": [],
+   "tags": [],
+   "playtimeSeconds": 7200,
+   "added": "2025-10-01T12:00:00Z",
+   "modified": "2025-10-01T12:00:00Z",
+   "releaseDate": "2019-2-26",
+   "sortingName": "Castlevania Anniversary Collection"
+  },
+  {
+   "playniteId": "20000000-0000-4000-8000-000000000101",
+   "name": "20XX",
+   "providerGameId": "c1f2c3d4e5f60718293a4b5c6d7e8f02",
+   "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+   "sourceId": "10000000-0000-4000-8000-0000000000e1",
+   "sourceName": "Epic",
+   "steamAppIdConfidence": "none",
+   "isInstalled": false,
+   "hidden": false,
+   "favorite": false,
+   "platforms": [
+    "PC (Windows)"
+   ],
+   "genres": [],
+   "categories": [],
+   "tags": [],
+   "playtimeSeconds": 3600,
+   "added": "2025-10-01T12:00:00Z",
+   "modified": "2025-10-01T12:00:00Z",
+   "releaseDate": "2020-5-14",
+   "sortingName": "20XX"
+  },
+  {
+   "playniteId": "20000000-0000-4000-8000-000000000102",
+   "name": "The Legend of Heroes: Trails of Cold Steel IV - The End of Saga - Digital Deluxe Edition with Every Bonus",
+   "providerGameId": "d1f2c3d4e5f60718293a4b5c6d7e8f03",
+   "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+   "sourceId": "10000000-0000-4000-8000-0000000000e1",
+   "sourceName": "Epic",
+   "steamAppIdConfidence": "none",
+   "isInstalled": false,
+   "hidden": false,
+   "favorite": false,
+   "platforms": [
+    "PC (Windows)"
+   ],
+   "genres": [],
+   "categories": [],
+   "tags": [],
+   "playtimeSeconds": 0,
+   "added": "2025-10-01T12:00:00Z",
+   "modified": "2025-10-01T12:00:00Z",
+   "releaseDate": "2021-4-9",
+   "sortingName": "The Legend of Heroes: Trails of Cold Steel IV - The End of Saga - Digital Deluxe Edition with Every Bonus"
+  }
+ ]
+}

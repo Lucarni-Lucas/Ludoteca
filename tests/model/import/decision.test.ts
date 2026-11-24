@@ -9,6 +9,7 @@ import { entry, EPIC, ignItem, playniteItem, STEAM, steamItem } from "./import-f
 
 const CONTEXT = { statusKeys: ["playing", "backlog", "wishlist", "completed", "abandoned", "played"] };
 const CONNECTED = { steamConnected: true };
+const CANDIDATE = { igdbId: 7, baseIgdbId: 7, title: "Overwatch", year: 2016, coverUrl: null };
 
 function view(value: ImportEntry): ReviewGame {
   return reviewGame(value, [], CONNECTED) as ReviewGame;
@@ -39,7 +40,7 @@ function applyPlan(entries: readonly ImportEntry[], plan: DecisionPlan): readonl
 }
 
 describe("planDecision", () => {
-  it("Decidir pasa a «Listos»", () => {
+  it("Decidir pasa a «Listos para importar»", () => {
     const beholder = entry("Beholder", [ignItem("Beholder", { ignStatuses: ["backlog"] }), steamItem("Beholder", "475550", 0)]);
     const game = view(beholder);
 
@@ -83,28 +84,51 @@ describe("planDecision", () => {
 
   it("«Pasar a Listos» guarda la sugerencia marcada de cada juego", () => {
     const entries = [
-      entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["beat", "quit"] })]),
       entry("Among Us", [ignItem("Among Us", { ignStatuses: ["beat"] })], { multiplayerOnly: true }),
+      entry("112 Operator", [playniteItem("112 Operator", EPIC, "operator", { playtimeMinutes: 0 })]),
     ];
 
     const plan = planDecision(entries.map(view), { kind: "accept" }, CONTEXT);
 
     expect(plan.writes.map((group) => group.write)).toEqual([
-      { answers: { statusKey: "completed" } },
       { answers: { endlessAnswer: true } },
+      { answers: { playAnswer: "keep" } },
     ]);
   });
 
+  it.each([
+    ["¿Cuál de estos es?", entry("Doom", [ignItem("Doom", { matchState: "candidates", candidates: [CANDIDATE, { ...CANDIDATE, igdbId: 8, baseIgdbId: 8 }] })], { igdbId: null, catalog: null })],
+    ["¿Cómo lo dejaste?", entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["beat", "quit"] })])],
+    ["No lo encontré", entry("Crash", [ignItem("Crash", { matchState: "not_found" })], { igdbId: null, catalog: null })],
+  ])("«Pasar a Listos» en «%s» da InvalidImportDecisionError", (_group, value) => {
+    const game = view(value);
+
+    const decide = () => planDecision([game], { kind: "accept" }, CONTEXT);
+
+    expect(decide).toThrow(InvalidImportDecisionError);
+  });
+
+  it("«No importar» vale en lote en las preguntas de a un juego", () => {
+    const entries = [
+      entry("Doom", [ignItem("Doom", { matchState: "candidates", candidates: [CANDIDATE] })], { igdbId: null, catalog: null }),
+      entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["beat", "quit"] })]),
+      entry("Crash", [ignItem("Crash", { matchState: "not_found" })], { igdbId: null, catalog: null }),
+    ];
+
+    const plan = planDecision(entries.map(view), { kind: "choose", choice: { kind: "exclude" } }, CONTEXT);
+
+    expect(plan.writes).toEqual([{ entryIds: entries.map((value) => value.id), write: { answers: { excluded: true } } }]);
+  });
+
   it("un candidato elegido se pide aparte para traer sus datos de IGDB", () => {
-    const candidate = { igdbId: 7, baseIgdbId: 7, title: "Overwatch", year: 2016, coverUrl: null };
-    const overwatch = entry("Overwatch", [ignItem("Overwatch", { matchState: "candidates", candidates: [candidate] })], {
+    const overwatch = entry("Overwatch", [ignItem("Overwatch", { matchState: "candidates", candidates: [CANDIDATE] })], {
       igdbId: null,
       catalog: null,
     });
 
-    const plan = planDecision([view(overwatch)], { kind: "accept" }, CONTEXT);
+    const plan = planDecision([view(overwatch)], { kind: "choose", choice: { kind: "candidate", candidate: CANDIDATE } }, CONTEXT);
 
-    expect(plan).toEqual({ writes: [], resets: [], candidates: [{ entryId: overwatch.id, candidate }] });
+    expect(plan).toEqual({ writes: [], resets: [], candidates: [{ entryId: overwatch.id, candidate: CANDIDATE }] });
   });
 
   it("«Cargar a mano» guarda el título de la fila", () => {
@@ -113,7 +137,7 @@ describe("planDecision", () => {
       catalog: null,
     });
 
-    const plan = planDecision([view(crash)], { kind: "accept" }, CONTEXT);
+    const plan = planDecision([view(crash)], { kind: "choose", choice: { kind: "manual" } }, CONTEXT);
 
     expect(plan.writes[0].write).toEqual({ answers: { manualTitle: "Crash Bandicoot" } });
   });
@@ -126,7 +150,7 @@ describe("planDecision", () => {
     expect(plan.writes[0].write).toEqual({ copies: { storeId: STEAM.id, copyKind: null, excluded: true } });
   });
 
-  it("«Pasar a Listos» en un juego sin opción marcada no escribe nada", () => {
+  it("«Pasar a Listos» en un juego de «Listos para importar» no escribe nada", () => {
     const ready = entry("Celeste", [ignItem("Celeste", { ignStatuses: ["playing"], ignScore: 9 })]);
 
     const plan = planDecision([view(ready)], { kind: "accept" }, CONTEXT);

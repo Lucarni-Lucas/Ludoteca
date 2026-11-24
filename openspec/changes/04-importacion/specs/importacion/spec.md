@@ -40,19 +40,49 @@ Lo importado MUST NOT entrar a la biblioteca hasta que el usuario confirme. La r
 - **WHEN** el usuario revisa la mitad de los juegos, cierra la app y vuelve al día siguiente
 - **THEN** encuentra la revisión donde la dejó y su biblioteca sin cambios
 
+### Requirement: Empezar de nuevo
+El sistema SHALL permitir descartar la revisión en curso con «Empezar de nuevo», previa confirmación. Descartarla MUST borrar los archivos subidos, lo traído de Steam y todas las decisiones que todavía no se confirmaron, sin tocar la biblioteca ni lo que ya se importó. La cuenta de Steam sigue conectada.
+
+#### Scenario: Descartar la revisión
+- **WHEN** el usuario subió los archivos de IGN y Playnite, decidió algunos juegos sin confirmar, toca «Empezar de nuevo» y confirma
+- **THEN** la pantalla vuelve a mostrar las fuentes sin archivos, ningún grupo tiene juegos y su biblioteca queda igual
+
+#### Scenario: Lo ya importado se conserva
+- **WHEN** el usuario ya había confirmado una parte de la importación y después empieza de nuevo
+- **THEN** los juegos que ya entraron siguen en su biblioteca y, al volver a importar, no se duplican
+
+### Requirement: Vencimiento de la revisión
+Si pasan 7 días sin que el usuario toque la importación (subir un archivo, traer de Steam, decidir un juego o confirmar), el sistema SHALL descartar la revisión en curso como «Empezar de nuevo», sin pedir confirmación, y avisarlo la próxima vez que el usuario abra la importación. Al confirmar, de cada juego confirmado MUST quedar solo lo necesario para reconocerlo al reimportar: la fuente, su ID en la fuente y en qué quedó. El resto de lo que usó la revisión se borra.
+
+#### Scenario: Revisión abandonada
+- **WHEN** el usuario deja la revisión a la mitad y vuelve a la importación 8 días después
+- **THEN** ve «Tu revisión anterior se descartó porque pasaron 7 días sin tocarla.», las fuentes sin archivos y su biblioteca sin cambios
+
+#### Scenario: Revisión en uso
+- **WHEN** el usuario decide algunos juegos cada 3 días durante dos semanas
+- **THEN** la revisión sigue donde la dejó
+
+#### Scenario: Confirmado que no vuelve
+- **WHEN** el usuario confirmó Hollow Knight desde IGN, después lo quitó de su biblioteca y vuelve a subir el mismo archivo de IGN
+- **THEN** Hollow Knight no vuelve a la revisión
+
 ### Requirement: Cruce con IGDB
-Cada juego importado SHALL cruzarse con IGDB primero por su ID en la tienda (Steam, Epic, GOG u otra) y, si no tiene, por título. Si hay varios candidatos posibles, MUST quedar para revisar.
+Cada juego importado SHALL cruzarse con IGDB primero por su ID en la tienda (Steam, Epic, GOG u otra) y, si no tiene, por título. Si por título hay un solo candidato con el mismo nombre, el cruce MUST darse por bueno aunque el año sea distinto. Si hay varios candidatos, o uno solo con otro nombre, el juego queda para que el usuario elija.
 
 #### Scenario: Cruce por ID de Steam
 - **WHEN** un juego de IGN trae el ID de Steam 1966900
 - **THEN** se cruza con 20 Minutes Till Dawn de IGDB sin buscar por título
 
+#### Scenario: Mismo nombre, otro año
+- **WHEN** Playnite trae 20XX de Epic con el año 2020 e IGDB devuelve solo 20XX de 2017
+- **THEN** se cruza con 20XX de 2017 y no se le pregunta nada al usuario
+
 #### Scenario: Título ambiguo
-- **WHEN** un juego sin ID de tienda se llama «Overwatch» y IGDB devuelve varios candidatos
-- **THEN** queda en «Para revisar» con los candidatos para elegir
+- **WHEN** un juego sin ID de tienda se llama «Crash Bandicoot» y IGDB devuelve varios candidatos
+- **THEN** queda en «¿Cuál de estos es?» con los candidatos para elegir
 
 ### Requirement: Estados desde IGN
-Los estados de IGN SHALL pasar así: Playing a Jugando, Paused a En pausa, Beat a Completado, Quit a Abandonado, Wishlist a Quiero jugarlo, y Backlog a Pendiente si el juego tiene alguna copia o a Quiero jugarlo si no. Un juego con dos estados de IGN MUST quedar para revisar.
+Los estados de IGN SHALL pasar así: Playing a Jugando, Paused a En pausa, Beat a Completado, Quit a Abandonado, Wishlist a Quiero jugarlo, y Backlog a Pendiente si el juego tiene alguna copia o a Quiero jugarlo si no. Un juego con dos estados de IGN MUST quedar en «¿Cómo lo dejaste?».
 
 #### Scenario: Backlog con copia
 - **WHEN** un juego en Backlog en IGN también llega con una copia de Steam
@@ -68,7 +98,7 @@ Los estados de IGN SHALL pasar así: Playing a Jugando, Paused a En pausa, Beat 
 
 #### Scenario: Dos estados a la vez
 - **WHEN** un juego viene de IGN como Beat y Quit a la vez
-- **THEN** queda en «Para revisar» para que el usuario elija
+- **THEN** queda en «¿Cómo lo dejaste?» para que el usuario elija
 
 ### Requirement: Puntajes desde IGN
 Los puntajes enteros de IGN SHALL pasar con un decimal en cero.
@@ -78,14 +108,14 @@ Los puntajes enteros de IGN SHALL pasar con un decimal en cero.
 - **THEN** se sugiere el puntaje 8.0
 
 ### Requirement: Copias desde Playnite
-Cada juego del archivo de Playnite SHALL sumar una copia en su tienda, con las horas jugadas que informe y sin fecha. Las copias de Epic Games se sugieren como Gratis y las demás como Comprado; el tipo se puede cambiar de a uno o en lote.
+Cada juego del archivo de Playnite SHALL sumar una copia en su tienda, con las horas jugadas que informe y sin fecha. Las copias de Epic Games se sugieren como Gratis y las demás como Comprado; el tipo se puede cambiar de a uno o en lote con la acción «¿Cómo lo conseguiste?».
 
 #### Scenario: Juego de Epic
 - **WHEN** el archivo de Playnite trae Grand Theft Auto V de Epic Games
 - **THEN** se sugiere una copia «Epic Games · Gratis» sin fecha
 
 #### Scenario: Cambiar el tipo en lote
-- **WHEN** el usuario selecciona 5 juegos de Epic y elige «Comprado»
+- **WHEN** el usuario selecciona 5 juegos de Epic, toca «¿Cómo lo conseguiste?» y elige «Comprado»
 - **THEN** los 5 quedan con copia de tipo Comprado
 
 ### Requirement: Copias desde Steam
@@ -134,6 +164,28 @@ El sistema SHALL agrupar los juegos que el usuario tiene, con horas jugadas, per
 - **WHEN** un juego de Steam con 12 h no está en el archivo de IGN
 - **THEN** aparece en «Elegí un estado» con la sugerencia «Pendiente»
 
+### Requirement: Grupo «¿Cuál de estos es?»
+Los juegos con varios candidatos en IGDB SHALL agruparse en «¿Cuál de estos es?». Cada uno muestra cómo llegó (fuente, nombre y año) y los candidatos con portada, nombre completo y año, más «Ninguno, lo busco yo» y «No importar». Ninguna opción viene marcada: elegir una lleva el juego a «Listos para importar».
+
+#### Scenario: Elegir entre varios
+- **WHEN** IGN trae Crash Bandicoot de 1996 e IGDB devuelve cinco juegos con ese nombre
+- **THEN** el usuario ve «En IGN: Crash Bandicoot · 1996» y los cinco candidatos, sin ninguno marcado
+
+#### Scenario: Un solo candidato con otro nombre
+- **WHEN** Playnite trae «Castlevania Anniversary Collection» e IGDB devuelve solo «Castlevania: Anniversary Collection - Ultimate Edition»
+- **THEN** la pregunta es «¿Es este juego?», con «Sí», «No, lo busco yo» y «No importar»
+
+#### Scenario: Buscar otro
+- **WHEN** el usuario toca «Ninguno, lo busco yo» y elige otro juego en la búsqueda
+- **THEN** el juego pasa a «Listos para importar» con el juego elegido
+
+### Requirement: Grupo «¿Cómo lo dejaste?»
+Los juegos que llegan de IGN con dos estados SHALL agruparse en «¿Cómo lo dejaste?», con un botón por cada estado dicho en palabras («Lo terminaste», «Lo abandonaste»), más «Otro estado» y «No importar». Ninguna opción viene marcada.
+
+#### Scenario: Terminado y abandonado
+- **WHEN** Overwatch llega de IGN como Beat y Quit
+- **THEN** el usuario ve «IGN lo tiene como terminado y como abandonado» con «Lo terminaste», «Lo abandonaste», «Otro estado» y «No importar»
+
 ### Requirement: Grupo «No lo encontré»
 Los juegos que no se pudieron cruzar con IGDB SHALL agruparse con tres opciones: buscarlos con otro nombre, entrarlos como cargados a mano o no importarlos.
 
@@ -142,26 +194,55 @@ Los juegos que no se pudieron cruzar con IGDB SHALL agruparse con tres opciones:
 - **THEN** queda en «No lo encontré» con esas tres opciones
 
 ### Requirement: Opción marcada en cada juego
-En cada grupo, las opciones de un juego SHALL mostrarse como una elección de una sola opción, con la sugerencia ya marcada: ningún juego queda sin decidir.
+En los grupos de decisión en lote («¿Lo vas a jugar alguna vez?», «¿Es de tu familia?», «¿Es sin fin?» y «Elegí un estado»), las opciones de un juego SHALL mostrarse como una elección de una sola opción, con la sugerencia ya marcada. En «¿Cuál de estos es?» y «¿Cómo lo dejaste?» no hay sugerencia: elige el usuario.
 
 #### Scenario: Sugerencia marcada
 - **WHEN** el usuario abre «¿Lo vas a jugar alguna vez?» y 112 Operator llega de Epic con 0 h
 - **THEN** 112 Operator tiene marcada la opción «Pendiente» entre «Pendiente», «Sin interés» y «No importar»
 
-### Requirement: Grupo «Listos»
-Los juegos sin nada dudoso y los que el usuario ya decidió en cualquier otro grupo SHALL agruparse en «Listos». Elegir otra opción en un juego, o pasar los seleccionados con lo que tienen marcado, MUST llevarlos a «Listos», y la pantalla SHALL decirlo. «Confirmar importación» confirma todo lo que está en «Listos» y los demás grupos siguen esperando.
+### Requirement: Grupo «Listos para importar»
+Los juegos sin nada dudoso y los que el usuario ya decidió en cualquier otro grupo SHALL agruparse en «Listos para importar», y cada uno MUST decir cómo va a entrar (estado, tienda y tipo de copia). Elegir otra opción en un juego, o pasar los seleccionados con lo que tienen marcado, MUST llevarlos a «Listos para importar», y la pantalla SHALL decirlo. «Confirmar importación» confirma todo lo que está en «Listos para importar» y los demás grupos siguen esperando.
 
-#### Scenario: Decidir pasa a «Listos»
+#### Scenario: Decidir pasa a «Listos para importar»
 - **WHEN** el usuario elige «Sin interés» para Beholder en «¿Lo vas a jugar alguna vez?»
-- **THEN** Beholder pasa a «Listos» y la pantalla dice «Beholder pasó a «Listos» con «Sin interés».»
+- **THEN** Beholder pasa a «Listos para importar» y la pantalla dice «Beholder pasó a «Listos para importar» con «Sin interés».»
 
 #### Scenario: Pasar lo marcado en lote
 - **WHEN** el usuario selecciona Portal 2 y Watch Dogs en «¿Es de tu familia?» y toca «Pasar a Listos»
-- **THEN** los dos pasan a «Listos» con la copia «Steam · Familia»
+- **THEN** los dos pasan a «Listos para importar» con la copia «Steam · Familia»
 
 #### Scenario: Confirmar lo que está listo
-- **WHEN** el usuario confirma la importación con juegos en «Listos» y otros en «Para revisar»
-- **THEN** los de «Listos» entran a la biblioteca con lo marcado y los de «Para revisar» siguen esperando
+- **WHEN** el usuario confirma la importación con juegos en «Listos para importar» y otros en «¿Cuál de estos es?»
+- **THEN** los de «Listos para importar» entran a la biblioteca con lo marcado y los de «¿Cuál de estos es?» siguen esperando
+
+#### Scenario: Cómo va a entrar
+- **WHEN** el usuario abre «Listos para importar» y 112 Operator está decidido como Pendiente
+- **THEN** 112 Operator dice «Entra como Pendiente · Epic Games · Gratis»
+
+### Requirement: Volver a revisar
+Un juego de «Listos para importar» SHALL poder volver a su grupo con «Volver a revisar», sin la decisión que se había tomado, sea cual sea el grupo del que vino.
+
+#### Scenario: Volver después de elegir un candidato
+- **WHEN** el usuario eligió un candidato para Crash Bandicoot en «¿Cuál de estos es?» y después toca «Volver a revisar» en «Listos para importar»
+- **THEN** Crash Bandicoot vuelve a «¿Cuál de estos es?» sin candidato elegido y deja de estar en «Listos para importar»
+
+### Requirement: Guía para exportar de Playnite
+La importación SHALL ofrecer, desde la fuente Playnite, una página «¿Cómo lo saco?» que explique en una línea qué es Playnite y en pasos cortos cómo instalar el exportador desde la página de su autor, exportar la biblioteca en JSON y subir el archivo.
+
+#### Scenario: Abrir la guía de Playnite
+- **WHEN** el usuario toca «¿Cómo lo saco?» en la fuente Playnite
+- **THEN** ve la guía con el link a la página del exportador y los pasos para exportar y subir el archivo
+
+### Requirement: Guía y marcador para exportar de IGN
+La importación SHALL ofrecer, desde la fuente IGN, una página «¿Cómo lo saco?» con un marcador para el navegador que, usado en la lista de juegos del usuario en IGN con su sesión abierta, descarga el archivo listo para subir. El marcador MUST correr solo en el navegador del usuario, sin mandar nada a Ludoteca ni a terceros, y la guía SHALL avisar que puede dejar de andar si IGN cambia su página.
+
+#### Scenario: Exportar de IGN
+- **WHEN** el usuario arrastra el marcador a su barra de favoritos, entra a su lista en IGN y lo toca
+- **THEN** su navegador descarga un archivo JSON que la importación acepta como archivo de IGN
+
+#### Scenario: Aviso de que puede fallar
+- **WHEN** el usuario abre la guía de IGN
+- **THEN** ve que el marcador depende de la página de IGN y que, si deja de andar, se puede avisar para arreglarlo
 
 ### Requirement: Duración desde HowLongToBeat
 Si IGDB no tiene duración para un juego y el archivo de IGN trae la de HowLongToBeat, el sistema SHALL usar la duración principal de HowLongToBeat y la ficha MUST decir que sale de HowLongToBeat. No cuenta como una corrección del usuario.

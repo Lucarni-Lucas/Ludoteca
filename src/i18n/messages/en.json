@@ -472,8 +472,11 @@
         "connecting": "Connecting…",
         "refresh": "Fetch again",
         "refreshing": "Fetching…",
-        "connected": "{count, plural, one {We fetched # game from Steam.} other {We fetched # games from Steam.}}"
-      }
+        "connected": "{count, plural, one {We fetched # game from Steam.} other {We fetched # games from Steam.}}",
+        "accountConnected": "Account connected"
+      },
+      "howTo": "How do I get it?",
+      "howToLabel": "How do I get the {source} file?"
     },
     "progress": {
       "label": "Matching with IGDB",
@@ -484,7 +487,7 @@
     "review": {
       "title": "Review",
       "nav": "Review groups",
-      "rule": "Each game already has our suggestion selected. If you choose another option, it moves to “Ready”. To move the selected option without changing it, select the game and tap “Move to Ready”.",
+      "rule": "Each game already has our suggestion selected. If you choose another option, it moves to “Ready to import”. To move the selected option without changing it, select the game and tap “Move to Ready”.",
       "readyRule": "This is what enters your library when you confirm. “Review again” sends a game back to its group.",
       "upToDate": "{count, plural, one {# was already up to date in your library.} other {# were already up to date in your library.}}",
       "empty": "There are no games in this group.",
@@ -494,23 +497,23 @@
       "select": "Select {title}",
       "selected": "{count, plural, one {# selected} other {# selected}}",
       "passToReady": "Move to Ready",
-      "copyKind": "Copy type",
-      "copyKindStore": "Copy type on {store}",
+      "copyKind": "How did you get it?",
+      "copyKindStore": "How did you get it on {store}?",
       "cancel": "Cancel",
       "backToReview": "Review again",
       "optionsFor": "What to do with {title}",
       "otherStatus": "Status of {title}",
-      "otherKind": "Copy type of {title}",
+      "otherKind": "How you got {title}",
       "apply": "Apply",
       "searchAgain": "Search with another name",
       "searchLabel": "Name on IGDB",
       "pick": "Choose",
       "inLibrary": "Already in your library · adds {count, plural, one {# copy} other {# copies}}",
       "showMore": "Show {count} more",
-      "movedToReady": "“{title}” moved to “Ready” with “{choice}”.",
-      "movedManyToReady": "{count, plural, one {# game moved to “Ready”.} other {# games moved to “Ready”.}}",
-      "movedBack": "“{title}” went back to review.",
-      "unchanged": "There was nothing to move to “Ready”.",
+      "movedToReady": "“{title}” moved to “Ready to import” with “{choice}”.",
+      "movedManyToReady": "{count, plural, one {# game moved to “Ready to import”.} other {# games moved to “Ready to import”.}}",
+      "movedBack": "“{title}” went back to “{group}”.",
+      "unchanged": "There was nothing to move to “Ready to import”.",
       "origin": {
         "ign": "IGN · {statuses}",
         "ignScored": "IGN · {statuses} · {score}",
@@ -525,13 +528,45 @@
         "beat": "Beat",
         "quit": "Quit",
         "wishlist": "Wishlist"
-      }
+      },
+      "movedManyBack": "{count, plural, one {# game went back to review.} other {# games went back to review.}}",
+      "excluded": "“{title}” won’t be imported.",
+      "excludedMany": "{count, plural, one {# game won’t be imported.} other {# games won’t be imported.}}",
+      "arrival": {
+        "ign": "On IGN:",
+        "steam": "On Steam:",
+        "epic": "On Epic:",
+        "store": "On {store}:"
+      },
+      "whichFor": "Which one is {title}?",
+      "isThis": "Is it this game?",
+      "howLeftFor": "How did you leave {title}?",
+      "ignHas": "IGN has it {list}.",
+      "ignAs": {
+        "completed": "as beaten",
+        "abandoned": "as quit",
+        "playing": "as playing",
+        "paused": "as paused",
+        "backlog": "in the backlog",
+        "wishlist": "on the wishlist"
+      },
+      "notGame": "It doesn’t look like a game: it’s a soundtrack, a beta or a hidden name.",
+      "enters": "Enters as {status}",
+      "entersManual": "Enters by hand as {status}",
+      "entersNotInterested": "Not interested",
+      "entersEndless": "endless",
+      "inLibraryAdds": "Already in your library · adds {copies}"
     },
     "groups": {
-      "review": {
-        "name": "To review",
-        "hint": "More than one candidate or two statuses",
-        "explanation": "IGDB returned more than one similar game, or IGN has them with two statuses. Choose the right one."
+      "which": {
+        "name": "Which one is it?",
+        "hint": "IGDB has more than one similar",
+        "explanation": "IGDB has more than one similar game. Choose yours: it moves to “Ready to import”. If it’s not there, search with another name."
+      },
+      "how_left": {
+        "name": "How did you leave it?",
+        "hint": "IGN has them with two statuses",
+        "explanation": "IGN has them with two statuses at once. Choose how you left it: it moves to “Ready to import”."
       },
       "not_found": {
         "name": "Not found",
@@ -559,13 +594,13 @@
         "explanation": "They have hours played but didn’t come from IGN, so we don’t know their status."
       },
       "ready": {
-        "name": "Ready",
+        "name": "Ready to import",
         "hint": "No doubts or already decided",
         "explanation": "What had no doubts and what you already decided in the other groups."
       }
     },
     "choices": {
-      "search": "None: search with another name",
+      "search": "None, I’ll search",
       "otherStatus": "Another status",
       "manual": "Add by hand",
       "exclude": "Don’t import",
@@ -573,15 +608,64 @@
       "endless": "Played · endless",
       "completed": "Completed",
       "keep": "Backlog",
-      "notInterested": "Not interested"
+      "notInterested": "Not interested",
+      "searchNo": "No, I’ll search",
+      "yes": "Yes",
+      "howLeft": {
+        "completed": "You beat it",
+        "abandoned": "You quit it",
+        "playing": "You’re playing it",
+        "paused": "You paused it",
+        "backlog": "It’s in your backlog",
+        "wishlist": "You want to play it"
+      }
     },
     "confirm": {
-      "ready": "In “Ready”: <n>{games}</n> games and <n>{copies}</n> copies",
-      "explanation": "“Confirm import” adds everything in “Ready” to your library: what had no doubts and what you already decided in the other groups. The rest keeps waiting here.",
+      "ready": "In “Ready to import”: {games, plural, one {<n>#</n> game} other {<n>#</n> games}} and {copies, plural, one {<n>#</n> copy} other {<n>#</n> copies}}",
+      "explanation": "“Confirm import” adds everything in “Ready to import” to your library: what had no doubts and what you already decided in the other groups. The rest keeps waiting here.",
       "action": "Confirm import",
       "confirming": "Confirming…",
-      "nothingReady": "There’s nothing in “Ready” to confirm yet.",
+      "nothingReady": "There’s nothing in “Ready to import” to confirm yet.",
       "summary": "{games, plural, one {# game} other {# games}} and {copies, plural, one {# copy} other {# copies}} came in · {notInterested} marked “Not interested” · {excluded} not imported"
+    },
+    "restart": {
+      "action": "Start over",
+      "title": "Start over?",
+      "description": "This deletes the files you uploaded, what you brought from Steam and what you decided without confirming. Your library and what you already imported don’t change.",
+      "done": "You started over: the review is empty.",
+      "expired": "Your previous review was discarded because {days} days passed without touching it."
+    },
+    "guides": {
+      "back": "Back to Import",
+      "playnite": {
+        "title": "How do I get my Playnite library?",
+        "lead": "Playnite is a free Windows program that gathers your games from Epic, GOG, Steam and other stores. Leave Steam signed out: that way it lists what you have installed.",
+        "steps": {
+          "download": "Download the <strong>PlayniteLibraryExport</strong> exporter from <link>its author’s page</link> and open the <mono>.pext</mono> file with Playnite closed.",
+          "export": "In Playnite: <strong>Extensions › Playnite Library Exporter › Export library now</strong>, as JSON.",
+          "upload": "Go back to Import and upload the file in Playnite."
+        }
+      },
+      "ign": {
+        "title": "How do I get my IGN list?",
+        "lead": "IGN has no export button. This bookmarklet does it for you: it reads your list on IGN’s page and downloads the file, without sending anything anywhere else.",
+        "bookmarklet": "Export from IGN",
+        "dragHint": "This button is used from IGN: drag it to your bookmarks bar and tap it with your IGN list open.",
+        "barHint": "If you don’t see the bookmarks bar: Ctrl + Shift + B in Chrome and Edge.",
+        "steps": {
+          "drag": "Drag this button to your browser’s bookmarks bar.",
+          "open": "Go to your games list on IGN, signed in.",
+          "run": "Tap the “Export from IGN” bookmark. Your browser downloads <mono>ign-export.json</mono>.",
+          "upload": "Go back to Import and upload the file in IGN."
+        },
+        "warning": "The bookmarklet depends on how IGN builds its page. If IGN changes it, it may stop working: let us know and we’ll fix it.",
+        "alerts": {
+          "wrongSite": "This bookmarklet is used on www.ign.com: go to your IGN games list and tap it there.",
+          "signedOut": "IGN didn’t give us your list. Sign in to IGN and tap the bookmarklet again.",
+          "failed": "We couldn’t read your IGN list. Try again in a while.",
+          "empty": "Your IGN list is empty: there’s nothing to export."
+        }
+      }
     }
   }
 }

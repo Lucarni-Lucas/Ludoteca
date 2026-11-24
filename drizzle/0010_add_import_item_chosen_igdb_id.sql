@@ -1,0 +1,1 @@
+ALTER TABLE "import_item" ADD COLUMN "chosen_igdb_id" integer;

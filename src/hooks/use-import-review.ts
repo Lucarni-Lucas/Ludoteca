@@ -7,6 +7,7 @@ import {
   confirmImportAction,
   connectSteamAction,
   decideAction,
+  discardReviewAction,
   getImportOverviewAction,
   refreshSteamAction,
   searchAgainAction,
@@ -92,7 +93,8 @@ export function useImportReview(initial: ImportOverview) {
     return runSource("steam", () => refreshSteamAction(), (connected) => t("steam.connected", { count: connected.read }));
   }
 
-  async function runReview(action: () => Promise<ActionResult<ImportOverview>>): Promise<boolean> {
+  /** Devuelve la revisión nueva, para que la pantalla diga adónde fue cada juego; `null` si no se guardó. */
+  async function runReview(action: () => Promise<ActionResult<ImportOverview>>): Promise<ImportOverview | null> {
     setBusy("decide");
     setErrorMessage(null);
     const result = await action();
@@ -100,11 +102,11 @@ export function useImportReview(initial: ImportOverview) {
 
     if (!result.ok) {
       setErrorMessage(result.error.message);
-      return false;
+      return null;
     }
 
     setOverview(result.data);
-    return true;
+    return result.data;
   }
 
   function decide(entryIds: readonly string[], decision: ImportDecision) {
@@ -113,6 +115,18 @@ export function useImportReview(initial: ImportOverview) {
 
   function searchAgain(entryId: string, chosen: IgdbSearchResult) {
     return runReview(() => searchAgainAction(entryId, chosen));
+  }
+
+  /** «Empezar de nuevo»: devuelve si se borró, para cerrar la confirmación y avisarlo. */
+  async function discard(): Promise<ImportOverview | null> {
+    const discarded = await runReview(() => discardReviewAction());
+
+    if (discarded) {
+      setSummary(null);
+      setFeedback({});
+    }
+
+    return discarded;
   }
 
   async function confirm() {
@@ -130,5 +144,19 @@ export function useImportReview(initial: ImportOverview) {
     await refresh();
   }
 
-  return { overview, busy, feedback, errorMessage, summary, refresh, uploadFile, connectSteam, refreshSteam, decide, searchAgain, confirm };
+  return {
+    overview,
+    busy,
+    feedback,
+    errorMessage,
+    summary,
+    refresh,
+    uploadFile,
+    connectSteam,
+    refreshSteam,
+    decide,
+    searchAgain,
+    discard,
+    confirm,
+  };
 }

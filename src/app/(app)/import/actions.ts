@@ -55,6 +55,12 @@ export async function searchAgainAction(entryId: string, chosen: IgdbSearchResul
   });
 }
 
+export async function discardReviewAction(): Promise<ActionResult<ImportOverview>> {
+  const user = await requireSessionUser();
+
+  return toActionResult(() => getImportService().discardReview(user.id));
+}
+
 export async function confirmImportAction(): Promise<ActionResult<ImportSummary>> {
   const user = await requireSessionUser();
 

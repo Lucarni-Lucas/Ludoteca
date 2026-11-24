@@ -36,6 +36,7 @@ export function createFakeImportRepo() {
     review: emptyReview(),
     matches: [] as ItemMatch[],
     confirmations: [] as ImportConfirmationPlan[],
+    lastActivityAt: null as Date | null,
   };
 
   return {
@@ -58,6 +59,11 @@ export function createFakeImportRepo() {
     applyConfirmation: vi.fn(async (_userId: string, plan: ImportConfirmationPlan) => {
       state.confirmations.push(plan);
     }),
+    discardOpenReview: vi.fn(async () => {
+      state.review = emptyReview();
+    }),
+    lastOpenActivityAt: vi.fn(async (): Promise<Date | null> => state.lastActivityAt),
+    touchOpenReview: vi.fn(async () => undefined),
   };
 }
 

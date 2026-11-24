@@ -129,7 +129,7 @@ function addExcluded(parts: PlanParts, entry: ImportEntry): void {
 
 export type ConfirmContext = ReviewContext & Readonly<{ statuses: readonly Status[]; today: string }>;
 
-/** Confirma lo que está en «Listos»: los demás grupos siguen esperando (design.md §11). */
+/** Confirma lo que está en «Listos para importar»: los demás grupos siguen esperando (design.md §11). */
 export function planImportConfirmation(open: OpenReview, context: ConfirmContext): ImportConfirmationPlan {
   const parts: PlanParts = { games: [], entryIds: [], summary: EMPTY_SUMMARY };
 

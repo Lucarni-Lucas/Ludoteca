@@ -233,6 +233,8 @@ Tené a mano el link de tu perfil o tu SteamID64: lo vas a pegar en Ludoteca al 
 3. Menú principal › **Update game library**. Esperá a que aparezcan tus 211 juegos de Epic.
 4. Instalá el exportador **PlayniteLibraryExport**: de [su repo](https://github.com/Dawnflare/PlayniteLibraryExport), bajá el archivo `.pext` de la carpeta `dist`, cerrá Playnite y hacé doble clic en el `.pext`.
 5. Abrí Playnite y andá a **Extensions › Playnite Library Exporter › Export library now**. Elegí JSON.
+
+Los pasos 4 y 5 ahora también están en la app: en `/import`, el link «¿Cómo lo saco?» de la fuente Playnite abre la guía (`/import/guide/playnite`). Para IGN, la guía de `/import/guide/ign` trae el marcador que descarga `ign-export.json`.
 6. Abrí el archivo y fijate que cada juego traiga la tienda (Epic, GOG) y el ID del juego en esa tienda. Es un proyecto chico: si le falta algo, avisale a Claude antes de seguir y buscamos otra forma de exportar.
 
 ### Muestras para los tests

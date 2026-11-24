@@ -1,6 +1,8 @@
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import type { ImportCandidate, OpenReview } from "@/model/import/import-entry";
+import { buildReview } from "@/model/import/review";
 import { createImportRepository, type ImportRepository } from "@/persistence/repository/import/import-repository";
 import { importEntry } from "@/persistence/sql/import/import-entry";
 import { importItem } from "@/persistence/sql/import/import-item";
@@ -9,6 +11,10 @@ import { createTestDatabase, type TestDatabase } from "../../pglite";
 import { createRepositories, entry, igdbData, seedStatuses, steamOf } from "../game/game-fixtures";
 import { USER_A, USER_B } from "../users";
 import { matchedGame, newItem } from "./import-fixtures";
+
+function candidate(igdbId: number, title: string, year: number): ImportCandidate {
+  return { igdbId, baseIgdbId: igdbId, title, year, coverUrl: null };
+}
 
 describe("createImportRepository", () => {
   let database: TestDatabase;
@@ -244,6 +250,78 @@ describe("createImportRepository", () => {
     });
   });
 
+  describe("matchEntry y «Volver a revisar»", () => {
+    const beholder = [candidate(501, "Beholder", 2016), candidate(502, "Beholder 2", 2018)];
+
+    async function chooseCandidate(): Promise<string> {
+      await imports.upsertItems(USER_A, [newItem("beholder", { title: "Beholder", year: 2016 })]);
+      await imports.saveMatches(USER_A, [{ itemId: await itemIdOf(USER_A, "beholder"), kind: "candidates", candidates: beholder }]);
+      const [open] = (await imports.listOpenReview(USER_A)).entries;
+      await imports.matchEntry(USER_A, open.id, matchedGame(501, "Beholder"), beholder[0]);
+      const [chosen] = (await imports.listOpenReview(USER_A)).entries;
+      return chosen.id;
+    }
+
+    function groupOfOnlyGame(review: OpenReview): string | undefined {
+      return buildReview(review, { steamConnected: false }).groups.find((view) => view.games.length > 0)?.group;
+    }
+
+    it("elegir un candidato guarda la elección sin pisar el cruce", async () => {
+      const entryId = await chooseCandidate();
+
+      const { entries } = await imports.listOpenReview(USER_A);
+
+      expect(entries).toHaveLength(1);
+      expect(entries[0]).toMatchObject({ id: entryId, igdbId: 501 });
+      expect(entries[0].items[0]).toMatchObject({ matchState: "candidates", candidates: beholder, chosenIgdbId: 501 });
+    });
+
+    it("Volver después de elegir un candidato", async () => {
+      const entryId = await chooseCandidate();
+
+      await imports.clearDecision(USER_A, [entryId]);
+
+      const review = await imports.listOpenReview(USER_A);
+      expect(review.entries).toHaveLength(1);
+      expect(review.entries[0]).toMatchObject({ igdbId: null, catalogGameId: null });
+      expect(review.entries[0].items[0]).toMatchObject({ matchState: "candidates", candidates: beholder, chosenIgdbId: null });
+      expect(groupOfOnlyGame(review)).not.toBe("ready");
+    });
+
+    it("lo elegido con «Buscar con otro nombre» vuelve a «No lo encontré»", async () => {
+      await imports.upsertItems(USER_A, [newItem("viejo", { title: "Juego Viejo" })]);
+      await imports.saveMatches(USER_A, [{ itemId: await itemIdOf(USER_A, "viejo"), kind: "not_found" }]);
+      const [open] = (await imports.listOpenReview(USER_A)).entries;
+      await imports.matchEntry(USER_A, open.id, matchedGame(600, "Juego Viejo Remasterizado"), candidate(600, "Juego Viejo Remasterizado", 2004));
+      const [chosen] = (await imports.listOpenReview(USER_A)).entries;
+
+      await imports.clearDecision(USER_A, [chosen.id]);
+
+      const review = await imports.listOpenReview(USER_A);
+      expect(review.entries[0].items[0]).toMatchObject({ matchState: "not_found", chosenIgdbId: null });
+      expect(groupOfOnlyGame(review)).toBe("not_found");
+    });
+
+    it("al volver, una fila elegida deja el juego al que se había sumado y las demás quedan ahí", async () => {
+      await imports.upsertItems(USER_A, [newItem("hades-ign", { title: "Hades" }), newItem("hades-otro", { title: "Hádes" })]);
+      await imports.saveMatches(USER_A, [
+        { itemId: await itemIdOf(USER_A, "hades-ign"), kind: "matched", game: matchedGame(77, "Hades") },
+        { itemId: await itemIdOf(USER_A, "hades-otro"), kind: "candidates", candidates: [candidate(77, "Hades", 2020)] },
+      ]);
+      const own = (await imports.listOpenReview(USER_A)).entries.find((open) => open.igdbId === null);
+      await imports.matchEntry(USER_A, own?.id ?? "", matchedGame(77, "Hades"), candidate(77, "Hades", 2020));
+      const [joined] = (await imports.listOpenReview(USER_A)).entries;
+
+      await imports.clearDecision(USER_A, [joined.id]);
+
+      const { entries } = await imports.listOpenReview(USER_A);
+      const byKey = new Map(entries.flatMap((open) => open.items.map((item) => [item.sourceKey, open] as const)));
+      expect(entries).toHaveLength(2);
+      expect(byKey.get("hades-ign")).toMatchObject({ id: joined.id, igdbId: 77 });
+      expect(byKey.get("hades-otro")).toMatchObject({ igdbId: null });
+    });
+  });
+
   describe("aislamiento", () => {
     it("el usuario A no ve ni cambia nada del B", async () => {
       await imports.upsertItems(USER_A, [newItem("1", { title: "Hades" })]);
@@ -265,6 +343,23 @@ describe("createImportRepository", () => {
       expect(entryAfter.items[0]).toMatchObject({ title: "Hades", matchState: "matched", entryId: entryA.id });
       const itemsOfB = await database.db.select().from(importItem).where(eq(importItem.userId, USER_B));
       expect(itemsOfB.map((item) => item.title)).toEqual(["Otro"]);
+    });
+
+    it("el usuario A no ve ni cambia nada del B al volver a revisar", async () => {
+      const crash = [candidate(1, "Crash Bandicoot", 1996), candidate(2, "Crash Bandicoot", 2004)];
+      await imports.upsertItems(USER_A, [newItem("crash", { title: "Crash Bandicoot" })]);
+      await imports.saveMatches(USER_A, [{ itemId: await itemIdOf(USER_A, "crash"), kind: "candidates", candidates: crash }]);
+      const [open] = (await imports.listOpenReview(USER_A)).entries;
+      await imports.matchEntry(USER_A, open.id, matchedGame(1, "Crash Bandicoot"), crash[0]);
+      const [chosenOfA] = (await imports.listOpenReview(USER_A)).entries;
+
+      await imports.clearDecision(USER_B, [chosenOfA.id]);
+      await imports.matchEntry(USER_B, chosenOfA.id, matchedGame(2, "Crash Bandicoot"), crash[1]);
+
+      const [after] = (await imports.listOpenReview(USER_A)).entries;
+      expect(after).toMatchObject({ id: chosenOfA.id, igdbId: 1 });
+      expect(after.items[0]).toMatchObject({ chosenIgdbId: 1, entryId: chosenOfA.id });
+      expect(await database.db.select().from(importEntry).where(eq(importEntry.userId, USER_B))).toEqual([]);
     });
   });
 });

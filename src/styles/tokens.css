@@ -60,6 +60,7 @@
   --color-sheet: #12151b;
   --color-sheet-bar: rgba(18, 21, 27, 0.97);
   --color-overlay: rgba(7, 8, 10, 0.72);
+  --shadow-toast: 0 12px 32px rgba(0, 0, 0, 0.5);
   --color-border-row: #1c2129;
   --color-border-chip: #353c48;
   --color-border-chip-lost: #4a5160;

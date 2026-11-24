@@ -30,6 +30,8 @@ export const importItem = pgTable(
     steamAppId: text("steam_app_id"),
     matchState: importMatchStateEnum("match_state").notNull().default("pending"),
     candidates: jsonb("candidates").$type<readonly ImportCandidate[]>().notNull(),
+    // El juego que eligió el usuario; va aparte del cruce para poder deshacerlo (design.md §4).
+    chosenIgdbId: integer("chosen_igdb_id"),
     entryId: uuid("entry_id").references(() => importEntry.id, { onDelete: "set null" }),
     // Vacío es «el tipo sugerido».
     copyKind: copyKindEnum("copy_kind"),

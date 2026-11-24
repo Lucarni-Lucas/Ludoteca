@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, max } from "drizzle-orm";
 
 import type { ImportConfirmationPlan } from "@/model/import/confirm";
 import type {
@@ -55,6 +55,12 @@ export type ImportRepository = Readonly<{
   /** El candidato elegido (o el juego buscado con otro nombre) pasa a ser el juego de ese juego a revisar. */
   matchEntry(userId: string, entryId: string, game: MatchedGame, chosen: ImportCandidate): Promise<void>;
   applyConfirmation(userId: string, plan: ImportConfirmationPlan): Promise<void>;
+  /** «Empezar de nuevo» y el vencimiento: borra todo lo que no se confirmó (design.md §18). */
+  discardOpenReview(userId: string): Promise<void>;
+  /** El `updated_at` más reciente de las filas sin confirmar; vacío si no hay revisión abierta. */
+  lastOpenActivityAt(userId: string): Promise<Date | null>;
+  /** El usuario tocó la importación: renueva las filas sin confirmar para que no venzan. */
+  touchOpenReview(userId: string): Promise<void>;
 }>;
 
 type ItemRow = typeof importItem.$inferSelect;
@@ -275,6 +281,40 @@ async function moveOrMatch(tx: Database, userId: string, entryId: string, game: 
   return entryId;
 }
 
+/**
+ * Cada fila elegida vuelve a un juego a revisar propio, sin juego de IGDB, y con eso a «¿Cuál de estos es?»
+ * o a «No lo encontré». Un juego a revisar que se queda sin ninguna fila se borra: lo tomó la elección.
+ */
+async function unchooseItems(tx: Database, userId: string, entryIds: readonly string[]): Promise<void> {
+  const chosen = await tx
+    .select({ id: importItem.id })
+    .from(importItem)
+    .where(and(itemsOfEntries(userId, entryIds), isNotNull(importItem.chosenIgdbId)));
+
+  if (chosen.length === 0) {
+    return;
+  }
+
+  const fresh = await tx
+    .insert(importEntry)
+    .values(chosen.map(() => ({ userId })))
+    .returning({ id: importEntry.id });
+
+  for (const [index, { id }] of chosen.entries()) {
+    await updateItems(tx, userId, [id], { entryId: fresh[index].id, chosenIgdbId: null });
+  }
+
+  const stillUsed = await tx
+    .select({ entryId: importItem.entryId })
+    .from(importItem)
+    .where(and(eq(importItem.userId, userId), inArray(importItem.entryId, [...entryIds])));
+  const empty = entryIds.filter((entryId) => !stillUsed.some((row) => row.entryId === entryId));
+
+  if (empty.length > 0) {
+    await tx.delete(importEntry).where(openEntries(userId, empty));
+  }
+}
+
 function groupByEntry(items: readonly ImportItem[]): ReadonlyMap<string, ImportItem[]> {
   const byEntry = new Map<string, ImportItem[]>();
 
@@ -390,6 +430,7 @@ export function createImportRepository(db: Database): ImportRepository {
       return db.transaction(async (tx) => {
         await tx.update(importEntry).set(toEntryAnswersUpdate(NO_ANSWERS)).where(openEntries(userId, entryIds));
         await tx.update(importItem).set({ copyKind: null, excluded: false }).where(itemsOfEntries(userId, entryIds));
+        await unchooseItems(tx, userId, entryIds);
       });
     },
 
@@ -398,10 +439,11 @@ export function createImportRepository(db: Database): ImportRepository {
     },
 
     async summarizeSources(userId) {
+      // Solo la revisión abierta: después de confirmar todo o de empezar de nuevo, vuelve «Subir archivo».
       const rows = await db
         .select({ source: importItem.source, updatedAt: importItem.updatedAt })
         .from(importItem)
-        .where(eq(importItem.userId, userId));
+        .where(openItemsOf(userId));
       const bySource = new Map<SourceSummary["source"], { itemCount: number; last: Date }>();
 
       for (const { source, updatedAt } of rows) {
@@ -438,16 +480,35 @@ export function createImportRepository(db: Database): ImportRepository {
         const items = await tx.select().from(importItem).where(itemsOfEntries(userId, [entryId]));
         const targetId = await moveOrMatch(tx, userId, entryId, game);
 
-        // Los candidatos que quedan en la fila son la marca de que el usuario eligió (design.md §4).
-        for (const item of items) {
-          const candidates = item.candidates.length > 0 ? item.candidates : [chosen];
-          await updateItems(tx, userId, [item.id], { entryId: targetId, matchState: "matched", candidates: [...candidates] });
-        }
+        // El cruce (`match_state` y `candidates`) queda como estaba: «Volver a revisar» lo necesita (design.md §4).
+        await updateItems(
+          tx,
+          userId,
+          items.map((item) => item.id),
+          { entryId: targetId, chosenIgdbId: chosen.igdbId },
+        );
       });
     },
 
     applyConfirmation(userId, plan) {
       return writeConfirmation(db, userId, plan);
+    },
+
+    discardOpenReview(userId) {
+      // Una fila confirmada que apuntaba a un juego a revisar borrado queda sin él (`on delete set null`).
+      return db.transaction(async (tx) => {
+        await tx.delete(importItem).where(openItemsOf(userId));
+        await tx.delete(importEntry).where(and(eq(importEntry.userId, userId), isNull(importEntry.confirmedAt)));
+      });
+    },
+
+    async lastOpenActivityAt(userId) {
+      const [row] = await db.select({ last: max(importItem.updatedAt) }).from(importItem).where(openItemsOf(userId));
+      return row?.last ?? null;
+    },
+
+    async touchOpenReview(userId) {
+      await db.update(importItem).set({ updatedAt: new Date() }).where(openItemsOf(userId));
     },
   };
 }

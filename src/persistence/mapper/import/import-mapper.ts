@@ -74,6 +74,7 @@ export function toImportItem(row: ImportItemRow, store: Store | null): ImportIte
     steamAppId: row.steamAppId,
     matchState: row.matchState,
     candidates: row.candidates,
+    chosenIgdbId: row.chosenIgdbId,
     entryId: row.entryId,
     copyKind: row.copyKind,
     excluded: row.excluded,

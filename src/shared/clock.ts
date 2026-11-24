@@ -8,6 +8,11 @@ const dayFormatter = new Intl.DateTimeFormat("en-CA", {
   day: "2-digit",
 });
 
+/** El día de un instante guardado en la base, en la zona horaria de la app. */
+export function appDateOf(instant: Date | string): string {
+  return dayFormatter.format(new Date(instant));
+}
+
 export type Clock = Readonly<{
   today(): string;
 }>;

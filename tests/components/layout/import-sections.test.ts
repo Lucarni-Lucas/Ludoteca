@@ -26,4 +26,12 @@ describe("/import en la navegación", () => {
 
     expect(settings).toBe(false);
   });
+
+  it.each(["/import/guide/playnite", "/import/guide/ign"])("la guía %s también es Ajustes", (pathname) => {
+    const path = pathname;
+
+    const settings = isSettingsPath(path);
+
+    expect(settings).toBe(true);
+  });
 });

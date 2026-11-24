@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -105,5 +105,25 @@ describe("ImportSources", () => {
 
     expect(screen.getByRole("heading", { name: "Sources" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Connect" })).toBeInTheDocument();
+  });
+
+  it("la fuente Playnite lleva a su guía «¿Cómo lo saco?»", () => {
+    const guideHrefs = { playnite: "/import/guide/playnite" };
+
+    renderWithIntl(<ImportSources {...props({ guideHrefs })} />);
+
+    const playnite = screen.getByRole("article", { name: "Playnite" });
+    expect(within(playnite).getByRole("link", { name: "¿Cómo saco el archivo de Playnite?" })).toHaveAttribute("href", "/import/guide/playnite");
+    expect(within(playnite).getByRole("link")).toHaveTextContent("¿Cómo lo saco?");
+    expect(within(screen.getByRole("article", { name: "Steam" })).queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("la fuente IGN lleva a su guía «¿Cómo lo saco?»", () => {
+    const guideHrefs = { ign: "/import/guide/ign", playnite: "/import/guide/playnite" };
+
+    renderWithIntl(<ImportSources {...props({ guideHrefs })} />);
+
+    const ign = screen.getByRole("article", { name: "IGN" });
+    expect(within(ign).getByRole("link", { name: "¿Cómo saco el archivo de IGN?" })).toHaveAttribute("href", "/import/guide/ign");
   });
 });

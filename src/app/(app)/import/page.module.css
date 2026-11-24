@@ -29,6 +29,31 @@
   text-transform: uppercase;
 }
 
+.reviewHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+/* El aviso de revisión vencida: arriba de las fuentes y sin irse solo (design.md §18). */
+.expired {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  margin: 0;
+  padding: var(--space-12) var(--space-14);
+  border-radius: var(--radius-lg);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  font-size: var(--text-14);
+}
+
+.expired > svg {
+  flex: none;
+}
+
 .columns {
   display: flex;
   flex-direction: column;

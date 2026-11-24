@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { readIgnExport } from "@/adapter/ign/ign-adapter";
@@ -9,11 +9,14 @@ import { readPlayniteExport } from "@/adapter/playnite/playnite-adapter";
 import { gamesInGroup } from "@/model/import/review";
 import { createImportRepository, type ImportRepository } from "@/persistence/repository/import/import-repository";
 import { createStoreConnectionRepository } from "@/persistence/repository/store/store-connection-repository";
+import { importEntry } from "@/persistence/sql/import/import-entry";
+import { importItem } from "@/persistence/sql/import/import-item";
 import { journalEntry } from "@/persistence/sql/journal/journal-entry";
 import { status } from "@/persistence/sql/status/status";
 import { createStoreResolver } from "@/service/copy/store-resolver";
 import { createImportService, type ImportService } from "@/service/import/import-service";
 import { createStatusService } from "@/service/status/status-service";
+import { type Clock, clock as realClock } from "@/shared/clock";
 
 import { createFakeIgdb, createFakeSteam, matchedGame, searchResult } from "../../../service/import/fakes";
 import { createTestDatabase, type TestDatabase } from "../../pglite";
@@ -23,9 +26,11 @@ import { newItem } from "./import-fixtures";
 
 const TODAY = "2026-11-23";
 const IGN_SAMPLE = readFileSync(path.resolve("tests/adapter/ign/ign-export-sample.json"), "utf8");
+const PLAYNITE_SAMPLE = readFileSync(path.resolve("tests/adapter/playnite/playnite-export-sample.json"), "utf8");
+const FIXED_CLOCK: Clock = { today: () => TODAY };
 
 /** El servicio con los repositorios reales sobre PGlite y un IGDB falso que conoce los juegos de la muestra. */
-function createService(database: TestDatabase, repositories: Repositories): ImportService {
+function createService(database: TestDatabase, repositories: Repositories, clock: Clock = FIXED_CLOCK): ImportService {
   const games = new Map([
     [199748, matchedGame(199748, "20 Minutes Till Dawn", { year: 2022 })],
     [368360, matchedGame(368360, "60 Seconds!", { year: 2015, estimatedHours: null })],
@@ -48,7 +53,7 @@ function createService(database: TestDatabase, repositories: Repositories): Impo
     stores: repositories.stores,
     storeResolver: createStoreResolver(repositories.stores),
     statusService: createStatusService({ statusRepo: repositories.statuses }),
-    clock: { today: () => TODAY },
+    clock,
   });
 }
 
@@ -90,7 +95,7 @@ describe("importación contra la base", () => {
     const readyTitles = gamesInGroup(later.review, "ready").map((game) => game.title);
     expect(readyTitles).toContain("Among Us");
     expect(gamesInGroup(later.review, "endless")).toEqual([]);
-    expect(gamesInGroup(later.review, "review").map((game) => game.title)).toEqual(["Overwatch"]);
+    expect(gamesInGroup(later.review, "how_left").map((game) => game.title)).toEqual(["Overwatch"]);
     expect(await repositories.games.listLibrary(USER_A)).toEqual([]);
   });
 
@@ -175,7 +180,10 @@ describe("importación contra la base", () => {
 
     const { entries } = await imports.listOpenReview(USER_A);
     expect(entries).toHaveLength(1);
-    expect(entries[0].items.map((value) => value.matchState)).toEqual(["matched", "matched"]);
+    expect(entries[0].items.map((value) => [value.matchState, value.chosenIgdbId])).toEqual([
+      ["matched", null],
+      ["candidates", 77],
+    ]);
   });
 
   it("resume las fuentes leídas y lista los títulos de la biblioteca con sus tiendas", async () => {
@@ -194,6 +202,169 @@ describe("importación contra la base", () => {
 
     expect(sources).toEqual([{ source: "ign", itemCount: 9, lastReadAt: expect.any(String) }]);
     expect(titles).toEqual([{ title: "Q.U.B.E. 2", storeIds: [steam.id] }]);
+  });
+
+  describe("Empezar de nuevo y vencimiento", () => {
+    function openGames(overview: Awaited<ReturnType<ImportService["getOverview"]>>): number {
+      return overview.review.groups.reduce((total, group) => total + group.games.length, 0);
+    }
+
+    async function connectSteamAccount(userId = USER_A) {
+      const steam = await steamOf(repositories, userId);
+      await createStoreConnectionRepository(database.db).save(userId, { storeId: steam.id, accountId: "76561197960287930" });
+    }
+
+    async function ageOpenRows(instant: Date, userId = USER_A) {
+      await database.db.update(importItem).set({ updatedAt: instant }).where(eq(importItem.userId, userId));
+    }
+
+    it("Descartar la revisión", async () => {
+      await connectSteamAccount();
+      await loadAndMatch();
+      await service.loadFile(USER_A, PLAYNITE_SAMPLE);
+      await service.advanceMatching(USER_A);
+      const [amongUs] = gamesInGroup((await service.getOverview(USER_A)).review, "endless");
+      await service.decide(USER_A, [amongUs.entryId], { kind: "choose", choice: { kind: "completed" } });
+
+      const overview = await service.discardReview(USER_A);
+
+      expect(overview.sources).toEqual([]);
+      expect(openGames(overview)).toBe(0);
+      expect(overview.steam.accountId).toBe("76561197960287930");
+      expect(await repositories.games.listLibrary(USER_A)).toEqual([]);
+      expect(await database.db.select().from(importEntry)).toEqual([]);
+    });
+
+    it("Lo ya importado se conserva", async () => {
+      await loadAndMatch();
+      await service.confirm(USER_A);
+      const imported = await repositories.games.listLibrary(USER_A);
+
+      await service.discardReview(USER_A);
+      await loadAndMatch();
+      const summary = await service.confirm(USER_A);
+
+      expect(imported.length).toBeGreaterThan(0);
+      expect(summary).toMatchObject({ games: 0, copies: 0 });
+      expect(await repositories.games.listLibrary(USER_A)).toHaveLength(imported.length);
+    });
+
+    it("Revisión abandonada", async () => {
+      await loadAndMatch();
+      await ageOpenRows(new Date("2026-11-15T18:00:00Z"));
+
+      const opened = await service.openImport(USER_A);
+
+      expect(opened.expired).toBe(true);
+      expect(opened.sources).toEqual([]);
+      expect(openGames(opened)).toBe(0);
+      expect(await repositories.games.listLibrary(USER_A)).toEqual([]);
+    });
+
+    it("a los 7 días sin tocarla la revisión sigue", async () => {
+      await loadAndMatch();
+      await ageOpenRows(new Date("2026-11-16T18:00:00Z"));
+
+      const opened = await service.openImport(USER_A);
+
+      expect(opened.expired).toBe(false);
+      expect(openGames(opened)).toBeGreaterThan(0);
+    });
+
+    it("Revisión en uso", async () => {
+      const live = createService(database, repositories, realClock);
+      await live.loadFile(USER_A, IGN_SAMPLE);
+      await live.advanceMatching(USER_A);
+      await ageOpenRows(new Date("2026-01-01T18:00:00Z"));
+      const [amongUs] = gamesInGroup((await live.getOverview(USER_A)).review, "endless");
+
+      await live.decide(USER_A, [amongUs.entryId], { kind: "choose", choice: { kind: "completed" } });
+
+      const opened = await live.openImport(USER_A);
+      expect(opened.expired).toBe(false);
+      expect(gamesInGroup(opened.review, "ready").map((game) => game.title)).toContain("Among Us");
+    });
+
+    it("Confirmado que no vuelve", async () => {
+      await loadAndMatch();
+      await service.confirm(USER_A);
+      const celeste = (await repositories.games.listLibrary(USER_A)).find((game) => game.title === "Celeste");
+      await repositories.games.removeFromLibrary(USER_A, { libraryGameId: celeste?.id ?? "", catalogGameIdToDelete: null });
+
+      await loadAndMatch();
+
+      const titles = (await service.getOverview(USER_A)).review.groups.flatMap((group) => group.games.map((game) => game.title));
+      expect(celeste).toBeDefined();
+      expect(titles).not.toContain("Celeste");
+    });
+
+    it("al confirmar, cada fila guarda solo su fuente, su ID en la fuente y en qué quedó", async () => {
+      await loadAndMatch();
+
+      await service.confirm(USER_A);
+
+      const [celeste] = await database.db
+        .select()
+        .from(importItem)
+        .where(eq(importItem.sourceKey, "00000000-0000-4000-8000-000000000007"));
+      expect(celeste).toMatchObject({
+        source: "ign",
+        title: "",
+        altTitles: [],
+        year: null,
+        storeId: null,
+        storeGameId: null,
+        playtimeMinutes: null,
+        ignStatuses: [],
+        ignScore: null,
+        hltbMainHours: null,
+        steamAppId: null,
+        candidates: [],
+        chosenIgdbId: null,
+        copyKind: null,
+        matchState: "matched",
+        excluded: false,
+        confirmedAt: expect.any(Date),
+      });
+      const [entryOfCeleste] = await database.db.select().from(importEntry).where(eq(importEntry.id, celeste.entryId ?? ""));
+      expect(entryOfCeleste).toMatchObject({
+        igdbId: 504230,
+        catalogGameId: expect.any(String),
+        libraryGameId: expect.any(String),
+        statusKey: null,
+        endlessAnswer: null,
+        playAnswer: null,
+        manualTitle: null,
+        multiplayerOnly: false,
+        confirmedAt: expect.any(Date),
+      });
+    });
+
+    it("lo que queda sin confirmar conserva sus datos de revisión", async () => {
+      await loadAndMatch();
+
+      await service.confirm(USER_A);
+
+      const [overwatch] = await database.db
+        .select()
+        .from(importItem)
+        .where(eq(importItem.sourceKey, "00000000-0000-4000-8000-000000000005"));
+      expect(overwatch).toMatchObject({ title: "Overwatch", ignStatuses: ["beat", "quit"], confirmedAt: null });
+    });
+
+    it("el usuario A no ve ni cambia nada del B al descartar ni al renovar", async () => {
+      await loadAndMatch(USER_A);
+      const old = new Date("2026-11-20T18:00:00Z");
+      await ageOpenRows(old);
+
+      await service.discardReview(USER_B);
+      await imports.touchOpenReview(USER_B);
+      const lastOfB = await imports.lastOpenActivityAt(USER_B);
+
+      expect(lastOfB).toBeNull();
+      expect(await imports.lastOpenActivityAt(USER_A)).toEqual(old);
+      expect(openGames(await service.getOverview(USER_A))).toBeGreaterThan(0);
+    });
   });
 
   it("el usuario A no ve ni cambia nada del B al confirmar", async () => {

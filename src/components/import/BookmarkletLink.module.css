@@ -1,0 +1,29 @@
+.bookmarklet {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: var(--touch-target);
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-accent);
+  background: var(--color-accent-soft);
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: grab;
+  font: 600 var(--text-14) / 1 var(--font-body);
+}
+
+.bookmarklet > svg {
+  color: var(--color-accent);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-warning);
+  font-size: var(--text-13);
+}
+
+.empty {
+  display: contents;
+}

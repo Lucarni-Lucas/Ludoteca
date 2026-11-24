@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createClock } from "@/shared/clock";
+import { appDateOf, createClock } from "@/shared/clock";
 
 describe("createClock", () => {
   it.each([
@@ -25,5 +25,23 @@ describe("createClock", () => {
     const today = clock.today();
 
     expect(today).toBe(expected);
+  });
+});
+
+describe("appDateOf", () => {
+  it("pasa un instante guardado al día argentino, aunque en UTC ya sea el siguiente", () => {
+    const instant = new Date("2026-11-07T02:30:00Z");
+
+    const day = appDateOf(instant);
+
+    expect(day).toBe("2026-11-06");
+  });
+
+  it("acepta el instante como texto ISO", () => {
+    const instant = "2026-11-06T15:00:00.000Z";
+
+    const day = appDateOf(instant);
+
+    expect(day).toBe("2026-11-06");
   });
 });

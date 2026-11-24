@@ -2,9 +2,6 @@ import type { ImportCandidate } from "@/model/import/import-entry";
 import { MAX_CANDIDATES } from "@/model/import/import-entry";
 import { normalizeText } from "@/model/game/normalize-text";
 
-/** Un año de diferencia sigue siendo el mismo juego: IGN y IGDB no siempre usan la misma fecha. */
-const YEAR_TOLERANCE = 1;
-
 const NOT_ALPHANUMERIC = /[^\p{L}\p{N}]+/u;
 // «KillingFloor2Beta» son cuatro palabras: el cambio a mayúscula y el paso entre letra y número las separan.
 const CAMEL_BOUNDARY = /(?<=[\p{Ll}\p{N}])(?=\p{Lu})|(?<=\p{L})(?=\p{N})|(?<=\p{N})(?=\p{L})/gu;
@@ -30,12 +27,18 @@ export type TitleMatch =
   | Readonly<{ kind: "candidates"; candidates: readonly ImportCandidate[] }>
   | Readonly<{ kind: "not_found" }>;
 
-function sameYear(rowYear: number | null, resultYear: number | null): boolean {
-  if (rowYear === null) {
-    return true;
+/** Sin año de un lado, va al final: no hay forma de saber si está cerca. */
+function yearDistance(rowYear: number | null, resultYear: number | null): number {
+  if (rowYear === null || resultYear === null) {
+    return Number.POSITIVE_INFINITY;
   }
 
-  return resultYear !== null && Math.abs(rowYear - resultYear) <= YEAR_TOLERANCE;
+  return Math.abs(rowYear - resultYear);
+}
+
+/** El de año más cercano primero; ante el mismo año, el orden de IGDB (`sort` es estable). */
+function byClosestYear(rowYear: number | null, results: readonly ImportCandidate[]): readonly ImportCandidate[] {
+  return [...results].sort((a, b) => yearDistance(rowYear, a.year) - yearDistance(rowYear, b.year));
 }
 
 /** Una edición y su juego base son el mismo juego: cuenta el primero que aparece. */
@@ -59,7 +62,7 @@ function isSimilar(rowWords: readonly (readonly string[])[], result: ImportCandi
   return rowWords.some((row) => containsAll(row, words) || containsAll(words, row));
 }
 
-/** Los de la misma clave primero: el primer candidato es el más parecido y es el que va marcado. */
+/** Los de la misma clave primero: el primer candidato es el más parecido. */
 function candidatesOf(
   exact: readonly ImportCandidate[],
   similar: readonly ImportCandidate[],
@@ -68,7 +71,10 @@ function candidatesOf(
   return candidates.length === 0 ? { kind: "not_found" } : { kind: "candidates", candidates };
 }
 
-/** Solo cruza sola una clave idéntica con un año compatible; ante la duda, queda para revisar (design.md §7). */
+/**
+ * Cruza sola una única clave idéntica, sea cual sea el año: el de Epic suele ser el de la tienda y no
+ * el del juego (design.md §7). Con dos o más del mismo nombre, o ninguno igual, queda para elegir.
+ */
 export function matchByTitle(row: TitleMatchRow, results: readonly ImportCandidate[]): TitleMatch {
   const keys = new Set(row.titles.map(titleKey));
   const unique = uniqueByBase(results);
@@ -76,9 +82,9 @@ export function matchByTitle(row: TitleMatchRow, results: readonly ImportCandida
   const rowWords = row.titles.map(titleWords);
   const similar = unique.filter((result) => !exact.includes(result) && isSimilar(rowWords, result));
 
-  if (exact.length === 1 && sameYear(row.year, exact[0].year)) {
+  if (exact.length === 1) {
     return { kind: "matched", result: exact[0] };
   }
 
-  return candidatesOf(exact, similar);
+  return candidatesOf(byClosestYear(row.year, exact), similar);
 }

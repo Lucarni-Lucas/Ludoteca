@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { type ChangeEvent, type FormEvent, type RefObject, useEffect, useId, useRef, useState } from "react";
 
@@ -24,6 +25,8 @@ export type ImportSourcesProps = Readonly<{
   steamMissingMessage: string;
   /** La fuente que pidió `?source=`: recibe el foco al abrir la pantalla. */
   focusSource?: ImportSource;
+  /** La guía «¿Cómo lo saco?» de cada fuente de archivo (design.md §17). */
+  guideHrefs?: Partial<Record<FileSource, string>>;
   onUpload: (source: FileSource, file: File) => void;
   onConnectSteam: (profile: string) => void;
   onRefreshSteam: () => void;
@@ -108,10 +111,11 @@ type FileCardProps = Readonly<{
   feedback: SourceFeedbackView | undefined;
   busy: boolean;
   focused: boolean;
+  guideHref: string | undefined;
   onUpload: (source: FileSource, file: File) => void;
 }>;
 
-function FileSourceCard({ source, summary, feedback, busy, focused, onUpload }: FileCardProps) {
+function FileSourceCard({ source, summary, feedback, busy, focused, guideHref, onUpload }: FileCardProps) {
   const t = useTranslations("import.sources");
   const name = useTranslations(`import.sources.${source}`)("name");
   const input = useRef<HTMLInputElement>(null);
@@ -134,7 +138,7 @@ function FileSourceCard({ source, summary, feedback, busy, focused, onUpload }: 
     <article className={styles.card} aria-label={name}>
       <SourceHeading source={source} narrowSummary={narrowSummary} />
       <SummaryLine summary={summary} />
-      <div className={styles.actions}>
+      <div className={styles.fileActions}>
         <button
           ref={button}
           type="button"
@@ -154,6 +158,11 @@ function FileSourceCard({ source, summary, feedback, busy, focused, onUpload }: 
           aria-label={`${label} · ${name}`}
           onChange={onChange}
         />
+        {guideHref ? (
+          <Link href={guideHref} className={styles.guide} aria-label={t("howToLabel", { source: name })}>
+            {t("howTo")}
+          </Link>
+        ) : null}
       </div>
       <Feedback value={feedback} />
     </article>
@@ -182,7 +191,9 @@ function SteamSourceCard(props: SteamCardProps) {
   const [profile, setProfile] = useState("");
   const field = useFocusWhen<HTMLInputElement>(props.focused);
   const connected = props.steamAccountId !== null;
-  const narrowSummary = useNarrowSummary(connected ? props.summary : undefined, true);
+  const summaryLine = useNarrowSummary(connected ? props.summary : undefined, true);
+  // Conectada y sin nada abierto (confirmó todo o empezó de nuevo): no hay cantidad que mostrar.
+  const narrowSummary = connected && !props.summary ? t("accountConnected") : summaryLine;
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -192,7 +203,8 @@ function SteamSourceCard(props: SteamCardProps) {
   return (
     <article className={styles.card} aria-label={t("name")}>
       <SourceHeading source="steam" narrowSummary={narrowSummary} />
-      {connected ? <SummaryLine summary={props.summary} fetched /> : null}
+      {connected && props.summary ? <SummaryLine summary={props.summary} fetched /> : null}
+      {connected && !props.summary ? <p className={`${styles.summary} ${styles.wideOnly}`}>{t("accountConnected")}</p> : null}
       {!props.steamConfigured ? <p className={styles.error}>{props.steamMissingMessage}</p> : null}
       {connected ? (
         <div className={styles.actions}>
@@ -244,6 +256,7 @@ export function ImportSources(props: ImportSourcesProps) {
             feedback={props.feedback[source]}
             busy={props.busy === source}
             focused={props.focusSource === source}
+            guideHref={props.guideHrefs?.[source]}
             onUpload={props.onUpload}
           />
         ))}
