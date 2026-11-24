@@ -13,6 +13,7 @@ const STATUSES = [
   { statusKey: "backlog", name: "Pendiente" },
   { statusKey: "playing", name: "Jugando" },
   { statusKey: "completed", name: "Completado" },
+  { statusKey: "paused", name: "En pausa" },
 ];
 
 function view(value: ImportEntry, steamConnected = true): ReviewGame {
@@ -63,26 +64,39 @@ function crashEntry(): ImportEntry {
 
 describe("ReviewPanel", () => {
   describe("grupos de lote", () => {
-    it("Sugerencia marcada", () => {
+    it("Nada marcado", () => {
       const game = operator();
 
       renderPanel({ group: "play", games: [game] });
 
-      const options = screen.getByRole("radiogroup", { name: "Qué hacer con 112 Operator" });
-      expect(within(options).getAllByRole("radio").map((radio) => radio.textContent)).toEqual(["Pendiente", "Sin interés", "No importar"]);
-      expect(within(options).getByRole("radio", { name: "Pendiente" })).toHaveAttribute("aria-checked", "true");
+      const options = screen.getByRole("group", { name: "Respuestas para 112 Operator" });
+      expect(within(options).getAllByRole("button").map((button) => button.textContent)).toEqual(["Sí, algún día", "No", "No importar"]);
+      expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+      expect(within(options).getAllByRole("button").some((button) => button.hasAttribute("aria-pressed"))).toBe(false);
+    });
+
+    it("la explicación de «¿Lo vas a jugar alguna vez?» dice la diferencia entre «No» y «No importar»", () => {
+      const game = operator();
+
+      renderPanel({ group: "play", games: [game] });
+
+      expect(
+        screen.getByText(
+          "Los tenés en alguna tienda, pero no tienen puntaje o nunca los abriste. «No» los suma a tu biblioteca como «Sin interés»: no los ves en la lista, pero «¿Lo tengo?» sabe que son tuyos. «No importar» los deja afuera.",
+        ),
+      ).toBeInTheDocument();
     });
 
     it("Decidir pasa a «Listos para importar»", async () => {
       const { onDecide, onNotify } = renderPanel({ group: "play", games: [beholder()] });
 
-      await userEvent.click(screen.getByRole("radio", { name: "Sin interés" }));
+      await userEvent.click(screen.getByRole("button", { name: "No" }));
 
       expect(onDecide).toHaveBeenCalledWith([expect.any(String)], { kind: "choose", choice: { kind: "not_interested" } });
       expect(onNotify).toHaveBeenCalledWith("«Beholder» pasó a «Listos para importar» con «Sin interés».");
     });
 
-    it("Pasar lo marcado en lote", async () => {
+    it("Responder en lote", async () => {
       const games = [
         view(entry("Portal 2", [playniteItem("Portal 2", STEAM, "620")])),
         view(entry("Watch Dogs", [playniteItem("Watch Dogs", STEAM, "243470")])),
@@ -92,9 +106,14 @@ describe("ReviewPanel", () => {
       await userEvent.click(screen.getByRole("checkbox", { name: "Seleccionar Portal 2" }));
       await userEvent.click(screen.getByRole("checkbox", { name: "Seleccionar Watch Dogs" }));
       expect(screen.getByRole("group", { name: "Selección" })).toHaveTextContent("2 seleccionados");
-      await userEvent.click(screen.getByRole("button", { name: "Pasar a Listos" }));
+      const bar = screen.getByRole("group", { name: "Selección" });
+      await userEvent.click(within(bar).getByRole("button", { name: "Sí, es de mi familia" }));
 
-      expect(onDecide).toHaveBeenCalledWith(games.map((game) => game.entryId), { kind: "accept" });
+      expect(within(bar).queryByRole("button", { name: "Pasar a Listos" })).not.toBeInTheDocument();
+      expect(onDecide).toHaveBeenCalledWith(games.map((game) => game.entryId), {
+        kind: "choose",
+        choice: { kind: "copy_kind", copyKind: "family" },
+      });
       expect(onNotify).toHaveBeenCalledWith("2 juegos pasaron a «Listos para importar».");
     });
 
@@ -119,16 +138,24 @@ describe("ReviewPanel", () => {
       renderPanel({ group: "family", games: [portal], steamConnected: false });
 
       expect(screen.getByText("Conectá tu cuenta de Steam para saber cuáles son tuyos.")).toBeInTheDocument();
-      expect(screen.queryByRole("radiogroup")).not.toBeInTheDocument();
+      expect(screen.queryByRole("group", { name: "Respuestas para Portal 2" })).not.toBeInTheDocument();
       expect(screen.getByText("Steam · en tu PC")).toBeInTheDocument();
     });
 
-    it("Juego instalado de un familiar con la cuenta conectada sugiere Familia", () => {
+    it("Juego instalado de un familiar", async () => {
       const portal = view(entry("Portal 2", [playniteItem("Portal 2", STEAM, "620")]));
+      const { onDecide, onNotify } = renderPanel({ group: "family", games: [portal] });
 
-      renderPanel({ group: "family", games: [portal] });
+      const options = screen.getByRole("group", { name: "Respuestas para Portal 2" });
+      await userEvent.click(within(options).getByRole("button", { name: "Sí, es de mi familia" }));
 
-      expect(screen.getByRole("radio", { name: "Familia" })).toHaveAttribute("aria-checked", "true");
+      expect(within(options).getAllByRole("button").map((button) => button.textContent)).toEqual([
+        "Sí, es de mi familia",
+        "No, es mío",
+        "No importar",
+      ]);
+      expect(onDecide).toHaveBeenCalledWith([portal.entryId], { kind: "choose", choice: { kind: "copy_kind", copyKind: "family" } });
+      expect(onNotify).toHaveBeenCalledWith("«Portal 2» pasó a «Listos para importar» con «Steam · Familia».");
     });
 
     it("muestra de dónde vino cada juego", () => {
@@ -142,15 +169,50 @@ describe("ReviewPanel", () => {
       expect(screen.getByText("Steam · Comprado · 0 h")).toBeInTheDocument();
     });
 
-    it("«Elegí un estado» ofrece el selector con Pendiente marcado", async () => {
+    it("Juego jugado que no estaba en IGN", async () => {
       const terraria = view(entry("Terraria", [steamItem("Terraria", "105600", 720)]));
       const { onDecide } = renderPanel({ group: "status", games: [terraria] });
 
-      expect(screen.getByLabelText("Estado de Terraria")).toHaveValue("backlog");
-      await userEvent.selectOptions(screen.getByLabelText("Estado de Terraria"), "playing");
-      await userEvent.click(screen.getByRole("button", { name: "Aplicar" }));
+      const options = screen.getByRole("group", { name: "Respuestas para Terraria" });
+      await userEvent.click(within(options).getByRole("button", { name: "Lo estoy jugando" }));
 
+      expect(within(options).getAllByRole("button").map((button) => button.textContent)).toEqual([
+        "Lo estoy jugando",
+        "Lo terminé",
+        "Lo abandoné",
+        "Lo probé",
+        "Otro estado",
+        "No importar",
+      ]);
       expect(onDecide).toHaveBeenCalledWith([terraria.entryId], { kind: "choose", choice: { kind: "status", statusKey: "playing" } });
+    });
+
+    it("Otro estado", async () => {
+      const frostpunk = view(entry("Frostpunk", [steamItem("Frostpunk", "323190", 720)]));
+      const { onDecide, onNotify } = renderPanel({ group: "status", games: [frostpunk] });
+
+      await userEvent.click(screen.getByRole("button", { name: "Otro estado" }));
+      const list = screen.getByRole("group", { name: "Estado de Frostpunk" });
+      await userEvent.click(within(list).getByRole("button", { name: "En pausa" }));
+
+      expect(within(list).getAllByRole("button").map((button) => button.textContent)).toEqual(["Pendiente", "Jugando", "Completado", "En pausa"]);
+      expect(onDecide).toHaveBeenCalledWith([frostpunk.entryId], { kind: "choose", choice: { kind: "status", statusKey: "paused" } });
+      expect(onNotify).toHaveBeenCalledWith("«Frostpunk» pasó a «Listos para importar» con «En pausa».");
+    });
+
+    it("«Otro estado» en la barra de selección vale para todos los seleccionados", async () => {
+      const games = ["Frostpunk", "Terraria"].map((title, index) => view(entry(title, [steamItem(title, String(index), 720)])));
+      const { onDecide } = renderPanel({ group: "status", games });
+
+      await userEvent.click(screen.getByRole("checkbox", { name: "Seleccionar los 2" }));
+      const bar = screen.getByRole("group", { name: "Selección" });
+      await userEvent.click(within(bar).getByRole("button", { name: "Otro estado" }));
+      await userEvent.click(within(screen.getByRole("group", { name: "Estado de 2 juegos" })).getByRole("button", { name: "Completado" }));
+
+      expect(onDecide).toHaveBeenCalledWith(games.map((game) => game.entryId), {
+        kind: "choose",
+        choice: { kind: "status", statusKey: "completed" },
+      });
     });
 
     it("después de decidir, el foco pasa a la fila que quedó en su lugar", async () => {
@@ -176,7 +238,7 @@ describe("ReviewPanel", () => {
       const { rerender } = renderWithIntl(panel([first, second]));
       showAfterDecision = () => rerender(panel([second]));
 
-      await userEvent.click(within(screen.getByRole("radiogroup", { name: "Qué hacer con Beholder" })).getByRole("radio", { name: "Sin interés" }));
+      await userEvent.click(within(screen.getByRole("group", { name: "Respuestas para Beholder" })).getByRole("button", { name: "No" }));
 
       expect(screen.getByRole("checkbox", { name: "Seleccionar 112 Operator" })).toHaveFocus();
     });
@@ -184,7 +246,7 @@ describe("ReviewPanel", () => {
     it("si no se guarda, no dice que pasó a «Listos para importar»", async () => {
       const { onDecide, onNotify } = renderPanel({ group: "play", games: [beholder()], onDecide: vi.fn(async () => null) });
 
-      await userEvent.click(screen.getByRole("radio", { name: "Sin interés" }));
+      await userEvent.click(screen.getByRole("button", { name: "No" }));
 
       expect(onDecide).toHaveBeenCalled();
       expect(onNotify).not.toHaveBeenCalled();
@@ -196,13 +258,13 @@ describe("ReviewPanel", () => {
       const crash = view(crashEntry());
       const { onDecide, onNotify } = renderPanel({ group: "which", games: [crash] });
 
-      const options = screen.getByRole("radiogroup", { name: "¿Cuál es Crash Bandicoot?" });
-      const cards = within(options).getAllByRole("radio");
+      const options = screen.getByRole("group", { name: "¿Cuál es Crash Bandicoot?" });
+      const cards = within(options).getAllByRole("button");
       await userEvent.click(cards[2]);
 
       expect(screen.getByText("En IGN:").closest("p")).toHaveTextContent("En IGN: Crash Bandicoot · 1996");
       expect(cards).toHaveLength(5);
-      expect(cards.every((card) => card.getAttribute("aria-checked") === "false")).toBe(true);
+      expect(screen.queryByRole("radio")).not.toBeInTheDocument();
       expect(cards[2]).toHaveTextContent("Crash Bandicoot: The Wrath of Cortex2001");
       expect(onDecide).toHaveBeenCalledWith([crash.entryId], { kind: "choose", choice: { kind: "candidate", candidate: CRASH_CANDIDATES[2] } });
       expect(onNotify).toHaveBeenCalledWith(
@@ -221,12 +283,12 @@ describe("ReviewPanel", () => {
       );
       const { onDecide } = renderPanel({ group: "which", games: [castlevania] });
 
-      const options = screen.getByRole("radiogroup", { name: "¿Cuál es Castlevania Anniversary Collection?" });
-      await userEvent.click(within(options).getByRole("radio", { name: "Sí" }));
+      const options = screen.getByRole("group", { name: "¿Cuál es Castlevania Anniversary Collection?" });
+      await userEvent.click(within(options).getByRole("button", { name: "Sí" }));
 
       expect(screen.getByText("¿Es este juego?")).toBeInTheDocument();
       expect(screen.getByText("En Epic:").closest("p")).toHaveTextContent("En Epic: Castlevania Anniversary Collection · 2019");
-      expect(within(options).getAllByRole("radio").map((radio) => radio.textContent)).toEqual(["Sí", "No, lo busco yo", "No importar"]);
+      expect(within(options).getAllByRole("button").map((button) => button.textContent)).toEqual(["Sí", "No, lo busco yo", "No importar"]);
       expect(onDecide).toHaveBeenCalledWith([castlevania.entryId], { kind: "choose", choice: { kind: "candidate", candidate: ultimate } });
     });
 
@@ -242,27 +304,28 @@ describe("ReviewPanel", () => {
       const overwatch = view(entry("Overwatch", [ignItem("Overwatch", { year: 2022, ignStatuses: ["beat", "quit"] })]));
       const { onDecide } = renderPanel({ group: "how_left", games: [overwatch] });
 
-      const options = screen.getByRole("radiogroup", { name: "¿Cómo dejaste Overwatch?" });
-      await userEvent.click(within(options).getByRole("radio", { name: "Lo abandonaste" }));
+      const options = screen.getByRole("group", { name: "¿Cómo dejaste Overwatch?" });
+      await userEvent.click(within(options).getByRole("button", { name: "Lo abandonaste" }));
 
       expect(screen.getByText("IGN lo tiene como terminado y como abandonado.")).toBeInTheDocument();
-      expect(within(options).getAllByRole("radio").map((radio) => radio.textContent)).toEqual([
+      expect(within(options).getAllByRole("button").map((button) => button.textContent)).toEqual([
         "Lo terminaste",
         "Lo abandonaste",
         "Otro estado",
         "No importar",
       ]);
-      expect(within(options).getAllByRole("radio").every((radio) => radio.getAttribute("aria-checked") === "false")).toBe(true);
+      expect(screen.queryByRole("radio")).not.toBeInTheDocument();
       expect(onDecide).toHaveBeenCalledWith([overwatch.entryId], { kind: "choose", choice: { kind: "status", statusKey: "abandoned" } });
     });
 
-    it("«Otro estado» abre el selector de estados", async () => {
+    it("«Otro estado» abre la lista de estados, sin ninguno marcado", async () => {
       const overwatch = view(entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["beat", "quit"] })]));
       renderPanel({ group: "how_left", games: [overwatch] });
 
-      await userEvent.click(screen.getByRole("radio", { name: "Otro estado" }));
+      await userEvent.click(screen.getByRole("button", { name: "Otro estado" }));
 
-      expect(screen.getByLabelText("Estado de Overwatch")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Otro estado" })).toHaveAttribute("aria-expanded", "true");
+      expect(within(screen.getByRole("group", { name: "Estado de Overwatch" })).getAllByRole("button")).toHaveLength(STATUSES.length);
     });
 
     it("Juego viejo sin cruce", async () => {
@@ -279,11 +342,31 @@ describe("ReviewPanel", () => {
     });
 
     it("una entrada que no es juego dice que no parece un juego", () => {
-      const redacted = view(entry("[REDACTED]", [playniteItem("[REDACTED]", EPIC, "x", { matchState: "not_found" })], { catalog: null, igdbId: null }));
+      const redacted = view(entry("Cuphead Demo", [playniteItem("Cuphead Demo", EPIC, "x", { matchState: "not_found" })], { catalog: null, igdbId: null }));
 
       renderPanel({ group: "not_found", games: [redacted] });
 
-      expect(screen.getByText("No parece un juego: es un soundtrack, una beta o un nombre oculto.")).toBeInTheDocument();
+      expect(screen.getByText("No parece un juego: es una demo, una beta, un soundtrack o algo parecido.")).toBeInTheDocument();
+    });
+
+    it("Fortnite de IGN y de Epic", () => {
+      const fortnites = [candidate(1, "Fortnite", 2017), candidate(2, "Fortnite", 2018)];
+      const both = view(
+        entry(
+          "Fortnite",
+          [
+            ignItem("Fortnite", { year: 2017, matchState: "candidates", candidates: fortnites }),
+            playniteItem("Fortnite", EPIC, "Fortnite", { year: 2020, matchState: "candidates", candidates: fortnites }),
+          ],
+          { igdbId: null, catalogGameId: null, catalog: null },
+        ),
+      );
+
+      renderPanel({ group: "which", games: [both] });
+
+      expect(screen.getByText("En IGN:").closest("p")).toHaveTextContent("En IGN: Fortnite · 2017");
+      expect(screen.getByText("En Epic:").closest("p")).toHaveTextContent("En Epic: Fortnite · 2020");
+      expect(within(screen.getByRole("group", { name: "¿Cuál es Fortnite?" })).getAllByRole("button")).toHaveLength(2);
     });
 
     it("en las preguntas, la barra de selección ofrece solo «No importar»", async () => {
@@ -349,6 +432,24 @@ describe("ReviewPanel", () => {
       expect(onNotify).toHaveBeenCalledWith("«Crash Bandicoot» volvió a «¿Cuál de estos es?».");
     });
 
+    it("Demo sin su juego", async () => {
+      const demo = view(
+        entry("Cuphead Demo", [playniteItem("Cuphead Demo", STEAM, "268910", { matchState: "not_found" })], {
+          igdbId: null,
+          catalogGameId: null,
+          catalog: null,
+          answers: { excluded: true },
+        }),
+      );
+      const { onDecide } = renderPanel({ group: "ready", games: [demo] });
+
+      await userEvent.click(screen.getByRole("button", { name: "Volver a revisar" }));
+
+      expect(screen.getByText("Cuphead Demo")).toBeInTheDocument();
+      expect(screen.getByText("No se importa · no es un juego")).toBeInTheDocument();
+      expect(onDecide).toHaveBeenCalledWith([demo.entryId], { kind: "reset" });
+    });
+
     it("un juego que no decidió el usuario no ofrece «Volver a revisar»", () => {
       const celeste = view(entry("Celeste", [ignItem("Celeste", { ignStatuses: ["playing"], ignScore: 9 })]));
 
@@ -367,7 +468,7 @@ describe("ReviewPanel", () => {
       renderPanel({ group: "which", games: [game] });
 
       expect(screen.getByText(long)).toHaveTextContent(long);
-      const cards = within(screen.getByRole("radiogroup", { name: `¿Cuál es ${long}?` })).getAllByRole("radio");
+      const cards = within(screen.getByRole("group", { name: `¿Cuál es ${long}?` })).getAllByRole("button");
       expect(cards[0]).toHaveTextContent(`${long} (PC)2021`);
       expect(cards[1]).toHaveTextContent(`${long} Remastered2023`);
     });

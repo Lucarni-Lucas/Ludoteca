@@ -6,11 +6,11 @@
   "version": "1.0.0.0"
  },
  "playnite": {
-  "databaseGameCount": 3
+  "databaseGameCount": 9
  },
  "export": {
-  "totalGames": 3,
-  "databaseGameCount": 3,
+  "totalGames": 9,
+  "databaseGameCount": 9,
   "excludedGameCount": 0,
   "steamAppIdCount": 0,
   "formats": [
@@ -88,6 +88,146 @@
    "modified": "2025-10-01T12:00:00Z",
    "releaseDate": "2021-4-9",
    "sortingName": "The Legend of Heroes: Trails of Cold Steel IV - The End of Saga - Digital Deluxe Edition with Every Bonus"
+  },
+  {
+   "playniteId": "20000000-0000-4000-8000-000000000103",
+   "name": "Fortnite",
+   "providerGameId": "Fortnite",
+   "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+   "sourceId": "10000000-0000-4000-8000-0000000000e1",
+   "sourceName": "Epic",
+   "steamAppIdConfidence": "none",
+   "isInstalled": false,
+   "hidden": false,
+   "favorite": false,
+   "platforms": [
+    "PC (Windows)"
+   ],
+   "genres": [],
+   "categories": [],
+   "tags": [],
+   "playtimeSeconds": 432000,
+   "added": "2025-10-01T12:00:00Z",
+   "modified": "2025-10-01T12:00:00Z",
+   "releaseDate": "2020-1-1",
+   "sortingName": "Fortnite"
+  },
+  {
+   "playniteId": "20000000-0000-4000-8000-000000000104",
+   "name": "Snakebird Complete",
+   "providerGameId": "e1f2c3d4e5f60718293a4b5c6d7e8f04",
+   "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+   "sourceId": "10000000-0000-4000-8000-0000000000e1",
+   "sourceName": "Epic",
+   "steamAppIdConfidence": "none",
+   "isInstalled": false,
+   "hidden": false,
+   "favorite": false,
+   "platforms": [
+    "PC (Windows)"
+   ],
+   "genres": [],
+   "categories": [],
+   "tags": [],
+   "playtimeSeconds": 1800,
+   "added": "2025-10-01T12:00:00Z",
+   "modified": "2025-10-01T12:00:00Z",
+   "releaseDate": "2019-6-4",
+   "sortingName": "Snakebird Complete"
+  },
+  {
+   "playniteId": "20000000-0000-4000-8000-000000000105",
+   "name": "Styx: Shards of Darkness - Deluxe Edition",
+   "providerGameId": "f1f2c3d4e5f60718293a4b5c6d7e8f05",
+   "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+   "sourceId": "10000000-0000-4000-8000-0000000000e1",
+   "sourceName": "Epic",
+   "steamAppIdConfidence": "none",
+   "isInstalled": false,
+   "hidden": false,
+   "favorite": false,
+   "platforms": [
+    "PC (Windows)"
+   ],
+   "genres": [],
+   "categories": [],
+   "tags": [],
+   "playtimeSeconds": 5400,
+   "added": "2025-10-01T12:00:00Z",
+   "modified": "2025-10-01T12:00:00Z",
+   "releaseDate": "2021-3-11",
+   "sortingName": "Styx: Shards of Darkness - Deluxe Edition"
+  },
+  {
+   "playniteId": "20000000-0000-4000-8000-000000000106",
+   "name": "[REDACTED]",
+   "providerGameId": "a2f2c3d4e5f60718293a4b5c6d7e8f06",
+   "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+   "sourceId": "10000000-0000-4000-8000-0000000000e1",
+   "sourceName": "Epic",
+   "steamAppIdConfidence": "none",
+   "isInstalled": false,
+   "hidden": false,
+   "favorite": false,
+   "platforms": [
+    "PC (Windows)"
+   ],
+   "genres": [],
+   "categories": [],
+   "tags": [],
+   "playtimeSeconds": 10800,
+   "added": "2025-10-01T12:00:00Z",
+   "modified": "2025-10-01T12:00:00Z",
+   "releaseDate": "2024-8-20",
+   "sortingName": "[REDACTED]"
+  },
+  {
+   "playniteId": "20000000-0000-4000-8000-000000000107",
+   "name": "Ubisoft Connect Services",
+   "providerGameId": "b2f2c3d4e5f60718293a4b5c6d7e8f07",
+   "pluginId": "00000002-dbd1-46c6-b5d0-b1ba559d10e4",
+   "sourceId": "10000000-0000-4000-8000-0000000000e1",
+   "sourceName": "Epic",
+   "steamAppIdConfidence": "none",
+   "isInstalled": false,
+   "hidden": false,
+   "favorite": false,
+   "platforms": [
+    "PC (Windows)"
+   ],
+   "genres": [],
+   "categories": [],
+   "tags": [],
+   "playtimeSeconds": 0,
+   "added": "2025-10-01T12:00:00Z",
+   "modified": "2025-10-01T12:00:00Z",
+   "releaseDate": "2020-1-1",
+   "sortingName": "Ubisoft Connect Services"
+  },
+  {
+   "playniteId": "20000000-0000-4000-8000-000000000108",
+   "name": "Homicipher: Demo",
+   "providerGameId": "2870150",
+   "pluginId": "cb91dfc9-b977-43bf-8e70-55f46e410fab",
+   "sourceId": "10000000-0000-4000-8000-000000000051",
+   "sourceName": "Steam",
+   "steamAppIdConfidence": "exact",
+   "isInstalled": true,
+   "hidden": false,
+   "favorite": false,
+   "platforms": [
+    "PC (Windows)"
+   ],
+   "genres": [],
+   "categories": [],
+   "tags": [],
+   "playtimeSeconds": 0,
+   "added": "2025-10-01T12:00:00Z",
+   "modified": "2025-10-01T12:00:00Z",
+   "releaseDate": "2024-10-1",
+   "sortingName": "Homicipher: Demo",
+   "steamAppId": 2870150,
+   "steamAppIdSource": "playnite-provider-game-id"
   }
  ]
 }

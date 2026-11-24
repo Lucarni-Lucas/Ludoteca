@@ -8,8 +8,9 @@ Lucas ya tiene su historial en IGN (303 juegos con estado y puntaje), cientos de
 
 - Importar tres fuentes: el archivo exportado de IGN, el archivo exportado de Playnite y la cuenta de Steam.
 - Cruzar cada juego con IGDB, primero por el ID de la tienda y si no por el título.
-- Detectar los juegos de Steam de la familia: los que Playnite ve instalados pero la cuenta de Steam no tiene se sugieren como copia Familia.
-- Pantalla de revisión en grupos que son preguntas cortas («¿Cuál de estos es?», «¿Cómo lo dejaste?», «¿Es de tu familia?», «¿Es sin fin?», «¿Lo vas a jugar alguna vez?», «Elegí un estado», «No lo encontré» y «Listos para importar»), con acciones en lote.
+- Detectar los juegos de Steam de la familia: los que Playnite ve instalados pero la cuenta de Steam no tiene se preguntan en «¿Es de tu familia?».
+- Pantalla de revisión en grupos que son preguntas cortas («¿Cuál de estos es?», «¿Cómo lo dejaste?», «¿Es de tu familia?», «¿Es sin fin?», «¿Lo vas a jugar alguna vez?», «Elegí un estado», «No lo encontré» y «Listos para importar»), con acciones en lote. Cada opción es una respuesta en palabras y ninguna viene marcada.
+- Juntar en una sola pregunta lo que llega con el mismo nombre de varias fuentes, buscar sin la edición lo que IGDB no encuentra y dejar a la vista, sin importarlo, lo que no es un juego.
 - Guías «¿Cómo lo saco?» para exportar de Playnite y de IGN; para IGN, un marcador del navegador que descarga el archivo.
 - Nada entra a la biblioteca hasta confirmar; la revisión se guarda y se retoma.
 - Reimportar no duplica nada.

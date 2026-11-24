@@ -70,71 +70,16 @@
   font-size: var(--text-12);
 }
 
+/* Las respuestas van debajo del juego, alineadas con el título (design.md §15). */
 .options {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
   gap: var(--space-8);
   padding-left: var(--space-10);
 }
 
-.choices {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-6);
-}
-
-.radio {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-8);
-  min-height: var(--touch-target);
-  padding: var(--space-6) var(--space-12);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-strong);
-  background: transparent;
-  color: var(--color-text);
-  cursor: pointer;
-  text-align: left;
-  overflow-wrap: anywhere;
-  font: 500 var(--text-14) / 1.2 var(--font-body);
-}
-
-.radio:disabled {
-  cursor: default;
-  opacity: 0.6;
-}
-
-.radioChecked {
-  border-color: var(--color-accent);
-  background: var(--color-accent-chosen);
-  font-weight: 600;
-}
-
 .discard {
   color: var(--color-danger-soft);
-}
-
-.dot {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 16px;
-  height: 16px;
-  border-radius: var(--radius-pill);
-  border: 2px solid var(--color-border-strong);
-}
-
-.radioChecked .dot {
-  border-color: var(--color-accent);
-}
-
-.radioChecked .dot::after {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
 }
 
 .toggle {
@@ -164,15 +109,44 @@
   background: var(--color-accent);
 }
 
-.picker {
+/* Lo que abre «Otro estado»: una lista con todos los estados, uno por renglón. */
+.statusList {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
+  flex-direction: column;
+  max-width: 420px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-sheet);
+  overflow: hidden;
 }
 
-.picker > select {
-  width: auto;
-  min-width: 160px;
+.statusListTitle {
+  margin: 0;
+  padding: var(--space-10) var(--space-14) var(--space-6);
+  color: var(--color-text-muted);
+  font: 500 var(--text-11) / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.statusOption {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-14);
+  border: 0;
+  border-top: 1px solid var(--color-border-subtle);
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  font: 500 var(--text-14) / 1.2 var(--font-body);
+}
+
+.statusOption:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 /* Las preguntas de a un juego: cómo llegó arriba y las opciones debajo, a todo el ancho. */
@@ -347,17 +321,33 @@
   overflow-wrap: anywhere;
 }
 
+/* Lo que no es un juego: sin portada y en gris, porque no entra. */
+.nonGameCover {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 64px;
+  box-sizing: border-box;
+  border-radius: var(--radius-xs);
+  border: 1px dashed var(--color-border-strong);
+  color: var(--color-text-muted);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.title.muted {
+  color: var(--color-text-soft);
+}
+
 @media (min-width: 1024px) {
   .row {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-12);
-    padding: var(--space-10) var(--space-14) var(--space-10) var(--space-4);
+    padding: var(--space-12) var(--space-18) var(--space-16) var(--space-4);
   }
 
   .main {
-    flex: 1 1 260px;
     align-items: center;
     gap: var(--space-12);
   }
@@ -366,11 +356,8 @@
     padding-top: 0;
   }
 
-  /* Crece hasta el ancho de la fila y no más: una opción larga baja de renglón en lugar de desbordar. */
+  /* Debajo del título, después de la casilla y la portada. */
   .options {
-    flex: 0 1 auto;
-    min-width: 0;
-    max-width: 100%;
-    padding-left: 0;
+    padding-left: calc(var(--touch-target) + var(--space-12));
   }
 }

@@ -6,7 +6,6 @@ const ENTRY_ID = "00000000-0000-4000-8000-00000000000a";
 
 describe("decideSchema", () => {
   it.each([
-    { kind: "accept" },
     { kind: "reset" },
     { kind: "choose", choice: { kind: "not_interested" } },
     { kind: "choose", choice: { kind: "status", statusKey: "completed" } },
@@ -21,8 +20,10 @@ describe("decideSchema", () => {
   });
 
   it.each([
-    { entryIds: [], decision: { kind: "accept" } },
-    { entryIds: ["no-es-uuid"], decision: { kind: "accept" } },
+    { entryIds: [], decision: { kind: "reset" } },
+    { entryIds: ["no-es-uuid"], decision: { kind: "reset" } },
+    { entryIds: [ENTRY_ID], decision: { kind: "accept" } },
+    { entryIds: [ENTRY_ID], decision: { kind: "choose", choice: { kind: "exclude_copy" } } },
     { entryIds: [ENTRY_ID], decision: { kind: "borrar_todo" } },
     { entryIds: [ENTRY_ID], decision: { kind: "choose", choice: { kind: "copy_kind", copyKind: "robado" } } },
   ])("rechaza %j", (input) => {

@@ -12,11 +12,11 @@ import type { Store } from "@/model/store/store";
 
 import { useImportText } from "./import-text";
 import styles from "./ReviewPanel.module.css";
-import { ReviewRow, SelectToggle, type StatusOption } from "./ReviewRow";
+import { ReviewRow, SelectToggle, type StatusOption, StatusList } from "./ReviewRow";
 
 const PAGE_SIZE = 20;
-// Las opciones que piden algo más que un toque no van en la barra de selección.
-const ROW_ONLY: ReadonlySet<ReviewChoice["kind"]> = new Set(["candidate", "search", "other_status", "other_kind", "status"]);
+// Elegir un candidato o buscar es de a un juego: no va en la barra de selección.
+const ROW_ONLY: ReadonlySet<ReviewChoice["kind"]> = new Set(["candidate", "search"]);
 const EXCLUDE: ReviewChoice = { kind: "exclude" };
 
 export type ReviewPanelProps = Readonly<{
@@ -33,7 +33,7 @@ export type ReviewPanelProps = Readonly<{
   renderSearch: (game: ReviewGame, close: () => void) => ReactNode;
 }>;
 
-/** En las preguntas de a un juego, la barra solo ofrece «No importar»: elegir es de a uno. */
+/** La barra ofrece las respuestas del grupo; en las preguntas de a un juego, solo «No importar» (design.md §9). */
 function batchChoices(group: ReviewGroup, games: readonly ReviewGame[]): readonly ReviewChoice[] {
   const [first] = games;
 
@@ -98,16 +98,27 @@ function CopyKindForm({ stores, disabled, onApply }: CopyKindFormProps) {
 type SelectionBarProps = Readonly<{
   group: ReviewGroup;
   selected: readonly ReviewGame[];
+  statuses: readonly StatusOption[];
   disabled: boolean;
   onDecide: (decision: ImportDecision) => void;
   onCancel: () => void;
 }>;
 
-function SelectionBar({ group, selected, disabled, onDecide, onCancel }: SelectionBarProps) {
+function SelectionBar({ group, selected, statuses, disabled, onDecide, onCancel }: SelectionBarProps) {
   const t = useTranslations("import.review");
   const text = useImportText();
   const [copyKindOpen, setCopyKindOpen] = useState(false);
+  const [statusesOpen, setStatusesOpen] = useState(false);
   const stores = storesOf(selected);
+
+  function onAnswer(choice: ReviewChoice) {
+    if (choice.kind === "other_status") {
+      setStatusesOpen((open) => !open);
+      return;
+    }
+
+    onDecide({ kind: "choose", choice });
+  }
 
   return (
     <div role="group" aria-label={t("selection")} className={styles.bar}>
@@ -118,18 +129,14 @@ function SelectionBar({ group, selected, disabled, onDecide, onCancel }: Selecti
             {t("backToReview")}
           </button>
         ) : null}
-        {group !== "ready" && !isQuestionGroup(group) ? (
-          <button type="button" className={controls.primary} disabled={disabled} onClick={() => onDecide({ kind: "accept" })}>
-            {t("passToReady")}
-          </button>
-        ) : null}
         {batchChoices(group, selected).map((choice) => (
           <button
             key={JSON.stringify(choice)}
             type="button"
-            className={choice.kind === "exclude" || choice.kind === "exclude_copy" ? `${controls.secondary} ${styles.discard}` : controls.secondary}
+            aria-expanded={choice.kind === "other_status" ? statusesOpen : undefined}
+            className={choice.kind === "exclude" ? `${controls.secondary} ${styles.discard}` : controls.secondary}
             disabled={disabled}
-            onClick={() => onDecide({ kind: "choose", choice })}
+            onClick={() => onAnswer(choice)}
           >
             {text.choice(choice)}
           </button>
@@ -143,6 +150,14 @@ function SelectionBar({ group, selected, disabled, onDecide, onCancel }: Selecti
           {t("cancel")}
         </button>
       </div>
+      {statusesOpen ? (
+        <StatusList
+          label={t("otherStatusMany", { count: selected.length })}
+          statuses={statuses}
+          disabled={disabled}
+          onPick={(statusKey) => onDecide({ kind: "choose", choice: { kind: "status", statusKey } })}
+        />
+      ) : null}
       {copyKindOpen ? (
         <CopyKindForm stores={stores} disabled={disabled} onApply={(storeId, copyKind) => onDecide({ kind: "copy_kind", storeId, copyKind })} />
       ) : null}
@@ -152,7 +167,7 @@ function SelectionBar({ group, selected, disabled, onDecide, onCancel }: Selecti
 
 type MessageText = Readonly<{
   t: ReturnType<typeof useTranslations<"import.review">>;
-  choice: (choice: ReviewChoice) => string;
+  result: (choice: ReviewChoice, game: ReviewGame) => string;
   groupName: (group: ReviewGroup) => string;
 }>;
 
@@ -174,7 +189,7 @@ function decidedMessage(games: readonly ReviewGame[], decision: ImportDecision, 
   }
 
   const [game] = games;
-  const choice = decision.kind === "choose" ? decision.choice : game.marked;
+  const choice = decision.kind === "choose" ? decision.choice : null;
   const single = games.length === 1;
 
   if (choice?.kind === "exclude") {
@@ -182,7 +197,8 @@ function decidedMessage(games: readonly ReviewGame[], decision: ImportDecision, 
   }
 
   if (single && choice) {
-    return text.t("movedToReady", { title: game.title, choice: text.choice(choice) });
+    // Dice cómo va a entrar, no el texto del botón: después de «No», «Sin interés» (design.md §9).
+    return text.t("movedToReady", { title: game.title, choice: text.result(choice, game) });
   }
 
   return text.t("movedManyToReady", { count: games.length });
@@ -246,7 +262,7 @@ export function ReviewPanel({
     );
 
     if (next) {
-      onNotify(decidedMessage(targets, decision, next, { t: tReview, choice: text.choice, groupName: text.groupName }));
+      onNotify(decidedMessage(targets, decision, next, { t: tReview, result: text.result, groupName: text.groupName }));
       setSelectedIds(new Set());
       setDecisions((count) => count + 1);
       pendingFocus.current = Math.max(index, 0);
@@ -270,6 +286,7 @@ export function ReviewPanel({
         <SelectionBar
           group={group}
           selected={selected}
+          statuses={statuses}
           disabled={busy}
           onDecide={(decision) => void decide(selected, decision)}
           onCancel={() => setSelectedIds(new Set())}

@@ -1,11 +1,15 @@
 import type { ImportItem, ItemMatch, LibraryTitle } from "@/model/import/import-entry";
+import { withoutEdition } from "@/model/import/edition";
 import { detectNonGame, findNonGameBase } from "@/model/import/non-game";
+import type { TitleMatch } from "@/model/import/title-match";
 import { GOG_SLUG, STEAM_SLUG } from "@/model/store/store";
 
 /** Filas por llamada: cada una entra holgada en los 20 s de una función (design.md §7). */
 export const MATCHING_BATCH_SIZE = 60;
 /** Búsquedas por título de a una en una tanda; las que no entran esperan a la siguiente. */
 export const MAX_TITLE_SEARCHES = 30;
+/** Títulos que se vuelven a buscar sin la edición en una tanda; los demás esperan a la siguiente (design.md §7). */
+export const MAX_EDITION_SEARCHES = 10;
 
 export type ExternalStoreKey = "steam" | "gog";
 
@@ -33,6 +37,11 @@ export function titlesOf(item: ImportItem): readonly string[] {
   return [item.title, ...item.altTitles];
 }
 
+/** El título sin la edición, si la búsqueda por título lo dejaría en «No lo encontré» (design.md §7). */
+export function editionRetryOf(item: ImportItem, match: TitleMatch): string | null {
+  return match.kind === "not_found" ? withoutEdition(item.title) : null;
+}
+
 export function isNonGameItem(item: ImportItem): boolean {
   return detectNonGame(item.title) !== null;
 }
@@ -55,8 +64,9 @@ function hasLibraryBase(item: ImportItem, library: readonly LibraryTitle[]): boo
 }
 
 /**
- * Qué pasa con una entrada que no es juego: se cuelga de su base o va a «No lo encontré». `null` si su
- * base todavía no cruzó: espera a la tanda siguiente, para colgarse de un juego que ya tiene su revisión.
+ * Qué pasa con una entrada que no es juego: se cuelga de su base o queda sin importar, a la vista en «Listos
+ * para importar» (design.md §8). `null` si su base todavía no cruzó: espera a la tanda siguiente, para
+ * colgarse de un juego que ya tiene su revisión.
  */
 export function resolveNonGame(
   item: ImportItem,
@@ -70,5 +80,5 @@ export function resolveNonGame(
 
   return hasLibraryBase(item, library)
     ? { itemId: item.id, kind: "absorbed", baseItemId: null }
-    : { itemId: item.id, kind: "not_found" };
+    : { itemId: item.id, kind: "not_found", notAGame: true };
 }

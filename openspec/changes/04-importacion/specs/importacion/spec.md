@@ -81,6 +81,13 @@ Cada juego importado SHALL cruzarse con IGDB primero por su ID en la tienda (Ste
 - **WHEN** un juego sin ID de tienda se llama «Crash Bandicoot» y IGDB devuelve varios candidatos
 - **THEN** queda en «¿Cuál de estos es?» con los candidatos para elegir
 
+### Requirement: Buscar sin la edición
+Si la búsqueda por título dejaría el juego en «No lo encontré» (IGDB no tiene nada igual ni parecido) y el título nombra una edición («Deluxe Edition», «Game of the Year Edition», «Complete» y parecidas), el sistema SHALL buscar de nuevo sin la edición. Lo que encuentre así MUST NOT cruzarse solo: queda para que el usuario elija.
+
+#### Scenario: Título con la edición
+- **WHEN** Playnite trae «Styx: Shards of Darkness - Deluxe Edition» de Epic, IGDB no tiene nada igual ni parecido a ese título y, sin la edición, devuelve solo «Styx: Shards of Darkness»
+- **THEN** queda en «¿Cuál de estos es?» con la pregunta «¿Es este juego?» y «Styx: Shards of Darkness» como candidato
+
 ### Requirement: Estados desde IGN
 Los estados de IGN SHALL pasar así: Playing a Jugando, Paused a En pausa, Beat a Completado, Quit a Abandonado, Wishlist a Quiero jugarlo, y Backlog a Pendiente si el juego tiene alguna copia o a Quiero jugarlo si no. Un juego con dos estados de IGN MUST quedar en «¿Cómo lo dejaste?».
 
@@ -126,11 +133,11 @@ Cada juego de la cuenta de Steam SHALL sumar una copia «Steam · Comprado» con
 - **THEN** Hades tiene una sola copia de Steam
 
 ### Requirement: Juegos de Steam de la familia
-Un juego que el archivo de Playnite trae de Steam y que la cuenta de Steam del usuario no tiene SHALL agruparse en «¿Es de tu familia?», con la sugerencia de una copia «Steam · Familia». El usuario la acepta, la cambia por otro tipo o no lo importa, de a uno o en lote. Si la cuenta de Steam todavía no se conectó, esos juegos esperan en ese grupo hasta conectarla.
+Un juego que el archivo de Playnite trae de Steam y que la cuenta de Steam del usuario no tiene SHALL agruparse en «¿Es de tu familia?», con las respuestas «Sí, es de mi familia» (copia «Steam · Familia»), «No, es mío» (copia «Steam · Comprado») y «No importar», de a uno o en lote. Si la cuenta de Steam todavía no se conectó, esos juegos esperan en ese grupo hasta conectarla.
 
 #### Scenario: Juego instalado de un familiar
 - **WHEN** Playnite trae Portal 2 de Steam y la cuenta de Steam del usuario no tiene Portal 2
-- **THEN** Portal 2 aparece en «¿Es de tu familia?» con la sugerencia «Steam · Familia»
+- **THEN** Portal 2 aparece en «¿Es de tu familia?» y, si el usuario responde «Sí, es de mi familia», pasa a «Listos para importar» con la copia «Steam · Familia»
 
 #### Scenario: Juego propio instalado
 - **WHEN** Playnite trae Celeste de Steam y la cuenta de Steam del usuario tiene Celeste
@@ -143,26 +150,56 @@ Si un mismo juego llega de varias fuentes, el sistema SHALL juntarlo en un solo 
 - **WHEN** Hollow Knight llega de IGN como Beat con 9 y de Steam con 48 h
 - **THEN** queda un solo Hollow Knight, «Completado», con 9.0 y una copia de Steam con 48 h
 
+### Requirement: Mismo nombre desde varias fuentes
+Los juegos que no se cruzaron solos con IGDB (los de «¿Cuál de estos es?» y «No lo encontré») y que llegan de distintas fuentes o tiendas con el mismo nombre SHALL juntarse en un solo juego a revisar. La pregunta MUST mostrar cada origen («En IGN: Fortnite · 2017», «En Epic: Fortnite · 2020») y una sola respuesta vale para todos: el juego entra una vez, con el estado y el puntaje de IGN y las copias de cada tienda.
+
+#### Scenario: Fortnite de IGN y de Epic
+- **WHEN** Fortnite llega de IGN de 2017 con 8 y de Epic de 2020 con 120 h, e IGDB devuelve dos Fortnite
+- **THEN** «¿Cuál de estos es?» muestra un solo Fortnite con los dos orígenes, y al elegir un candidato pasa a «Listos para importar» con 8.0 y la copia de Epic Games con 120 h
+
+#### Scenario: Mismo nombre sin encontrar
+- **WHEN** Snakebird Complete llega de IGN y de Epic y no aparece en IGDB
+- **THEN** «No lo encontré» lo muestra una sola vez con los dos orígenes, y «No importar» deja afuera a los dos
+
+### Requirement: Lo que no es un juego
+Una demo, una beta (también Open Beta y Closed Beta), un servidor de prueba, un soundtrack o algo parecido, reconocido por el final de su título, MUST NOT entrar como juego. Si su juego base llega de la misma tienda o ya tiene una copia de esa tienda, sus horas se suman a esa copia. Si no, SHALL quedar en «Listos para importar» como «No se importa · no es un juego», y se puede traer con «Volver a revisar». Un título entre corchetes se busca en IGDB como cualquier otro.
+
+#### Scenario: Beta con su juego
+- **WHEN** Playnite trae de Epic «Mortal Shell Tech Beta» con 3 h y también «Mortal Shell»
+- **THEN** entra un solo Mortal Shell y su copia de Epic Games suma las 3 h de la beta
+
+#### Scenario: Demo sin su juego
+- **WHEN** Playnite trae «Cuphead Demo» de Steam y el usuario no tiene Cuphead
+- **THEN** la demo aparece en «Listos para importar» como «No se importa · no es un juego» y no entra a la biblioteca al confirmar
+
+#### Scenario: Nombre entre corchetes
+- **WHEN** Playnite trae «[REDACTED]» de Epic
+- **THEN** se busca en IGDB como cualquier otro título y, si IGDB tiene un solo [REDACTED], se cruza con ese
+
 ### Requirement: Grupo «¿Es sin fin?»
-El sistema SHALL agrupar los juegos que llegan como Completado y que en IGDB son solo multijugador, y sugerir el estado «Jugado» con la marca sin fin. El usuario acepta o rechaza la sugerencia de a uno o todas juntas.
+El sistema SHALL agrupar los juegos que llegan como Completado y que en IGDB son solo multijugador, con las respuestas «Sí, no se termina» (entra como «Jugado» con la marca sin fin), «No, lo terminé» (entra como «Completado») y «No importar», de a uno o en lote.
 
 #### Scenario: Juego multijugador terminado
 - **WHEN** Among Us llega de IGN como Beat
-- **THEN** aparece en «¿Es sin fin?» con la sugerencia «Jugado · sin fin»
+- **THEN** aparece en «¿Es sin fin?» con «Sí, no se termina», «No, lo terminé» y «No importar», sin ninguna marcada
 
 ### Requirement: Grupo «¿Lo vas a jugar alguna vez?»
-El sistema SHALL agrupar los juegos que llegan como Pendiente sin puntaje o con 0 h en sus tiendas. Para cada uno, o en lote, el usuario elige dejarlo en Pendiente, marcarlo «Sin interés» o no importarlo.
+El sistema SHALL agrupar los juegos que llegan como Pendiente sin puntaje o con 0 h en sus tiendas. Las respuestas SHALL ser «Sí, algún día» (entra como Pendiente), «No» (entra marcado «Sin interés»: no se ve en la biblioteca, pero «¿Lo tengo?» sabe que es suyo) y «No importar», de a uno o en lote. La explicación del grupo MUST decir la diferencia entre «No» y «No importar».
 
 #### Scenario: Juego que nunca se va a jugar
-- **WHEN** el usuario marca 8BitMMO como «Sin interés» en este grupo y confirma la importación
+- **WHEN** el usuario responde «No» para 8BitMMO en este grupo y confirma la importación
 - **THEN** 8BitMMO entra a la biblioteca marcado «Sin interés» y con su copia de Steam
 
 ### Requirement: Grupo «Elegí un estado»
-El sistema SHALL agrupar los juegos que el usuario tiene, con horas jugadas, pero que no vinieron de IGN. Se sugiere «Pendiente» y el usuario puede asignar otro estado de a uno o en lote.
+El sistema SHALL agrupar los juegos que el usuario tiene, con horas jugadas, pero que no vinieron de IGN. Las respuestas SHALL ser «Lo estoy jugando» (Jugando), «Lo terminé» (Completado), «Lo abandoné» (Abandonado), «Lo probé» (Lo probé), «Otro estado», que abre la lista con todos los estados, y «No importar», sin ninguna marcada, de a uno o en lote.
 
 #### Scenario: Juego jugado que no estaba en IGN
 - **WHEN** un juego de Steam con 12 h no está en el archivo de IGN
-- **THEN** aparece en «Elegí un estado» con la sugerencia «Pendiente»
+- **THEN** aparece en «Elegí un estado» con «Lo estoy jugando», «Lo terminé», «Lo abandoné», «Lo probé», «Otro estado» y «No importar», sin ninguna marcada
+
+#### Scenario: Otro estado
+- **WHEN** el usuario toca «Otro estado» en Frostpunk, de «Elegí un estado», y elige «En pausa» en la lista
+- **THEN** Frostpunk pasa a «Listos para importar» con «En pausa»
 
 ### Requirement: Grupo «¿Cuál de estos es?»
 Los juegos con varios candidatos en IGDB SHALL agruparse en «¿Cuál de estos es?». Cada uno muestra cómo llegó (fuente, nombre y año) y los candidatos con portada, nombre completo y año, más «Ninguno, lo busco yo» y «No importar». Ninguna opción viene marcada: elegir una lleva el juego a «Listos para importar».
@@ -193,27 +230,27 @@ Los juegos que no se pudieron cruzar con IGDB SHALL agruparse con tres opciones:
 - **WHEN** un juego de IGN no aparece en IGDB por ningún camino
 - **THEN** queda en «No lo encontré» con esas tres opciones
 
-### Requirement: Opción marcada en cada juego
-En los grupos de decisión en lote («¿Lo vas a jugar alguna vez?», «¿Es de tu familia?», «¿Es sin fin?» y «Elegí un estado»), las opciones de un juego SHALL mostrarse como una elección de una sola opción, con la sugerencia ya marcada. En «¿Cuál de estos es?» y «¿Cómo lo dejaste?» no hay sugerencia: elige el usuario.
+### Requirement: Respuestas sin marcar
+En todos los grupos, las opciones de un juego SHALL ser respuestas a la pregunta del grupo, dichas en palabras, y ninguna MUST venir marcada. Tocar una respuesta lleva el juego a «Listos para importar». En lote, el usuario selecciona varios juegos y toca la misma respuesta.
 
-#### Scenario: Sugerencia marcada
+#### Scenario: Nada marcado
 - **WHEN** el usuario abre «¿Lo vas a jugar alguna vez?» y 112 Operator llega de Epic con 0 h
-- **THEN** 112 Operator tiene marcada la opción «Pendiente» entre «Pendiente», «Sin interés» y «No importar»
+- **THEN** 112 Operator muestra «Sí, algún día», «No» y «No importar», sin ninguna marcada
+
+#### Scenario: Responder en lote
+- **WHEN** el usuario selecciona Portal 2 y Watch Dogs en «¿Es de tu familia?» y toca «Sí, es de mi familia»
+- **THEN** los dos pasan a «Listos para importar» con la copia «Steam · Familia»
 
 ### Requirement: Grupo «Listos para importar»
-Los juegos sin nada dudoso y los que el usuario ya decidió en cualquier otro grupo SHALL agruparse en «Listos para importar», y cada uno MUST decir cómo va a entrar (estado, tienda y tipo de copia). Elegir otra opción en un juego, o pasar los seleccionados con lo que tienen marcado, MUST llevarlos a «Listos para importar», y la pantalla SHALL decirlo. «Confirmar importación» confirma todo lo que está en «Listos para importar» y los demás grupos siguen esperando.
+Los juegos sin nada dudoso y los que el usuario ya decidió en cualquier otro grupo SHALL agruparse en «Listos para importar», y cada uno MUST decir cómo va a entrar (estado, tienda y tipo de copia). Responder por un juego, o por los seleccionados, MUST llevarlos a «Listos para importar», y la pantalla SHALL decirlo. «Confirmar importación» confirma todo lo que está en «Listos para importar» y los demás grupos siguen esperando.
 
 #### Scenario: Decidir pasa a «Listos para importar»
-- **WHEN** el usuario elige «Sin interés» para Beholder en «¿Lo vas a jugar alguna vez?»
+- **WHEN** el usuario responde «No» para Beholder en «¿Lo vas a jugar alguna vez?»
 - **THEN** Beholder pasa a «Listos para importar» y la pantalla dice «Beholder pasó a «Listos para importar» con «Sin interés».»
-
-#### Scenario: Pasar lo marcado en lote
-- **WHEN** el usuario selecciona Portal 2 y Watch Dogs en «¿Es de tu familia?» y toca «Pasar a Listos»
-- **THEN** los dos pasan a «Listos para importar» con la copia «Steam · Familia»
 
 #### Scenario: Confirmar lo que está listo
 - **WHEN** el usuario confirma la importación con juegos en «Listos para importar» y otros en «¿Cuál de estos es?»
-- **THEN** los de «Listos para importar» entran a la biblioteca con lo marcado y los de «¿Cuál de estos es?» siguen esperando
+- **THEN** los de «Listos para importar» entran a la biblioteca con lo respondido y los de «¿Cuál de estos es?» siguen esperando
 
 #### Scenario: Cómo va a entrar
 - **WHEN** el usuario abre «Listos para importar» y 112 Operator está decidido como Pendiente

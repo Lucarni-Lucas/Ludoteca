@@ -9,6 +9,7 @@ Después de la carga inicial, la biblioteca tiene que mantenerse al día sola en
 - Pantalla de Tiendas: qué tiendas se sincronizan solas, cuáles se importan o se cargan a mano, y cuáles no están conectadas.
 - Sincronización con Steam una vez por día y a pedido: actualiza horas y suma juegos nuevos.
 - Panel de la familia de Steam con «Salí de la familia» y la opción de deshacer.
+- «Desconectar» la cuenta de Steam, desde Tiendas y desde Importar, para dejar de sincronizar o cambiar de cuenta.
 
 ## Capabilities
 

@@ -134,15 +134,17 @@ export function planImportConfirmation(open: OpenReview, context: ConfirmContext
   const parts: PlanParts = { games: [], entryIds: [], summary: EMPTY_SUMMARY };
 
   for (const entry of open.entries) {
+    // Excluido por el usuario, o lo que no es un juego (design.md §8): no entra, y se confirma para que no vuelva.
+    if (entry.answers.excluded) {
+      addExcluded(parts, entry);
+      continue;
+    }
+
     const game = reviewGame(entry, open.library, context);
 
     if (game === null) {
-      // Excluido, o ya estaba con todas sus copias: se confirma para que no vuelva a la revisión.
-      if (entry.answers.excluded) {
-        addExcluded(parts, entry);
-      } else {
-        parts.entryIds.push(entry.id);
-      }
+      // Ya estaba con todas sus copias: se confirma para que no vuelva a la revisión.
+      parts.entryIds.push(entry.id);
       continue;
     }
 

@@ -1,12 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { type ReactNode, useId, useState } from "react";
+import { type ReactNode, useState } from "react";
 
-import { useCopyText } from "@/components/copy/copy-text";
 import { GameCover } from "@/components/game/GameCover";
 import controls from "@/components/ui/controls.module.css";
-import { COPY_KINDS } from "@/model/copy/copy";
 import { keptCopies } from "@/model/import/copies";
 import type { ImportCandidate } from "@/model/import/import-entry";
 import { isQuestionGroup, type ReviewChoice, type ReviewGame } from "@/model/import/review";
@@ -16,8 +14,8 @@ import styles from "./ReviewRow.module.css";
 
 export type StatusOption = Readonly<{ statusKey: string; name: string }>;
 
-/** Las opciones que solo abren un campo: no deciden nada todavía. */
-type Opening = "search" | "other_status" | "other_kind" | null;
+/** Las respuestas que solo abren algo para elegir: no deciden nada todavía. */
+type Opening = "search" | "other_status" | null;
 
 type ReviewRowProps = Readonly<{
   game: ReviewGame;
@@ -33,10 +31,6 @@ type ReviewRowProps = Readonly<{
 type RowProps = ReviewRowProps & Readonly<{ opening: Opening; onOpen: (opening: Opening) => void }>;
 
 const EXCLUDE: ReviewChoice = { kind: "exclude" };
-
-function sameChoice(a: ReviewChoice | null, b: ReviewChoice): boolean {
-  return a !== null && JSON.stringify(a) === JSON.stringify(b);
-}
 
 function Check({ checked }: Readonly<{ checked: boolean }>) {
   return (
@@ -58,74 +52,43 @@ export function SelectToggle({ label, checked, onToggle }: Readonly<{ label: str
   );
 }
 
-function isDiscard(choice: ReviewChoice): boolean {
-  return choice.kind === "exclude" || choice.kind === "exclude_copy";
-}
-
-type PickerProps = Readonly<{
+type StatusListProps = Readonly<{
   label: string;
-  options: readonly Readonly<{ value: string; label: string }>[];
-  initial: string;
+  statuses: readonly StatusOption[];
   disabled: boolean;
-  onApply: (value: string) => void;
+  onPick: (statusKey: string) => void;
 }>;
 
-/** Un selector con «Aplicar»: «Otro estado», «Otro tipo» y el estado de «Elegí un estado». */
-function Picker({ label, options, initial, disabled, onApply }: PickerProps) {
+/** Lo que abre «Otro estado»: todos los estados del usuario, ninguno marcado (design.md §9). */
+export function StatusList({ label, statuses, disabled, onPick }: StatusListProps) {
   const t = useTranslations("import.review");
-  const id = useId();
-  const [value, setValue] = useState(initial);
 
   return (
-    <div className={styles.picker}>
-      <label htmlFor={id} className={controls.visuallyHidden}>
-        {label}
-      </label>
-      <select id={id} className={controls.select} value={value} disabled={disabled} onChange={(event) => setValue(event.target.value)}>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <button type="button" className={controls.secondary} disabled={disabled} onClick={() => onApply(value)}>
-        {t("apply")}
-      </button>
+    <div role="group" aria-label={label} className={styles.statusList}>
+      <p className={styles.statusListTitle}>{t("allStatuses")}</p>
+      {statuses.map(({ statusKey, name }) => (
+        <button key={statusKey} type="button" className={styles.statusOption} disabled={disabled} onClick={() => onPick(statusKey)}>
+          {name}
+        </button>
+      ))}
     </div>
-  );
-}
-
-function StatusPicker({ game, statuses, disabled, onChoose }: Pick<RowProps, "game" | "statuses" | "disabled" | "onChoose">) {
-  const t = useTranslations("import.review");
-  const options = statuses.map(({ statusKey, name }) => ({ value: statusKey, label: name }));
-  const marked = game.marked?.kind === "status" ? game.marked.statusKey : (options[0]?.value ?? "");
-
-  return (
-    <Picker
-      label={t("otherStatus", { title: game.title })}
-      options={options}
-      initial={marked}
-      disabled={disabled}
-      onApply={(statusKey) => onChoose({ kind: "status", statusKey })}
-    />
   );
 }
 
 type OptionButtonProps = Readonly<{
   label: string;
   discard?: boolean;
-  /** Dentro de un `radiogroup` va como radio, sin marcar: en las preguntas no hay sugerencia. */
-  radio?: boolean;
+  expanded?: boolean;
   disabled: boolean;
   onClick: () => void;
 }>;
 
-function OptionButton({ label, discard = false, radio = false, disabled, onClick }: OptionButtonProps) {
+/** Una respuesta: todas iguales y ninguna marcada; «No importar» en el color de quitar. */
+function OptionButton({ label, discard = false, expanded, disabled, onClick }: OptionButtonProps) {
   return (
     <button
       type="button"
-      role={radio ? "radio" : undefined}
-      aria-checked={radio ? false : undefined}
+      aria-expanded={expanded}
       disabled={disabled}
       className={discard ? `${styles.option} ${styles.discard}` : styles.option}
       onClick={onClick}
@@ -135,34 +98,48 @@ function OptionButton({ label, discard = false, radio = false, disabled, onClick
   );
 }
 
-/** Las opciones de los grupos de lote, con la sugerencia marcada. */
-function Choices({ game, disabled, onPick }: Readonly<{ game: ReviewGame; disabled: boolean; onPick: (choice: ReviewChoice) => void }>) {
+/** «Otro estado» abre y cierra la lista; las demás respuestas deciden al tocarlas. */
+function Answers({ game, disabled, onChoose, opening, onOpen }: RowProps) {
   const t = useTranslations("import.review");
   const text = useImportText();
+  const statusesOpen = opening === "other_status";
+
+  function answer(choice: ReviewChoice) {
+    if (choice.kind === "other_status") {
+      onOpen(statusesOpen ? null : "other_status");
+      return;
+    }
+
+    onChoose(choice);
+  }
 
   return (
-    <div role="radiogroup" aria-label={t("optionsFor", { title: game.title })} className={styles.choices}>
-      {game.choices.map((choice) => {
-        const checked = sameChoice(game.marked, choice);
-        const classes = [styles.radio, checked ? styles.radioChecked : "", isDiscard(choice) ? styles.discard : ""].filter(Boolean);
-
-        return (
-          <button
-            key={JSON.stringify(choice)}
-            type="button"
-            role="radio"
-            aria-checked={checked}
-            disabled={disabled}
-            className={classes.join(" ")}
-            onClick={() => onPick(choice)}
-          >
-            <span aria-hidden="true" className={styles.dot} />
-            {text.choice(choice)}
-          </button>
-        );
-      })}
+    <div role="group" aria-label={t("answersFor", { title: game.title })} className={styles.actions}>
+      {game.choices.map((choice) => (
+        <OptionButton
+          key={JSON.stringify(choice)}
+          label={text.choice(choice)}
+          discard={choice.kind === "exclude"}
+          expanded={choice.kind === "other_status" ? statusesOpen : undefined}
+          disabled={disabled}
+          onClick={() => answer(choice)}
+        />
+      ))}
     </div>
   );
+}
+
+function OtherStatuses({ game, statuses, disabled, opening, onChoose }: RowProps) {
+  const t = useTranslations("import.review");
+
+  return opening === "other_status" ? (
+    <StatusList
+      label={t("otherStatus", { title: game.title })}
+      statuses={statuses}
+      disabled={disabled}
+      onPick={(statusKey) => onChoose({ kind: "status", statusKey })}
+    />
+  ) : null;
 }
 
 function Origins({ game }: Readonly<{ game: ReviewGame }>) {
@@ -192,21 +169,10 @@ function GameHeading({ game }: Readonly<{ game: ReviewGame }>) {
   );
 }
 
-/** Un grupo de lote: casilla, portada, de dónde vino y las opciones con la sugerencia marcada. */
+/** Un grupo de lote: casilla, portada, de dónde vino y debajo sus respuestas, ninguna marcada. */
 function BatchRow(props: RowProps) {
-  const { game, selected, disabled, onToggle, onChoose, opening, onOpen } = props;
+  const { game, selected, onToggle } = props;
   const t = useTranslations("import.review");
-  const copyText = useCopyText();
-  const kindOptions = COPY_KINDS.map((kind) => ({ value: kind, label: copyText.kind(kind) }));
-
-  function onPick(choice: ReviewChoice) {
-    if (choice.kind === "other_status" || choice.kind === "other_kind") {
-      onOpen(choice.kind);
-      return;
-    }
-
-    onChoose(choice);
-  }
 
   return (
     <li className={styles.row}>
@@ -218,24 +184,12 @@ function BatchRow(props: RowProps) {
           <Origins game={game} />
         </div>
       </div>
-      <div className={styles.options}>
-        {game.choices.length > 0 ? <Choices game={game} disabled={disabled} onPick={onPick} /> : null}
-        {game.group === "status" || opening === "other_status" ? <StatusPicker {...props} /> : null}
-        {opening === "other_kind" ? (
-          <Picker
-            label={t("otherKind", { title: game.title })}
-            options={kindOptions}
-            initial={kindOptions[0].value}
-            disabled={disabled}
-            onApply={(value) => {
-              const copyKind = COPY_KINDS.find((kind) => kind === value);
-              if (copyKind) {
-                onChoose({ kind: "copy_kind", copyKind });
-              }
-            }}
-          />
-        ) : null}
-      </div>
+      {game.choices.length > 0 ? (
+        <div className={styles.options}>
+          <Answers {...props} />
+          <OtherStatuses {...props} />
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -273,10 +227,10 @@ function WhichOptions({ game, disabled, onChoose, onOpen }: RowProps) {
         <div className={styles.candidateCard}>
           <Candidate candidate={candidate} />
         </div>
-        <div role="radiogroup" aria-label={label} className={styles.actions}>
-          <OptionButton radio label={t("choices.yes")} disabled={disabled} onClick={() => onChoose({ kind: "candidate", candidate })} />
-          <OptionButton radio label={t("choices.searchNo")} disabled={disabled} onClick={() => onOpen("search")} />
-          <OptionButton radio discard label={t("choices.exclude")} disabled={disabled} onClick={() => onChoose(EXCLUDE)} />
+        <div role="group" aria-label={label} className={styles.actions}>
+          <OptionButton label={t("choices.yes")} disabled={disabled} onClick={() => onChoose({ kind: "candidate", candidate })} />
+          <OptionButton label={t("choices.searchNo")} disabled={disabled} onClick={() => onOpen("search")} />
+          <OptionButton discard label={t("choices.exclude")} disabled={disabled} onClick={() => onChoose(EXCLUDE)} />
         </div>
       </>
     );
@@ -284,13 +238,11 @@ function WhichOptions({ game, disabled, onChoose, onOpen }: RowProps) {
 
   return (
     <>
-      <div role="radiogroup" aria-label={label} className={styles.candidates}>
+      <div role="group" aria-label={label} className={styles.candidates}>
         {candidates.map((candidate) => (
           <button
             key={candidate.igdbId}
             type="button"
-            role="radio"
-            aria-checked={false}
             disabled={disabled}
             className={styles.candidate}
             onClick={() => onChoose({ kind: "candidate", candidate })}
@@ -308,7 +260,7 @@ function WhichOptions({ game, disabled, onChoose, onOpen }: RowProps) {
 }
 
 /** «¿Cómo lo dejaste?»: un botón por estado de IGN, dicho en palabras. */
-function HowLeftOptions({ game, disabled, onChoose, onOpen }: RowProps) {
+function HowLeftOptions({ game, disabled, onChoose, opening, onOpen }: RowProps) {
   const t = useTranslations("import");
   const text = useImportText();
   const statusKeys = game.choices.flatMap((choice) => (choice.kind === "status" ? [choice.statusKey] : []));
@@ -316,18 +268,17 @@ function HowLeftOptions({ game, disabled, onChoose, onOpen }: RowProps) {
   return (
     <>
       <p className={styles.note}>{text.ignHas(statusKeys)}</p>
-      <div role="radiogroup" aria-label={t("review.howLeftFor", { title: game.title })} className={styles.actions}>
+      <div role="group" aria-label={t("review.howLeftFor", { title: game.title })} className={styles.actions}>
         {statusKeys.map((statusKey) => (
-          <OptionButton
-            key={statusKey}
-            radio
-            label={text.howLeft(statusKey)}
-            disabled={disabled}
-            onClick={() => onChoose({ kind: "status", statusKey })}
-          />
+          <OptionButton key={statusKey} label={text.howLeft(statusKey)} disabled={disabled} onClick={() => onChoose({ kind: "status", statusKey })} />
         ))}
-        <OptionButton radio label={t("choices.otherStatus")} disabled={disabled} onClick={() => onOpen("other_status")} />
-        <OptionButton radio discard label={t("choices.exclude")} disabled={disabled} onClick={() => onChoose(EXCLUDE)} />
+        <OptionButton
+          label={t("choices.otherStatus")}
+          expanded={opening === "other_status"}
+          disabled={disabled}
+          onClick={() => onOpen(opening === "other_status" ? null : "other_status")}
+        />
+        <OptionButton discard label={t("choices.exclude")} disabled={disabled} onClick={() => onChoose(EXCLUDE)} />
       </div>
     </>
   );
@@ -364,7 +315,7 @@ function Arrivals({ game }: Readonly<{ game: ReviewGame }>) {
   );
 }
 
-/** Una pregunta de a un juego: cómo llegó y las opciones debajo, sin ninguna marcada. */
+/** Una pregunta de a un juego: cómo llegó y las respuestas debajo, sin ninguna marcada. */
 function QuestionRow(props: RowProps) {
   const { game, selected, onToggle, opening, renderSearch, onOpen } = props;
   const t = useTranslations("import.review");
@@ -378,13 +329,25 @@ function QuestionRow(props: RowProps) {
       {game.group === "which" ? <WhichOptions {...props} /> : null}
       {game.group === "how_left" ? <HowLeftOptions {...props} /> : null}
       {game.group === "not_found" ? <NotFoundOptions {...props} /> : null}
-      {opening === "other_status" ? <StatusPicker {...props} /> : null}
+      <OtherStatuses {...props} />
       {opening === "search" ? renderSearch(game, () => onOpen(null)) : null}
     </li>
   );
 }
 
-/** «Listos para importar»: cómo va a entrar y, si lo decidió el usuario, «Volver a revisar». */
+/** Lo que no es un juego no tiene portada: un círculo tachado dice que no entra. */
+function NonGameCover() {
+  return (
+    <span aria-hidden="true" className={styles.nonGameCover}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="9" />
+        <path d="m5.6 5.6 12.8 12.8" />
+      </svg>
+    </span>
+  );
+}
+
+/** «Listos para importar»: cómo va a entrar y, si lo decidió el usuario o el cruce, «Volver a revisar». */
 function ReadyRow({ game, selected, disabled, onToggle, onReset }: RowProps) {
   const t = useTranslations("import.review");
   const text = useImportText();
@@ -392,10 +355,12 @@ function ReadyRow({ game, selected, disabled, onToggle, onReset }: RowProps) {
   return (
     <li className={styles.readyRow}>
       <SelectToggle label={t("select", { title: game.title })} checked={selected} onToggle={onToggle} />
-      <GameCover title={game.title} coverUrl={game.coverUrl} variant="small" />
+      {game.nonGame ? <NonGameCover /> : <GameCover title={game.title} coverUrl={game.coverUrl} variant="small" />}
       <div className={styles.readyInfo}>
-        <GameHeading game={game} />
-        <p className={styles.enters}>{text.entersAs(game)}</p>
+        {game.nonGame ? <p className={`${styles.title} ${styles.muted}`}>{game.title}</p> : <GameHeading game={game} />}
+        <p className={game.nonGame ? `${styles.enters} ${styles.muted}` : styles.enters}>
+          {game.nonGame ? t("notImported") : text.entersAs(game)}
+        </p>
       </div>
       {game.decided ? (
         <button type="button" className={controls.ghost} disabled={disabled} onClick={onReset}>

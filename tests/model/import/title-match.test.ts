@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ImportCandidate } from "@/model/import/import-entry";
-import { matchByTitle, titleKey } from "@/model/import/title-match";
+import { matchByTitle, matchWithoutEdition, titleKey } from "@/model/import/title-match";
 
 function result(igdbId: number, title: string, year: number | null, baseIgdbId = igdbId): ImportCandidate {
   return { igdbId, baseIgdbId, title, year, coverUrl: null };
@@ -143,6 +143,32 @@ describe("matchByTitle", () => {
     const row = { titles: ["Juego Perdido"], year: null };
 
     const match = matchByTitle(row, []);
+
+    expect(match).toEqual({ kind: "not_found" });
+  });
+});
+
+describe("matchWithoutEdition", () => {
+  it("Título con la edición", () => {
+    const styx = result(1, "Styx: Shards of Darkness", 2017);
+
+    const match = matchWithoutEdition({ titles: ["Styx: Shards of Darkness"], year: 2017 }, [styx]);
+
+    expect(match).toEqual({ kind: "candidates", candidates: [styx] });
+  });
+
+  it("varios con el mismo nombre quedan como candidatos, el de año más cercano primero", () => {
+    const results = [result(1, "Snakebird", 2015), result(2, "Snakebird", 2013)];
+
+    const match = matchWithoutEdition({ titles: ["Snakebird"], year: 2013 }, results);
+
+    expect(match).toEqual({ kind: "candidates", candidates: [results[1], results[0]] });
+  });
+
+  it("sin nada igual ni parecido no se encuentra", () => {
+    const results = [result(1, "Hollow Knight", 2017)];
+
+    const match = matchWithoutEdition({ titles: ["Snakebird"], year: null }, results);
 
     expect(match).toEqual({ kind: "not_found" });
   });

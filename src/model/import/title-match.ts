@@ -11,6 +11,11 @@ export function titleWords(title: string): readonly string[] {
   return normalizeText(title.replaceAll(CAMEL_BOUNDARY, " ")).split(NOT_ALPHANUMERIC).filter(Boolean);
 }
 
+/** El título termina en esas palabras y le queda al menos una antes: «Demo» solo es un nombre, no un sufijo. */
+export function endsWithWords(words: readonly string[], suffix: readonly string[]): boolean {
+  return words.length > suffix.length && suffix.every((word, index) => words[words.length - suffix.length + index] === word);
+}
+
 /** «KillingFloor2» y «Killing Floor 2» dan la misma clave. */
 export function titleKey(title: string): string {
   return titleWords(title).join("");
@@ -76,15 +81,30 @@ function candidatesOf(
  * el del juego (design.md §7). Con dos o más del mismo nombre, o ninguno igual, queda para elegir.
  */
 export function matchByTitle(row: TitleMatchRow, results: readonly ImportCandidate[]): TitleMatch {
-  const keys = new Set(row.titles.map(titleKey));
-  const unique = uniqueByBase(results);
-  const exact = unique.filter((result) => keys.has(titleKey(result.title)));
-  const rowWords = row.titles.map(titleWords);
-  const similar = unique.filter((result) => !exact.includes(result) && isSimilar(rowWords, result));
+  const { exact, similar } = splitResults(row, results);
 
   if (exact.length === 1) {
     return { kind: "matched", result: exact[0] };
   }
 
   return candidatesOf(byClosestYear(row.year, exact), similar);
+}
+
+/**
+ * Lo encontrado buscando sin la edición nunca cruza solo: el juego base y la edición pueden ser fichas
+ * distintas en IGDB, y elegir es del usuario (design.md §7).
+ */
+export function matchWithoutEdition(row: TitleMatchRow, results: readonly ImportCandidate[]): TitleMatch {
+  const { exact, similar } = splitResults(row, results);
+  return candidatesOf(byClosestYear(row.year, exact), similar);
+}
+
+function splitResults(row: TitleMatchRow, results: readonly ImportCandidate[]) {
+  const keys = new Set(row.titles.map(titleKey));
+  const unique = uniqueByBase(results);
+  const exact = unique.filter((result) => keys.has(titleKey(result.title)));
+  const rowWords = row.titles.map(titleWords);
+  const similar = unique.filter((result) => !exact.includes(result) && isSimilar(rowWords, result));
+
+  return { exact, similar };
 }

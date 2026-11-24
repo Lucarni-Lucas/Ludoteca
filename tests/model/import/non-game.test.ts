@@ -29,12 +29,23 @@ describe("detectNonGame", () => {
     expect(detected).toEqual({ kind: "suffix", baseKey });
   });
 
-  it("un nombre tapado por la tienda no es un juego", () => {
+  it("Nombre entre corchetes", () => {
     const title = "[REDACTED]";
 
     const detected = detectNonGame(title);
 
-    expect(detected).toEqual({ kind: "hidden" });
+    expect(detected).toBeNull();
+  });
+
+  it.each([
+    ["Mortal Shell Open Beta", "mortalshell"],
+    ["Mortal Shell - Closed Beta", "mortalshell"],
+  ])("«%s» busca su base sin «Open» ni «Closed»: «%s»", (title, baseKey) => {
+    const written = title;
+
+    const detected = detectNonGame(written);
+
+    expect(detected).toEqual({ kind: "suffix", baseKey });
   });
 
   it.each(["Demolition Derby", "The Demo Disc Collection", "Beta Decay", "Demo"])(

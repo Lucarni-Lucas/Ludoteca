@@ -49,6 +49,12 @@ const GAMES: readonly FakeGame[] = [
   { id: 23, name: "Crash Bandicoot: The Wrath of Cortex", year: 2001, modes: ["single-player"] },
   { id: 24, name: "Castlevania Anniversary Collection - Ultimate Edition", year: 2019, modes: ["single-player"] },
   { id: 25, name: "20XX", year: 2017, modes: ["single-player", "co-operative"] },
+  // Los de la segunda prueba con datos reales (04 tasks.md 9.6): dos con el mismo nombre, el juego sin la
+  // edición y un nombre entre corchetes que es un juego de verdad.
+  { id: 26, name: "Fortnite", year: 2017, modes: ["single-player", "multiplayer"] },
+  { id: 27, name: "Fortnite", year: 2018, modes: ["multiplayer", "battle-royale"] },
+  { id: 28, name: "Styx: Shards of Darkness", year: 2017, modes: ["single-player"] },
+  { id: 29, name: "[REDACTED]", year: 2024, modes: ["single-player"] },
 ];
 
 // La fuente de Steam en external_games, verificada contra IGDB real (04 design.md §7).

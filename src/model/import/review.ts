@@ -8,6 +8,7 @@ import type {
   LibraryMatch,
   OpenReview,
 } from "@/model/import/import-entry";
+import { MAX_CANDIDATES } from "@/model/import/import-entry";
 import type { IgnStatus, ImportSource } from "@/model/import/import-row";
 import { detectNonGame } from "@/model/import/non-game";
 import { titleKey } from "@/model/import/title-match";
@@ -22,14 +23,14 @@ export const REVIEW_GROUPS = ["which", "how_left", "not_found", "family", "endle
 
 export type ReviewGroup = (typeof REVIEW_GROUPS)[number];
 
-/** Las preguntas de a un juego: la respuesta no se puede adivinar, así que no hay opción marcada. */
+/** Las preguntas de a un juego: la respuesta depende de cada uno, así que en lote solo vale «No importar». */
 const QUESTION_GROUPS: readonly ReviewGroup[] = ["which", "how_left", "not_found"];
 
 export function isQuestionGroup(group: ReviewGroup): boolean {
   return QUESTION_GROUPS.includes(group);
 }
 
-/** Una opción de una sola elección (radio) en la fila de un juego. */
+/** Una respuesta a la pregunta del grupo, dicha en palabras. Ninguna viene marcada (design.md §9). */
 export type ReviewChoice =
   | Readonly<{ kind: "candidate"; candidate: ImportCandidate }>
   | Readonly<{ kind: "search" }>
@@ -38,8 +39,6 @@ export type ReviewChoice =
   | Readonly<{ kind: "manual" }>
   | Readonly<{ kind: "exclude" }>
   | Readonly<{ kind: "copy_kind"; copyKind: CopyKind }>
-  | Readonly<{ kind: "other_kind" }>
-  | Readonly<{ kind: "exclude_copy" }>
   | Readonly<{ kind: "endless" }>
   | Readonly<{ kind: "completed" }>
   | Readonly<{ kind: "keep" }>
@@ -78,8 +77,6 @@ export type ReviewGame = Readonly<{
   origins: readonly ReviewOrigin[];
   group: ReviewGroup;
   choices: readonly ReviewChoice[];
-  /** La sugerencia marcada en los grupos de lote. `null` en las preguntas de a un juego y en «Listos para importar». */
-  marked: ReviewChoice | null;
   /** Un solo candidato con otro nombre: la pregunta es «¿Es este juego?». */
   isThisQuestion: boolean;
   /** Entra cargado a mano, con el título que trajo. */
@@ -91,7 +88,10 @@ export type ReviewGame = Readonly<{
   decided: boolean;
   /** El juego ya está en la biblioteca: solo suma copias. */
   libraryGameId: string | null;
-  /** Una entrada que no es juego («Soundtrack», «[REDACTED]») que no encontró su base. */
+  /**
+   * Una entrada que no es juego («Soundtrack», «Demo») que no encontró su base: en «Listos para importar» no se
+   * importa, y traída con «Volver a revisar» está en «No lo encontré» (design.md §8).
+   */
   nonGame: boolean;
 }>;
 
@@ -106,7 +106,11 @@ export type ImportReview = Readonly<{
   itemCount: number;
 }>;
 
-export type ReviewContext = Readonly<{ steamConnected: boolean }>;
+export type ReviewContext = Readonly<{
+  steamConnected: boolean;
+  /** Los `system_key` de los estados del usuario: una respuesta de «Elegí un estado» sin su estado no se ofrece. */
+  statusKeys?: readonly string[];
+}>;
 
 /** Lo que se sabe de un juego antes de elegir su grupo. */
 type EntryFacts = Readonly<{
@@ -251,61 +255,84 @@ function groupOf(facts: EntryFacts, suggestion: ReviewSuggestion): ReviewGroup {
   return isStatusQuestion(facts) ? "status" : "ready";
 }
 
-function openCandidateItem(entry: ImportEntry): ImportItem | undefined {
-  return entry.items.find((item) => item.matchState === "candidates" && item.chosenIgdbId === null);
+function openItems(entry: ImportEntry): readonly ImportItem[] {
+  return entry.items.filter((item) => item.chosenIgdbId === null && item.matchState !== "absorbed");
 }
 
+/**
+ * Los candidatos de todas las filas que esperan, en el orden de la primera y sin repetir el juego base: el
+ * mismo nombre de varias fuentes es una sola pregunta (design.md §9).
+ */
 function candidatesOf(entry: ImportEntry): readonly ImportCandidate[] {
-  return openCandidateItem(entry)?.candidates ?? [];
+  const all = openItems(entry).flatMap((item) => (item.matchState === "candidates" ? item.candidates : []));
+  const unique = new Map<number, ImportCandidate>();
+
+  for (const candidate of all) {
+    if (!unique.has(candidate.baseIgdbId)) {
+      unique.set(candidate.baseIgdbId, candidate);
+    }
+  }
+
+  return [...unique.values()].slice(0, MAX_CANDIDATES);
 }
 
 /** Un solo candidato, y ninguno de los nombres con que llegó es el suyo. */
 function isThisQuestion(entry: ImportEntry): boolean {
-  const item = openCandidateItem(entry);
+  const candidates = candidatesOf(entry);
 
-  if (item?.candidates.length !== 1) {
+  if (candidates.length !== 1) {
     return false;
   }
 
-  const keys = new Set([item.title, ...item.altTitles].map(titleKey));
-  return !keys.has(titleKey(item.candidates[0].title));
+  const keys = new Set(openItems(entry).flatMap((item) => [item.title, ...item.altTitles]).map(titleKey));
+  return !keys.has(titleKey(candidates[0].title));
 }
 
 function isNonGameEntry(entry: ImportEntry): boolean {
   return entry.items.every((item) => detectNonGame(item.title) !== null);
 }
 
-type ChoiceSet = Readonly<{ choices: readonly ReviewChoice[]; marked: ReviewChoice | null }>;
+/** Lo que no es un juego y el cruce dejó en «No importar»: se ve en «Listos para importar» (design.md §8). */
+function isExcludedNonGame(entry: ImportEntry): boolean {
+  return entry.answers.excluded && hasOpenState(entry, "not_found") && isNonGameEntry(entry);
+}
 
 const EXCLUDE: ReviewChoice = { kind: "exclude" };
+const OTHER_STATUS: ReviewChoice = { kind: "other_status" };
 
-function whichChoices(entry: ImportEntry): ChoiceSet {
+/** Las respuestas de «Elegí un estado», en este orden; «Otro estado» abre la lista con todos (design.md §9). */
+export const STATUS_ANSWER_KEYS = ["playing", COMPLETED_KEY, "abandoned", "tried"] as const;
+
+function whichChoices(entry: ImportEntry): readonly ReviewChoice[] {
   const candidates = candidatesOf(entry).map((candidate) => ({ kind: "candidate" as const, candidate }));
-  return { choices: [...candidates, { kind: "search" }, EXCLUDE], marked: null };
+  return [...candidates, { kind: "search" }, EXCLUDE];
 }
 
-function howLeftChoices(facts: EntryFacts): ChoiceSet {
+function howLeftChoices(facts: EntryFacts): readonly ReviewChoice[] {
   const statuses = facts.ignStatusKeys.map((statusKey) => ({ kind: "status" as const, statusKey }));
-  return { choices: [...statuses, { kind: "other_status" }, EXCLUDE], marked: null };
+  return [...statuses, OTHER_STATUS, EXCLUDE];
 }
 
-function familyChoices(copies: readonly SuggestedCopy[]): ChoiceSet {
+function familyChoices(copies: readonly SuggestedCopy[]): readonly ReviewChoice[] {
   if (copies.some((copy) => copy.awaitingSteam)) {
-    return { choices: [], marked: null };
+    return [];
   }
 
-  const choices: readonly ReviewChoice[] = [
-    { kind: "copy_kind", copyKind: "family" },
-    { kind: "copy_kind", copyKind: "purchased" },
-    { kind: "other_kind" } as const,
-    { kind: "exclude_copy" } as const,
-  ];
-  return { choices, marked: choices[0] };
+  return [{ kind: "copy_kind", copyKind: "family" }, { kind: "copy_kind", copyKind: "purchased" }, EXCLUDE];
 }
 
-const NOT_FOUND_CHOICES: ChoiceSet = { choices: [{ kind: "search" }, { kind: "manual" }, EXCLUDE], marked: null };
+/** Sin los estados del usuario se ofrecen los cuatro: al confirmar se crean los de fábrica. */
+function statusChoices(context: ReviewContext): readonly ReviewChoice[] {
+  const available = STATUS_ANSWER_KEYS.filter((statusKey) => context.statusKeys?.includes(statusKey) ?? true);
+  return [...available.map((statusKey) => ({ kind: "status" as const, statusKey })), OTHER_STATUS, EXCLUDE];
+}
 
-function choicesOf(group: ReviewGroup, facts: EntryFacts): ChoiceSet {
+const NOT_FOUND_CHOICES: readonly ReviewChoice[] = [{ kind: "search" }, { kind: "manual" }, EXCLUDE];
+const ENDLESS_CHOICES: readonly ReviewChoice[] = [{ kind: "endless" }, { kind: "completed" }, EXCLUDE];
+const PLAY_CHOICES: readonly ReviewChoice[] = [{ kind: "keep" }, { kind: "not_interested" }, EXCLUDE];
+
+/** Las respuestas de cada grupo, ninguna marcada (design.md §9). */
+function choicesOf(group: ReviewGroup, facts: EntryFacts, context: ReviewContext): readonly ReviewChoice[] {
   switch (group) {
     case "which":
       return whichChoices(facts.entry);
@@ -315,18 +342,14 @@ function choicesOf(group: ReviewGroup, facts: EntryFacts): ChoiceSet {
       return NOT_FOUND_CHOICES;
     case "family":
       return familyChoices(facts.copies);
-    case "endless": {
-      const choices = [{ kind: "endless" } as const, { kind: "completed" } as const];
-      return { choices, marked: choices[0] };
-    }
-    case "play": {
-      const choices = [{ kind: "keep" } as const, { kind: "not_interested" } as const, EXCLUDE];
-      return { choices, marked: choices[0] };
-    }
+    case "endless":
+      return ENDLESS_CHOICES;
+    case "play":
+      return PLAY_CHOICES;
     case "status":
-      return { choices: [], marked: { kind: "status", statusKey: BACKLOG_KEY } };
+      return statusChoices(context);
     case "ready":
-      return { choices: [], marked: null };
+      return [];
   }
 }
 
@@ -359,17 +382,20 @@ function factsOf(entry: ImportEntry, library: readonly LibraryMatch[], context: 
   return { entry, library: match, ignItems, copies, ignStatusKeys: ignStatusKeys(ignItems, copies), decided: isDecided(entry, copies) };
 }
 
-/** `null` si no hay nada que revisar: un juego excluido o que ya estaba con todas sus copias. */
+/**
+ * `null` si no hay nada que revisar: un juego excluido por el usuario o que ya estaba con todas sus copias.
+ * Lo que no es un juego y excluyó el cruce sí se ve, en «Listos para importar» (design.md §8).
+ */
 export function reviewGame(entry: ImportEntry, library: readonly LibraryMatch[], context: ReviewContext): ReviewGame | null {
   const facts = factsOf(entry, library, context);
+  const excludedNonGame = isExcludedNonGame(entry);
 
-  if (entry.answers.excluded || (facts.library && keptCopies(facts.copies).length === 0)) {
+  if ((entry.answers.excluded && !excludedNonGame) || (facts.library && keptCopies(facts.copies).length === 0)) {
     return null;
   }
 
   const suggestion = suggestionOf(facts);
-  const group = groupOf(facts, suggestion);
-  const { choices, marked } = choicesOf(group, facts);
+  const group = excludedNonGame ? "ready" : groupOf(facts, suggestion);
   const firstItem = entry.items[0];
 
   return {
@@ -380,13 +406,12 @@ export function reviewGame(entry: ImportEntry, library: readonly LibraryMatch[],
     estimatedHours: entry.catalog?.estimatedHours ?? suggestion.hltbHours,
     origins: entry.items.filter((item) => item.matchState !== "absorbed").map(originOf),
     group,
-    choices,
-    marked,
+    choices: choicesOf(group, facts, context),
     isThisQuestion: group === "which" && isThisQuestion(entry),
     manual: entry.answers.manualTitle !== null,
     itemIds: entry.items.map((item) => item.id),
     suggestion,
-    decided: facts.decided,
+    decided: facts.decided || excludedNonGame,
     libraryGameId: facts.library?.libraryGameId ?? null,
     nonGame: hasOpenState(entry, "not_found") && isNonGameEntry(entry),
   };
@@ -436,8 +461,11 @@ export type ReadyCounts = Readonly<{ games: number; copies: number }>;
 export function countReady(review: ImportReview): ReadyCounts {
   const ready = gamesInGroup(review, "ready");
 
+  // Lo que no es un juego está en «Listos para importar» pero no entra (design.md §9).
+  const entering = ready.filter((game) => !game.nonGame);
+
   return {
-    games: ready.filter((game) => game.libraryGameId === null).length,
-    copies: ready.reduce((total, game) => total + keptCopies(game.suggestion.copies).length, 0),
+    games: entering.filter((game) => game.libraryGameId === null).length,
+    copies: entering.reduce((total, game) => total + keptCopies(game.suggestion.copies).length, 0),
   };
 }

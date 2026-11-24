@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildReview, gamesInGroup, type ReviewGame, reviewGame } from "@/model/import/review";
+import { buildReview, countReady, gamesInGroup, type ReviewGame, reviewGame } from "@/model/import/review";
 
 import { entry, EPIC, ignItem, item, openReview, playniteItem, STEAM, steamItem } from "./import-fixtures";
 
@@ -30,7 +30,11 @@ describe("reviewGame", () => {
 
       expect(game.group).toBe("family");
       expect(game.suggestion.copies).toEqual([expect.objectContaining({ store: STEAM, kind: "family" })]);
-      expect(game.marked).toEqual({ kind: "copy_kind", copyKind: "family" });
+      expect(game.choices).toEqual([
+        { kind: "copy_kind", copyKind: "family" },
+        { kind: "copy_kind", copyKind: "purchased" },
+        { kind: "exclude" },
+      ]);
     });
 
     it("Juego propio instalado", () => {
@@ -121,6 +125,69 @@ describe("reviewGame", () => {
       expect(games.map((game) => game.suggestion.statusKey)).toEqual(["backlog", "wishlist"]);
     });
 
+    describe("mismo nombre desde varias fuentes", () => {
+      const fortnite2017 = { igdbId: 1, baseIgdbId: 1, title: "Fortnite", year: 2017, coverUrl: null };
+      const fortnite2018 = { igdbId: 2, baseIgdbId: 2, title: "Fortnite", year: 2018, coverUrl: null };
+
+      function fortnites(epicChoice: number | null = null) {
+        const options = { igdbId: epicChoice, catalogGameId: null, catalog: null };
+        return entry(
+          "Fortnite",
+          [
+            ignItem("Fortnite", { year: 2017, ignStatuses: ["beat"], ignScore: 8, matchState: "candidates", candidates: [fortnite2017, fortnite2018] }),
+            playniteItem("Fortnite", EPIC, "Fortnite", { year: 2020, playtimeMinutes: 120 * 60, matchState: "candidates", candidates: [fortnite2018] }),
+          ],
+          options,
+        );
+      }
+
+      it("Fortnite de IGN y de Epic", () => {
+        const both = fortnites();
+
+        const game = review(both);
+
+        expect(game.group).toBe("which");
+        expect(game.origins.map((origin) => [origin.source, origin.title, origin.year])).toEqual([
+          ["ign", "Fortnite", 2017],
+          ["playnite", "Fortnite", 2020],
+        ]);
+        expect(game.choices.filter((choice) => choice.kind === "candidate")).toEqual([
+          { kind: "candidate", candidate: fortnite2017 },
+          { kind: "candidate", candidate: fortnite2018 },
+        ]);
+      });
+
+      it("al elegir, entra una vez con el puntaje de IGN y la copia de Epic", () => {
+        const chosen = entry(
+          "Fortnite",
+          fortnites().items.map((value) => ({ ...value, chosenIgdbId: 1 })),
+          { igdbId: 1 },
+        );
+
+        const game = review(chosen);
+
+        expect(game.group).toBe("ready");
+        expect(game.suggestion.score).toBe(8);
+        expect(game.suggestion.copies).toEqual([expect.objectContaining({ store: EPIC, playtimeMinutes: 7200 })]);
+      });
+
+      it("«¿Es este juego?» mira todos los nombres con que llegó", () => {
+        const castlevania = { igdbId: 3, baseIgdbId: 3, title: "Castlevania Collection", year: 2019, coverUrl: null };
+        const both = entry(
+          "Castlevania",
+          [
+            ignItem("Castlevania Collection", { matchState: "not_found" }),
+            playniteItem("Castlevania Anniversary", EPIC, "c", { matchState: "candidates", candidates: [castlevania] }),
+          ],
+          { igdbId: null, catalogGameId: null, catalog: null },
+        );
+
+        const game = review(both);
+
+        expect(game).toMatchObject({ group: "which", isThisQuestion: false });
+      });
+    });
+
     it("usa la duración de HowLongToBeat cuando IGDB no la tiene", () => {
       const seconds = entry("60 Seconds!", [ignItem("60 Seconds!", { ignStatuses: ["beat"], hltbMainHours: 2.3 })]);
 
@@ -130,7 +197,7 @@ describe("reviewGame", () => {
     });
   });
 
-  describe("grupos y opción marcada", () => {
+  describe("grupos y respuestas", () => {
     it("Elegir entre varios", () => {
       const candidates = [1996, 1997, 2004, 2017, 2020].map((year, index) => ({
         igdbId: index + 1,
@@ -147,7 +214,7 @@ describe("reviewGame", () => {
 
       const game = review(crash);
 
-      expect(game).toMatchObject({ group: "which", marked: null, isThisQuestion: false });
+      expect(game).toMatchObject({ group: "which", isThisQuestion: false });
       expect(game.origins).toEqual([expect.objectContaining({ source: "ign", title: "Crash Bandicoot", year: 1996 })]);
       expect(game.choices).toEqual([
         ...candidates.map((candidate) => ({ kind: "candidate", candidate })),
@@ -172,7 +239,7 @@ describe("reviewGame", () => {
 
       const game = review(castlevania);
 
-      expect(game).toMatchObject({ group: "which", isThisQuestion: true, marked: null });
+      expect(game).toMatchObject({ group: "which", isThisQuestion: true });
       expect(game.origins[0]).toMatchObject({ source: "playnite", storeName: "Epic Games", year: 2019 });
       expect(game.choices).toEqual([{ kind: "candidate", candidate }, { kind: "search" }, { kind: "exclude" }]);
     });
@@ -182,7 +249,7 @@ describe("reviewGame", () => {
 
       const game = review(overwatch);
 
-      expect(game).toMatchObject({ group: "how_left", marked: null });
+      expect(game).toMatchObject({ group: "how_left" });
       expect(game.choices).toEqual([
         { kind: "status", statusKey: "completed" },
         { kind: "status", statusKey: "abandoned" },
@@ -214,12 +281,11 @@ describe("reviewGame", () => {
 
       expect(game.group).toBe("not_found");
       expect(game.choices).toEqual([{ kind: "search" }, { kind: "manual" }, { kind: "exclude" }]);
-      expect(game.marked).toBeNull();
       expect(game.title).toBe("Crash Bandicoot");
     });
 
-    it("una entrada que no es juego sin base va a «No lo encontré» con su marca y sin opción marcada", () => {
-      const redacted = entry("[REDACTED]", [playniteItem("[REDACTED]", EPIC, "x", { matchState: "not_found" })], {
+    it("una entrada que no es juego, traída con «Volver a revisar», está en «No lo encontré» con su marca", () => {
+      const redacted = entry("Cuphead Demo", [playniteItem("Cuphead Demo", EPIC, "x", { matchState: "not_found" })], {
         igdbId: null,
         catalogGameId: null,
         catalog: null,
@@ -227,7 +293,7 @@ describe("reviewGame", () => {
 
       const game = review(redacted);
 
-      expect(game).toMatchObject({ group: "not_found", nonGame: true, marked: null });
+      expect(game).toMatchObject({ group: "not_found", nonGame: true });
     });
 
     it("Juego multijugador terminado", () => {
@@ -238,18 +304,16 @@ describe("reviewGame", () => {
       const game = review(amongUs);
 
       expect(game.group).toBe("endless");
-      expect(game.choices).toEqual([{ kind: "endless" }, { kind: "completed" }]);
-      expect(game.marked).toEqual({ kind: "endless" });
+      expect(game.choices).toEqual([{ kind: "endless" }, { kind: "completed" }, { kind: "exclude" }]);
     });
 
-    it("Sugerencia marcada", () => {
+    it("Nada marcado", () => {
       const operator = entry("112 Operator", [playniteItem("112 Operator", EPIC, "operator", { playtimeMinutes: 0 })]);
 
       const game = review(operator);
 
       expect(game.group).toBe("play");
       expect(game.choices).toEqual([{ kind: "keep" }, { kind: "not_interested" }, { kind: "exclude" }]);
-      expect(game.marked).toEqual({ kind: "keep" });
     });
 
     it("un Pendiente de IGN sin puntaje va a «¿Lo vas a jugar alguna vez?» aunque tenga horas", () => {
@@ -263,11 +327,57 @@ describe("reviewGame", () => {
     it("Juego jugado que no estaba en IGN", () => {
       const game = review(entry("Terraria", [steamItem("Terraria", "105600", 12 * 60)]));
 
-      const { group, marked } = game;
+      const { group, choices } = game;
 
       expect(group).toBe("status");
-      expect(marked).toEqual({ kind: "status", statusKey: "backlog" });
-      expect(game.suggestion.statusKey).toBe("backlog");
+      expect(choices).toEqual([
+        { kind: "status", statusKey: "playing" },
+        { kind: "status", statusKey: "completed" },
+        { kind: "status", statusKey: "abandoned" },
+        { kind: "status", statusKey: "tried" },
+        { kind: "other_status" },
+        { kind: "exclude" },
+      ]);
+    });
+
+    it("una respuesta de «Elegí un estado» cuyo estado el usuario borró no se ofrece", () => {
+      const terraria = entry("Terraria", [steamItem("Terraria", "105600", 12 * 60)]);
+      const context = { ...CONNECTED, statusKeys: ["playing", "completed", "abandoned", "backlog"] };
+
+      const game = review(terraria, context);
+
+      expect(game.choices.map((choice) => (choice.kind === "status" ? choice.statusKey : choice.kind))).toEqual([
+        "playing",
+        "completed",
+        "abandoned",
+        "other_status",
+        "exclude",
+      ]);
+    });
+
+    it("Demo sin su juego", () => {
+      const demo = entry("Cuphead Demo", [playniteItem("Cuphead Demo", STEAM, "268910", { matchState: "not_found" })], {
+        igdbId: null,
+        catalogGameId: null,
+        catalog: null,
+        answers: { excluded: true },
+      });
+
+      const game = review(demo);
+
+      expect(game).toMatchObject({ group: "ready", nonGame: true, decided: true, choices: [] });
+    });
+
+    it("un juego que el usuario excluyó no aparece en ningún grupo", () => {
+      const excluded = entry("Crash", [ignItem("Crash", { matchState: "not_found" })], {
+        igdbId: null,
+        catalog: null,
+        answers: { excluded: true },
+      });
+
+      const game = reviewGame(excluded, [], CONNECTED);
+
+      expect(game).toBeNull();
     });
 
     it("un juego sin nada dudoso está en «Listos para importar» sin opciones", () => {
@@ -275,7 +385,7 @@ describe("reviewGame", () => {
 
       const game = review(celeste);
 
-      expect(game).toMatchObject({ group: "ready", choices: [], marked: null, decided: false });
+      expect(game).toMatchObject({ group: "ready", choices: [], decided: false });
     });
 
     it("lo decidido pasa a «Listos para importar» aunque le tocara otro grupo", () => {
@@ -333,7 +443,7 @@ describe("reviewGame", () => {
 
       const game = review(portal, NOT_CONNECTED);
 
-      expect(game).toMatchObject({ group: "family", choices: [], marked: null });
+      expect(game).toMatchObject({ group: "family", choices: [] });
       expect(game.suggestion.copies[0]).toMatchObject({ awaitingSteam: true, familySuggested: false });
     });
   });
@@ -386,5 +496,22 @@ describe("buildReview", () => {
     expect(gamesInGroup(result, "ready").map((game) => game.title)).toEqual(["Abzû", "Zelda"]);
     expect(gamesInGroup(result, "endless").map((game) => game.title)).toEqual(["Among Us"]);
     expect(result).toMatchObject({ excluded: 1, upToDate: 1 });
+  });
+
+  it("lo que no es un juego está en «Listos para importar» pero no cuenta en juegos ni copias", () => {
+    const entries = [
+      entry("112 Operator", [ignItem("112 Operator", { ignStatuses: ["playing"] }), playniteItem("112 Operator", EPIC, "op")]),
+      entry("Cuphead Demo", [playniteItem("Cuphead Demo", STEAM, "268910", { matchState: "not_found" })], {
+        igdbId: null,
+        catalogGameId: null,
+        catalog: null,
+        answers: { excluded: true },
+      }),
+    ];
+
+    const result = buildReview(openReview(entries), CONNECTED);
+
+    expect(gamesInGroup(result, "ready").map((game) => game.title)).toEqual(["112 Operator", "Cuphead Demo"]);
+    expect(countReady(result)).toEqual({ games: 1, copies: 1 });
   });
 });

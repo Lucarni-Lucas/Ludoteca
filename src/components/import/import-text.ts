@@ -3,10 +3,10 @@ import { useLocale, useTranslations } from "next-intl";
 import { useCopyText } from "@/components/copy/copy-text";
 import { statusName as nameOfStatus } from "@/components/status/status-text";
 import { keptCopies, type SuggestedCopy } from "@/model/import/copies";
-import type { ReviewChoice, ReviewGame, ReviewGroup, ReviewOrigin } from "@/model/import/review";
+import { PLAYED_KEY, type ReviewChoice, type ReviewGame, type ReviewGroup, type ReviewOrigin, STATUS_ANSWER_KEYS } from "@/model/import/review";
 import { formatHours } from "@/model/game/library-game";
-import { DEFAULT_STATUSES } from "@/model/status/status";
-import { EPIC_GAMES_SLUG } from "@/model/store/store";
+import { BACKLOG_KEY, DEFAULT_STATUSES } from "@/model/status/status";
+import { EPIC_GAMES_SLUG, STEAM_SLUG } from "@/model/store/store";
 
 const MINUTES_PER_HOUR = 60;
 // Separa las partes de «Entra como Pendiente · Epic Games · Gratis», como en los chips de origen.
@@ -20,6 +20,15 @@ type HowLeftKey = (typeof HOW_LEFT_KEYS)[number];
 function howLeftKeyOf(statusKey: string): HowLeftKey | undefined {
   return HOW_LEFT_KEYS.find((key) => key === statusKey);
 }
+
+type StatusAnswerKey = (typeof STATUS_ANSWER_KEYS)[number];
+
+function statusAnswerKeyOf(statusKey: string): StatusAnswerKey | undefined {
+  return STATUS_ANSWER_KEYS.find((key) => key === statusKey);
+}
+
+const COMPLETED_KEY = "completed";
+const STEAM_NAME = "Steam";
 
 export type OriginChip = Readonly<{ label: string; warning: boolean }>;
 
@@ -42,24 +51,49 @@ export function useImportText() {
     return key ? t(`choices.howLeft.${key}`) : statusName(statusKey);
   }
 
+  /** «Lo estoy jugando»: las respuestas de «Elegí un estado»; otro estado se nombra tal cual. */
+  function statusAnswer(statusKey: string): string {
+    const key = statusAnswerKeyOf(statusKey);
+    return key ? t(`choices.statusAnswer.${key}`) : statusName(statusKey);
+  }
+
+  /** El texto de cada respuesta, dicho como respuesta a la pregunta del grupo (design.md §9). */
   function choice(value: ReviewChoice): string {
     switch (value.kind) {
       case "candidate":
         return value.candidate.year === null ? value.candidate.title : `${value.candidate.title} (${value.candidate.year})`;
       case "status":
-        return statusName(value.statusKey);
+        return statusAnswer(value.statusKey);
       case "copy_kind":
-        return copyText.kind(value.copyKind);
+        return value.copyKind === "family" ? t("choices.familyYes") : t("choices.familyNo");
       case "other_status":
         return t("choices.otherStatus");
-      case "other_kind":
-        return t("choices.otherKind");
       case "not_interested":
         return t("choices.notInterested");
-      case "exclude_copy":
-        return t("choices.exclude");
       default:
         return t(`choices.${value.kind}`);
+    }
+  }
+
+  /** Cómo va a entrar después de una respuesta, para el aviso: «No» es «Sin interés» (design.md §9). */
+  function result(value: ReviewChoice, game: ReviewGame): string {
+    switch (value.kind) {
+      case "status":
+        return statusName(value.statusKey);
+      case "copy_kind": {
+        const steam = game.suggestion.copies.find((copy) => copy.store.slug === STEAM_SLUG)?.store.name ?? STEAM_NAME;
+        return t("review.origin.store", { store: steam, kind: copyText.kind(value.copyKind) });
+      }
+      case "keep":
+        return statusName(BACKLOG_KEY);
+      case "not_interested":
+        return t("review.entersNotInterested");
+      case "endless":
+        return [statusName(PLAYED_KEY), t("review.entersEndless")].join(PART_SEPARATOR);
+      case "completed":
+        return statusName(COMPLETED_KEY);
+      default:
+        return choice(value);
     }
   }
 
@@ -128,6 +162,7 @@ export function useImportText() {
 
   return {
     choice,
+    result,
     statusName,
     howLeft,
     arrival,

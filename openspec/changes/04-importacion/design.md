@@ -10,7 +10,8 @@ La motivación está en `proposal.md` (Why) y los comportamientos en `specs/impo
 - **Steam Web API:** `IPlayerService/GetOwnedGames/v1` (con `include_appinfo` e `include_played_free_games`) y `ISteamUser/ResolveVanityURL/v1` para los links con nombre (verificado en `partner.steamgames.com`). La doc dice que devuelve los juegos «siempre y cuando puedas ver los detalles de sus juegos».
 - **Vercel Hobby y la base:** las páginas y acciones con base declaran `maxDuration = 20` y cada consulta corta a los 8 s (`02` §17). Cruzar 500 juegos con IGDB no entra en un solo pedido de 20 s si algo se demora: el trabajo tiene que ir en tandas que se puedan retomar.
 - **El export real de Playnite** (PlayniteLibraryExporter 1.0, `schemaVersion: 1`), leído fuera del repo: 233 juegos, 209 de Epic y 24 de Steam. Cada juego trae `name`, `sourceName` («Epic», «Steam»), `providerGameId` (el ID en la tienda), `playtimeSeconds`, `isInstalled`, `hidden` y `releaseDate` (`«2020-4-23»`, sin ceros). Los de Steam traen además `steamAppId` y son solo los instalados en la PC, todos con `playtimeSeconds: 0` porque la biblioteca de Steam de Playnite no tiene sesión iniciada. Los IDs de Epic son el «app name» de Epic: hexadecimales de 32 caracteres o palabras («Fortnite», «Sugar» para Rocket League, «Auk» para Q.U.B.E. 2).
-- **Entradas que no son juegos en ese archivo:** «Barony (Beta)», «Chivalry 2 - Public Testing», «KillingFloor2Beta», «Mortal Shell Tech Beta», «Nightingale - Legacy Mode», «Q.U.B.E. 2 Soundtrack» (todas de Epic y con su juego base en el mismo archivo), «Ubisoft Connect Services» (Steam, sin juego base) y «[REDACTED]» (Epic oculta el nombre de algunos productos).
+- **Entradas que no son juegos en ese archivo:** «Barony (Beta)», «Chivalry 2 - Public Testing», «KillingFloor2Beta», «Mortal Shell Tech Beta», «Nightingale - Legacy Mode», «Q.U.B.E. 2 Soundtrack» (todas de Epic y con su juego base en el mismo archivo) y «Ubisoft Connect Services» (Epic, sin juego base). De Steam llega «Homicipher: Demo», sin su juego. «[REDACTED]» no es un nombre tapado: es un juego de 2024 que se llama así.
+- **Lo que vio Lucas al importar sus datos reales:** Fortnite aparece dos veces en «¿Cuál de estos es?» (uno de IGN y otro de Epic) y Snakebird Complete dos veces en «No lo encontré»; quien lo ve puede creer que es un duplicado, no importar uno y perder el puntaje o las horas. «Styx: Shards of Darkness - Deluxe Edition» no cruza porque IGDB no tiene la edición con ese nombre. Y las sugerencias marcadas de los grupos de lote se aceptaban sin leerlas.
 - **El export de IGN** no está en el repo. Se diseña con la muestra de `tests/adapter/ign/ign-export-sample.json` (7 juegos inventados con el formato real): `records[]` con `ignId`, `name`, `alt`, `year`, `status`, `flags`, `score` entero, `steamId` y `hltb` (`[principal, extras, completo]` en horas). Lucas revisó el export real: `status` usa `playing`, `paused`, `backlog`, `beat` y `quit`; `flags` usa `playing`, `paused`, `backlog`, `completed` y `archived`. No hay ningún `wishlist` en sus datos.
 
 ## Goals / Non-Goals
@@ -19,7 +20,7 @@ La motivación está en `proposal.md` (Why) y los comportamientos en `specs/impo
 
 - Un solo lugar, `/import`, para subir los dos archivos, conectar Steam, revisar y confirmar, que se puede dejar a la mitad y retomar.
 - El cruce con IGDB en tandas chicas, con progreso visible, que no dependa del tiempo máximo de una función.
-- Todas las reglas (cruce por título, grupos, sugerencias, juntar fuentes, qué se suma al confirmar) como funciones puras de `model/import/`, probadas sin base ni red.
+- Todas las reglas (cruce por título, grupos, respuestas, juntar fuentes y nombres iguales, qué se suma al confirmar) como funciones puras de `model/import/`, probadas sin base ni red.
 - Que reimportar el mismo archivo no cambie nada y que un archivo nuevo sume solo lo nuevo.
 
 **Non-Goals:**
@@ -80,13 +81,13 @@ Todas las tablas con id uuid, `created_at`, `updated_at`, `user_id` y RLS sin po
 | `library_game` (cambia) | suma `hltb_hours` (`numeric(6,1)`, vacío si no vino de IGN) | — |
 | `copy` (cambia) | suma `store_game_id` (texto) y `origin` (`manual` · `import` · `sync`, por defecto `manual`) | Única `(user_id, store_id, store_game_id)`: Postgres no compara los vacíos, así que las copias a mano no chocan |
 
-- **Una fila por cada fila de cada fuente (`import_item`) y un juego a revisar por cada juego de IGDB (`import_entry`).** Es lo que permite juntar fuentes en cualquier orden: Hollow Knight de IGN y de Steam son dos `import_item` que apuntan al mismo `import_entry`.
+- **Una fila por cada fila de cada fuente (`import_item`) y un juego a revisar por cada juego de IGDB (`import_entry`).** Es lo que permite juntar fuentes en cualquier orden: Hollow Knight de IGN y de Steam son dos `import_item` que apuntan al mismo `import_entry`. Mientras no cruza, un juego a revisar junta las filas con el mismo nombre (§10): Fortnite de IGN y de Epic son un solo `import_entry` sin `igdb_id`.
 - **Sin `import_batch`.** `decisiones.md` §4 lo nombraba, pero una revisión abierta por usuario se deduce de los `import_item` sin `confirmed_at`, y las filas confirmadas quedan como historia para reimportar (§10). Una tabla más obligaba a un índice único parcial («una sola abierta»), que en Drizzle es SQL crudo.
 - **`source_key`**: el `ignId` en IGN, `<slug de la tienda>:<providerGameId>` en Playnite y el appid en Steam.
 - **`candidates`** guarda hasta 5 candidatos de IGDB (id, nombre, año, portada) para mostrarlos sin volver a consultar.
 - **El cruce ya escribe el catálogo.** Al cruzar un juego se hace el upsert de `catalog_game` con lo de IGDB (`upsertIgdbCatalog` de `02`), y `import_entry` apunta ahí. El catálogo es compartido: un juego que al final no se importa deja una fila de catálogo, igual que una búsqueda que agrega y después quita.
 - **Las decisiones son las columnas de respuesta** (`status_key`, `endless_answer`, `play_answer`, `excluded`, el `copy_kind` de cada fila y el `chosen_igdb_id` de cada fila). Vacías, el juego sigue en su grupo; con valor, está en «Listos para importar» (§9). No hace falta otra marca de «revisado».
-- **Elegir un juego no pisa el cruce.** Al elegir un candidato o un juego de «Buscar con otro nombre», la fila guarda `chosen_igdb_id` y se muda al juego a revisar de ese juego de IGDB (o lo toma, si no hay otro), pero su `match_state` y sus `candidates` quedan como estaban. «Volver a revisar» borra `chosen_igdb_id` y devuelve la fila a un juego a revisar propio, sin juego de IGDB: vuelve a «¿Cuál de estos es?» con sus candidatos, o a «No lo encontré». Así lo pide «Volver a revisar» de la spec; antes la elección se guardaba como `match_state = matched` con los candidatos de marca, y «Volver a revisar» no podía deshacerla. La columna nueva va en una migración nueva, generada por drizzle-kit.
+- **Elegir un juego no pisa el cruce.** Al elegir un candidato o un juego de «Buscar con otro nombre», la fila guarda `chosen_igdb_id` y se muda al juego a revisar de ese juego de IGDB (o lo toma, si no hay otro), pero su `match_state` y sus `candidates` quedan como estaban. «Volver a revisar» borra `chosen_igdb_id` y devuelve las filas a un juego a revisar nuevo, sin juego de IGDB: vuelve a «¿Cuál de estos es?» con sus candidatos, o a «No lo encontré». Las filas que habían elegido el mismo juego vuelven juntas a uno solo, así Fortnite de IGN y de Epic sigue siendo una sola pregunta (§10). Así lo pide «Volver a revisar» de la spec; antes la elección se guardaba como `match_state = matched` con los candidatos de marca, y «Volver a revisar» no podía deshacerla. La columna nueva va en una migración nueva, generada por drizzle-kit.
 - **`hltb_hours`** va aparte de `estimated_hours`: la duración de HowLongToBeat no es una corrección del usuario (§16).
 - **`multiplayer_only`** va en `import_entry` y no en el catálogo: solo sirve para sugerir «sin fin» en la revisión.
 - **Enumerados con `pgEnum`**: `import_source`, `import_match_state`, `import_play_answer` y `copy_origin`. Las migraciones las genera drizzle-kit; ninguna usa SQL crudo.
@@ -140,9 +141,10 @@ Cada tanda, en este orden:
 3. **Por título** el resto, en dos pasos (`multiquery` no acepta `search`, ver abajo):
    1. **Nombre exacto, de a 10 por pedido** con `multiquery`: `where name ~ "<título>"` (sin distinguir mayúsculas) con el mismo filtro de tipos que la búsqueda de `02` §6. La mayoría de los títulos de las tiendas son el nombre exacto.
    2. **`search` de a uno** para los que no dieron nada, con la misma consulta que la búsqueda de `02` §6. Cada tanda busca así hasta `MAX_TITLE_SEARCHES` = 30 títulos; los demás quedan pendientes para la tanda siguiente, así una llamada no pasa de los 20 s.
+   3. **Sin la edición**, para los que quedaron sin nada igual ni parecido (`not_found` en la tabla de abajo) y cuyo título nombra una edición (ver abajo): los mismos dos pasos con el título sin la edición. Hasta `MAX_EDITION_SEARCHES` = 10 por tanda; los demás quedan pendientes y se buscan enteros en la siguiente.
 4. **Los datos de los juegos cruzados**, de a muchos: `games` con `id = (…)` (nombre, año, portada, URL, desarrollador, `version_parent` y `game_modes.slug`) y `game_time_to_beats` con `game_id = (…)`. Una edición pasa a su juego base, como al agregar.
 
-Son 4 a 10 pedidos por tanda, más uno por cada título que no tenga nombre exacto (hasta 30). El adapter los espacia al menos 250 ms (`MIN_REQUEST_INTERVAL_MS`) para no pasar de 4 por segundo; con un 429, la tanda falla con `IgdbRateLimitError` y el hook reintenta una vez después de 2 s antes de mostrar el error.
+Son 4 a 10 pedidos por tanda, más uno por cada título que no tenga nombre exacto (hasta 30) y hasta 11 más para los que se buscan sin la edición (un `multiquery` y un `search` por cada uno). El adapter los espacia al menos 250 ms (`MIN_REQUEST_INTERVAL_MS`) para no pasar de 4 por segundo; con un 429, la tanda falla con `IgdbRateLimitError` y el hook reintenta una vez después de 2 s antes de mostrar el error.
 
 **Cuándo un título cruza** (`model/import/title-match.ts`, puro). Se compara la clave del título: sin acentos, mayúsculas ni nada que no sea letra o número («KillingFloor2» y «Killing Floor 2» dan lo mismo). Cuentan el título y los `alt` de IGN.
 
@@ -151,9 +153,12 @@ Son 4 a 10 pedidos por tanda, más uno por cada título que no tenga nombre exac
 | Uno solo con la misma clave, sea cual sea el año | `matched`: el año de Epic suele ser el de la tienda y no el del juego (20XX llega de Epic con 2020 y en IGDB es de 2017) |
 | Varios con la misma clave | `candidates`, los de la misma clave primero y el de año más cercano antes (Crash Bandicoot) |
 | Ninguno igual, pero alguno contiene todas las palabras del título o al revés | `candidates`, hasta 5. Si es uno solo, la revisión pregunta «¿Es este juego?» |
-| Nada parecido | `not_found` |
+| Nada parecido | `not_found`, o se busca sin la edición si el título nombra una |
+| Lo encontrado sin la edición, sea lo que sea | `candidates`, nunca `matched`: «Styx: Shards of Darkness - Deluxe Edition» llega con «Styx: Shards of Darkness» como único candidato, y como su nombre no es el del título, la revisión pregunta «¿Es este juego?» |
 
-Una edición y su juego base cuentan como uno solo (`baseIgdbId`), como hasta ahora.
+Una edición y su juego base cuentan como uno solo (`baseIgdbId`), como hasta ahora. Un título entre corchetes («[REDACTED]») se busca como cualquier otro.
+
+**Cuándo un título nombra una edición** (`model/import/edition.ts`, puro): cuando termina en una de `EDITION_SUFFIXES`, una constante con nombre como `NON_GAME_SUFFIXES`: `Deluxe Edition`, `Digital Deluxe Edition`, `Game of the Year Edition`, `GOTY Edition`, `GOTY`, `Complete Edition`, `Complete`, `Definitive Edition`, `Ultimate Edition`, `Gold Edition`, `Premium Edition`, `Standard Edition`, `Special Edition` y `Enhanced Edition`. Se compara por palabras, como los no-juegos, y tiene que quedar al menos una palabra. Lo que se busca es el título original sin ese final ni los separadores que quedan colgando (« - », «:», « – », paréntesis): «Styx: Shards of Darkness - Deluxe Edition» → «Styx: Shards of Darkness», «Snakebird Complete» → «Snakebird». Sin la edición no se cruza solo porque el juego base y la edición pueden ser fichas distintas en IGDB, y elegir es del usuario.
 
 **Solo multijugador:** IGDB lista modos y ninguno es `single-player`. Un juego sin modos cargados no cuenta como solo multijugador.
 
@@ -171,62 +176,74 @@ Una edición y su juego base cuentan como uno solo (`baseIgdbId`), como hasta ah
 
 ### 8. Entradas que no son juegos
 
-`model/import/non-game.ts` reconoce dos cosas por el título:
+`model/import/non-game.ts` reconoce por el final del título algo que no es el juego, con o sin separador ni paréntesis: `Beta`, `Tech Beta`, `Open Beta`, `Closed Beta`, `Public Test`, `Public Testing`, `Test Server`, `Playtest`, `Demo`, `Soundtrack`, `OST`, `Dedicated Server`, `Legacy Mode` y `Services`. Es una constante con nombre (`NON_GAME_SUFFIXES`): una nueva se suma ahí. `Open Beta` y `Closed Beta` van aparte de `Beta` para que el juego base quede sin la palabra de más («Mortal Shell Open Beta» busca «Mortal Shell», no «Mortal Shell Open»).
 
-- **Un sufijo de algo que no es el juego**, con o sin separador ni paréntesis: `Beta`, `Tech Beta`, `Public Test`, `Public Testing`, `Test Server`, `Playtest`, `Demo`, `Soundtrack`, `OST`, `Dedicated Server`, `Legacy Mode` y `Services`. Es una constante con nombre (`NON_GAME_SUFFIXES`): una nueva se suma ahí.
-- **Un nombre tapado por la tienda**: un título que es solo una palabra entre corchetes («[REDACTED]»).
+Ya no hay regla del «nombre tapado»: un título entre corchetes se busca en IGDB como cualquier otro (§7). [REDACTED] es un juego real de 2024.
 
-Una fila así no busca en IGDB por su título. Le saca el sufijo y busca su juego base, primero entre las filas **de la misma tienda** en la revisión abierta (por la clave del título) y después entre los juegos de la biblioteca que ya tienen una copia de esa tienda. Si lo encuentra, queda `absorbed`: se cuelga del juego base, no suma juego ni copia, y sus horas se suman a la copia del base. Si no, va a «No lo encontré».
+Una fila que no es juego no busca en IGDB por su título. Le saca el sufijo y busca su juego base, primero entre las filas **de la misma tienda** en la revisión abierta (por la clave del título) y después entre los juegos de la biblioteca que ya tienen una copia de esa tienda. Si lo encuentra, queda `absorbed`: se cuelga del juego base, no suma juego ni copia, y sus horas se suman a la copia del base. Esto no cambia.
 
-Con el archivo real: Barony (Beta), Chivalry 2 - Public Testing, KillingFloor2Beta, Mortal Shell Tech Beta, Nightingale - Legacy Mode y Q.U.B.E. 2 Soundtrack se cuelgan de su juego base; Ubisoft Connect Services y [REDACTED] van a «No lo encontré».
+**Si no encuentra su base, ya no va a «No lo encontré».** El cruce la guarda como `not_found` con su juego a revisar ya en «No importar» (`excluded = true`): es una decisión del sistema, no del usuario, así que se ve.
+
+- Queda en «Listos para importar» como «No se importa · no es un juego», con «Volver a revisar» (§9). Un juego excluido por el usuario sigue sin aparecer en ningún grupo; uno excluido porque no es un juego, sí, para poder traerlo.
+- «Volver a revisar» le borra el «No importar» y la lleva a «No lo encontré», con la línea «No parece un juego: es una demo, una beta, un soundtrack o algo parecido.». Ahí se puede buscar con otro nombre, cargar a mano o no importar. Si se elige «No importar», vuelve a «Listos para importar» como «No se importa · no es un juego».
+- Al confirmar, entra en el «sin importar» del resumen (§11) y queda confirmada, para que reimportar no la traiga de vuelta.
+- No se junta con otras del mismo nombre (§10): las que no son juegos no están en «¿Cuál de estos es?» ni en «No lo encontré» esperando respuesta.
+
+Con el archivo real: Barony (Beta), Chivalry 2 - Public Testing, KillingFloor2Beta, Mortal Shell Tech Beta, Nightingale - Legacy Mode y Q.U.B.E. 2 Soundtrack se cuelgan de su juego base; Ubisoft Connect Services (Epic) y Homicipher: Demo (Steam) quedan en «Listos para importar» como «No se importa · no es un juego»; [REDACTED] se busca en IGDB.
 
 Un soundtrack cuyo juego tenés solo en otra tienda no cuelga: tener el soundtrack en Epic no es tener el juego en Epic. Es la lectura de «si se cruzan con su juego base, no generan dos copias de la misma tienda».
 
 **Regla general, también fuera de los no-juegos:** al confirmar, un juego nunca recibe dos copias de la misma tienda desde la importación. The Outer Worlds y The Outer Worlds: Spacer's Choice Edition (las dos de Epic) son el mismo juego base en IGDB y dejan una sola copia de Epic Games. La copia se queda con el `store_game_id` de la fila cuyo juego de IGDB es el base y no una edición; las otras filas quedan como confirmadas y colgadas de esa copia, para que reimportar las reconozca (§10).
 
-### 9. Grupos y sugerencias
+### 9. Grupos y respuestas
 
 `model/import/review.ts` arma la revisión a partir de los `import_entry`, sus `import_item`, si la cuenta de Steam está conectada y los juegos que ya están en la biblioteca. Nada de los grupos se guarda: se recalcula con cada decisión.
 
-**Sugerencias de cada juego:**
+**Cómo entraría cada juego** (lo que dice «Entra como…» en «Listos para importar»; no es una opción marcada en ningún grupo):
 
 - **Estado:** el de IGN según la tabla de la spec (Backlog es Pendiente si queda alguna copia sin excluir, y si no, Quiero jugarlo). Sin IGN: Pendiente. Con `status_key` elegido, ese.
 - **Puntaje:** el de IGN con un decimal. IGN ya es entero, así que es el mismo número.
-- **Copias:** una por tienda (§8). Steam de la cuenta y Epic → Comprado y Gratis; Steam de Playnite que la cuenta tiene → se junta con la de la cuenta; Steam de Playnite que la cuenta no tiene → Familia; el resto → Comprado. `copy_kind` pisa la sugerencia.
+- **Copias:** una por tienda (§8). Steam de la cuenta y Epic → Comprado y Gratis; Steam de Playnite que la cuenta tiene → se junta con la de la cuenta; Steam de Playnite que la cuenta no tiene → se pregunta en «¿Es de tu familia?»; el resto → Comprado. `copy_kind` pisa lo de la tienda.
 - **Horas de cada copia:** las de su tienda, sumando las filas colgadas de ella. En Steam manda la cuenta.
 - **Duración:** si IGDB no la tiene y la fila de IGN trae `hltb`, la principal de HowLongToBeat (§11).
 
-**Cada juego está en un solo grupo**, el primero que le toca en este orden. Los grupos son preguntas cortas, y hay dos clases:
+**Cada juego está en un solo grupo**, el primero que le toca en este orden. Cada grupo es una pregunta corta y **sus opciones son respuestas a esa pregunta, dichas en palabras, sin ninguna marcada** (spec «Respuestas sin marcar», y la regla nueva de `CLAUDE.md`). Tocar una respuesta la guarda y lleva el juego a «Listos para importar». Ya no hay «Pasar a Listos» ni radios: cada respuesta es un botón. Los grupos se diferencian solo en cómo se responde en lote:
 
-- **Preguntas de a un juego** (1 a 3): no hay sugerencia ni opción marcada, porque la respuesta no se puede adivinar. Elegir una opción lleva el juego a «Listos para importar».
-- **Grupos de lote** (4 a 7): las opciones son una elección de una sola opción (radio) con la sugerencia ya marcada, y «Pasar a Listos» guarda lo marcado de los seleccionados.
+- **Preguntas de a un juego** (1 a 3): la respuesta depende de cada juego (qué candidato, qué estado), así que en lote solo vale «No importar».
+- **Grupos de lote** (4 a 7): la misma respuesta vale para varios. Se seleccionan y se toca la respuesta en la barra de selección.
 
-| # | Grupo | Le toca si… | Opciones (**marcada**) |
+| # | Grupo | Le toca si… | Respuestas |
 |---|---|---|---|
 | 1 | ¿Cuál de estos es? | Alguna fila está en `candidates` sin `chosen_igdb_id` | Una tarjeta por candidato (portada, nombre completo y año), «Ninguno, lo busco yo» y «No importar». Con un solo candidato de otro nombre la pregunta es **«¿Es este juego?»**, con «Sí», «No, lo busco yo» y «No importar» |
-| 2 | ¿Cómo lo dejaste? | IGN trae dos estados y no hay `status_key` | Un botón por estado, dicho en palabras («Lo terminaste», «Lo abandonaste», «Lo estás jugando», «Lo pausaste», «Lo tenés pendiente», «Lo querés jugar»), «Otro estado» y «No importar». Arriba, «IGN lo tiene como terminado y como abandonado» |
-| 3 | No lo encontré | Alguna fila está en `not_found` sin `chosen_igdb_id` | «Buscar con otro nombre», «Cargar a mano» y «No importar». A una entrada que no es juego (§8) se le suma la línea «No parece un juego: es un soundtrack, una beta o un nombre oculto» |
-| 4 | ¿Es de tu familia? | Tiene una copia sugerida como Familia sin `copy_kind` elegido, o una fila de Steam de Playnite con la cuenta sin conectar | **Familia**, Comprado, «Otro tipo» y «No importar» (esa copia) |
-| 5 | ¿Es sin fin? | Sugiere Completado, `multiplayer_only` y sin `endless_answer` | **«Jugado · sin fin»** y «Completado» |
-| 6 | ¿Lo vas a jugar alguna vez? | Sugiere Pendiente, sin `play_answer`, y vino de IGN sin puntaje, o todas sus copias con horas conocidas (al menos una) dicen 0 | **Pendiente**, «Sin interés» y «No importar» |
-| 7 | Elegí un estado | No vino de IGN, alguna copia tiene horas y no hay `status_key` | Un selector de estado con **Pendiente** |
-| 8 | Listos para importar | Nada de lo anterior, o ya decidido | Cómo va a entrar, y «Volver a revisar» en los que decidió el usuario |
+| 2 | ¿Cómo lo dejaste? | IGN trae dos estados y no hay `status_key` | Un botón por estado, dicho en palabras («Lo terminaste», «Lo abandonaste», «Lo estás jugando», «Lo pausaste», «Lo tenés pendiente», «Lo querés jugar»), «Otro estado» y «No importar». Arriba, «IGN lo tiene como terminado y como abandonado». «Otro estado» muestra los demás estados como botones, sin ninguno marcado |
+| 3 | No lo encontré | Alguna fila está en `not_found` sin `chosen_igdb_id`, y no es algo que no es juego excluido por el cruce (§8) | «Buscar con otro nombre», «Cargar a mano» y «No importar». A una entrada que no es juego, traída con «Volver a revisar», se le suma la línea «No parece un juego: es una demo, una beta, un soundtrack o algo parecido.» |
+| 4 | ¿Es de tu familia? | Tiene una copia de Steam de Playnite que la cuenta no tiene, sin `copy_kind` elegido, o una fila de Steam de Playnite con la cuenta sin conectar | «Sí, es de mi familia» (copia Steam · Familia), «No, es mío» (Steam · Comprado) y «No importar» |
+| 5 | ¿Es sin fin? | Entraría como Completado, `multiplayer_only` y sin `endless_answer` | «Sí, no se termina» (Jugado con la marca sin fin), «No, lo terminé» (Completado) y «No importar» |
+| 6 | ¿Lo vas a jugar alguna vez? | Entraría como Pendiente, sin `play_answer`, y vino de IGN sin puntaje, o todas sus copias con horas conocidas (al menos una) dicen 0 | «Sí, algún día» (Pendiente), «No» (Sin interés) y «No importar» |
+| 7 | Elegí un estado | No vino de IGN, alguna copia tiene horas y no hay `status_key` | Como «¿Cómo lo dejaste?»: «Lo estoy jugando» (Jugando), «Lo terminé» (Completado), «Lo abandoné» (Abandonado), «Lo probé» (Lo probé), «Otro estado» y «No importar». «Otro estado» abre la lista con todos los estados del usuario, sin ninguno marcado. Las cuatro respuestas van por `system_key`, así un estado renombrado sigue andando; si el usuario borró alguno de esos estados, esa respuesta no aparece. El modelo valida el estado con los del usuario (`DecisionContext.statusKeys`), como ahora |
+| 8 | Listos para importar | Nada de lo anterior, o ya decidido | Cómo va a entrar, y «Volver a revisar» en los que decidió el usuario o el cruce (lo que no es un juego) |
+
+**«No importar» deja afuera el juego entero en todos los grupos**, también en «¿Es de tu familia?»: antes ahí era «No importar esa copia», y dos botones con el mismo nombre que hacen cosas distintas confunden. Para cambiar el tipo de una copia sin responder la pregunta está «¿Cómo lo conseguiste?». «Otro tipo» sale de «¿Es de tu familia?» por lo mismo.
+
+**Las explicaciones de los grupos** (la línea de arriba de la lista) dicen qué hace cada respuesta cuando no es obvio. La de «¿Lo vas a jugar alguna vez?»: «Los tenés en alguna tienda, pero no tienen puntaje o nunca los abriste. «No» los suma a tu biblioteca como «Sin interés»: no los ves en la lista, pero «¿Lo tengo?» sabe que son tuyos. «No importar» los deja afuera.». La regla general que estaba arriba de cada grupo («Cada juego ya tiene marcada nuestra sugerencia…») pasa a «Tocá una respuesta y el juego pasa a «Listos para importar». Para responder lo mismo en varios, seleccionalos.».
 
 «Sin puntaje» cuenta solo para lo que vino de IGN: lo que no vino de IGN nunca tiene puntaje, y si contara, ningún juego llegaría a «Elegí un estado». Un juego sin ninguna copia con horas conocidas (Steam desde Playnite) no cumple «0 h».
 
-**Cómo llegó cada juego.** En los grupos 1 a 3 cada fila dice con qué nombre y año llegó, por fuente: «En IGN: Crash Bandicoot · 1996», «En Epic: Castlevania Anniversary Collection · 2019», «En Steam: Hades». Sin año, va solo el nombre. En los grupos de lote siguen los chips de origen («IGN · Beat · 9», «Steam · Comprado · 48 h»).
+**Cómo llegó cada juego.** En los grupos 1 a 3 cada fila dice con qué nombre y año llegó, una línea por fila de cada fuente: «En IGN: Crash Bandicoot · 1996», «En Epic: Castlevania Anniversary Collection · 2019», «En Steam: Hades». Sin año, va solo el nombre. Un juego que junta el mismo nombre de varias fuentes (§10) muestra todas: «En IGN: Fortnite · 2017» y «En Epic: Fortnite · 2020». En los grupos de lote siguen los chips de origen («IGN · Beat · 9», «Steam · 48 h»).
 
-**Cómo va a entrar.** En «Listos para importar» cada juego dice qué va a quedar en la biblioteca, en una línea: «Entra como Pendiente · Epic Games · Gratis». Se suman «· Sin interés» y «· sin fin» si corresponden, y una copia por tienda separada con « · ». Un juego que ya está en la biblioteca dice «Ya está en tu biblioteca · suma Epic Games · Gratis». Un juego cargado a mano dice «Entra a mano como Completado».
+**Los candidatos de un juego con varias filas** son los de todas sus filas en `candidates`, sin repetir el mismo juego base y hasta 5, en el orden de la primera fila. «¿Es este juego?» se pregunta si queda uno solo y ninguno de los nombres con que llegó es el suyo.
 
-**Todo lo decidido pasa a «Listos para importar».** Elegir una opción en un juego guarda esa respuesta y lo lleva a «Listos para importar»; en los grupos de lote, para pasar lo marcado sin cambiarlo, se selecciona y se toca «Pasar a Listos», que guarda la sugerencia como respuesta. Lo dice un aviso flotante (§15): «Beholder pasó a «Listos para importar» con «Sin interés».». El foco pasa a la fila siguiente, para que la lista no salte bajo el dedo. Cada grupo explica la regla arriba de la lista, y la tarjeta de confirmar dice que «Confirmar importación» suma todo lo que está en «Listos para importar».
+**Cómo va a entrar.** En «Listos para importar» cada juego dice qué va a quedar en la biblioteca, en una línea: «Entra como Pendiente · Epic Games · Gratis». Se suman «· Sin interés» y «· sin fin» si corresponden, y una copia por tienda separada con « · ». Un juego que ya está en la biblioteca dice «Ya está en tu biblioteca · suma Epic Games · Gratis». Un juego cargado a mano dice «Entra a mano como Completado». Lo que no es un juego dice «No se importa · no es un juego» (§8), sin portada, y no cuenta en «En «Listos para importar»: N juegos y M copias».
+
+**Todo lo respondido pasa a «Listos para importar».** Lo dice un aviso flotante (§15) que nombra cómo va a entrar, no el texto del botón: «Beholder pasó a «Listos para importar» con «Sin interés».» después de «No»; «con «Pendiente»» después de «Sí, algún día»; «con «Jugado · sin fin»» y «con «Completado»» en «¿Es sin fin?»; «con «Steam · Familia»» y «con «Steam · Comprado»» en «¿Es de tu familia?»; el nombre del estado o del candidato en los demás. El foco pasa a la fila siguiente, para que la lista no salte bajo el dedo. La tarjeta de confirmar dice que «Confirmar importación» suma todo lo que está en «Listos para importar».
 
 **«Volver a revisar»** borra todas las decisiones de ese juego, también un juego elegido (`chosen_igdb_id`, §4), y lo devuelve al grupo que le toca sin ellas. El aviso dice adónde volvió: «Crash Bandicoot volvió a «¿Cuál de estos es?».».
 
 - **Un juego que ya está en la biblioteca** no pasa por 5, 6 ni 7: su estado y su puntaje no se tocan. Si le faltan copias, va a «Listos para importar» diciendo qué copias suma. Si no le falta nada, no aparece, y el encabezado dice «312 ya estaban al día».
 - **Un juego excluido** («No importar») no aparece en ningún grupo y se cuenta en el resumen.
 - **La cuenta de Steam sin conectar:** las filas de Steam de Playnite esperan en «¿Es de tu familia?» con el aviso «Conectá tu cuenta de Steam para saber cuáles son tuyos» y sin acciones. Al conectarla se recalculan: las que la cuenta tiene se juntan con su copia y salen del grupo.
-- **Acciones en lote, en PC y en el celu:** cada grupo tiene «Seleccionar» por fila y «Seleccionar todos». En los grupos de lote, la barra de selección ofrece «Pasar a Listos» y las mismas opciones que cada fila; elegir una lleva los seleccionados a «Listos para importar» con esa opción. En «¿Cuál de estos es?», «¿Cómo lo dejaste?» y «No lo encontré» la barra ofrece solo «No importar». En cualquier grupo, «¿Cómo lo conseguiste?» cambia el tipo de las copias de una tienda en los juegos elegidos (si la selección tiene más de una tienda, se elige cuál). `decideAction` recibe una lista de ids y una decisión, y el servicio la aplica en una sola consulta.
-- **«Pasar a Listos» en un grupo sin sugerencia** da `InvalidImportDecisionError`: no hay nada marcado para guardar.
+- **Acciones en lote, en PC y en el celu:** cada grupo tiene «Seleccionar» por fila y «Seleccionar todos». En los grupos de lote, la barra de selección ofrece las mismas respuestas que cada fila (en «Elegí un estado», también «Otro estado», que abre la lista para todos los seleccionados); tocar una lleva los seleccionados a «Listos para importar» con esa respuesta. En «¿Cuál de estos es?», «¿Cómo lo dejaste?» y «No lo encontré» la barra ofrece solo «No importar». En cualquier grupo, «¿Cómo lo conseguiste?» cambia el tipo de las copias de una tienda en los juegos elegidos (si la selección tiene más de una tienda, se elige cuál). `decideAction` recibe una lista de ids y una decisión, y el servicio la aplica en una sola consulta.
+- **Sin «Pasar a Listos»:** la decisión `accept` y su texto desaparecen, y también `ReviewGame.marked`. Una decisión que no es una de las respuestas del grupo sigue dando `InvalidImportDecisionError`.
 
 ### 10. Reimportar y juntar fuentes
 
@@ -236,6 +253,15 @@ Un soundtrack cuyo juego tenés solo en otra tienda no cuelga: tener el soundtra
 - **«No pisar lo que ya está»:** si el juego de IGDB ya está en la biblioteca, al confirmar solo se suman copias. Ni el estado ni el puntaje ni las correcciones cambian.
 - **Los juegos de IGN se reconocen por su `ignId`** porque es el `source_key` de su fila: aunque IGDB cambie, una fila confirmada no se vuelve a importar.
 - **«Traer de nuevo» de Steam** vuelve a pedir la lista y guarda las filas con la misma regla.
+
+**Mismo nombre desde varias fuentes.** Los que cruzan solos ya se juntan por su juego de IGDB. Los que no cruzaron (`candidates` o `not_found`) se juntan **al cruzar, en el mismo `import_entry`**, como proponía Lucas: así una sola respuesta vale para todos sin tocar las decisiones, la confirmación ni «Cargar a mano», que ya trabajan sobre un juego a revisar con varias filas.
+
+- **Qué es el mismo nombre:** la misma clave del título (§7), sin mirar fuente, tienda ni año. Cuenta el título con que llegó, no los alternativos de IGN, para no juntar de más. Que sean de distintas fuentes o tiendas sale solo: dos filas de la misma fuente con la misma clave son la misma copia (Steam de la cuenta y de Playnite), y también se juntan.
+- **Quién decide** (`model/import/same-name.ts`, puro): para cada fila que queda en `candidates` o `not_found` en la tanda, busca primero otra de la misma tanda con la misma clave y después un juego a revisar abierto que **todavía espera respuesta**: sin `igdb_id`, sin respuestas, sin filas elegidas, con `copy_kind` y `excluded` vacíos, y con alguna fila en `candidates` o `not_found`. Si lo encuentra, la fila va a ese juego a revisar; si no, a uno nuevo, como hoy. El servicio le pasa al modelo los juegos a revisar abiertos (`listOpenReview`) además de las filas.
+- **Si el mismo nombre ya se había respondido** (Fortnite de IGN ya elegido, excluido o cargado a mano cuando llega el archivo de Epic), la fila nueva no se junta: tiene su propia pregunta. Juntarla con una respuesta que el usuario dio sin verla haría justo lo que el requisito quiere evitar, sobre todo con «No importar».
+- **El repositorio solo aplica:** `ItemMatch` de `candidates` y `not_found` suma a qué juego a revisar va (uno abierto, o el de otra fila de la tanda); `saveUnmatched` crea primero los nuevos y después muda las demás filas.
+- **«Volver a revisar»** después de elegir devuelve juntas las filas que eligieron el mismo juego (§4).
+- **Lo que no es un juego no se junta** (§8).
 
 ### 11. Confirmar
 
@@ -247,7 +273,7 @@ Un soundtrack cuyo juego tenés solo en otra tienda no cuelga: tener el soundtra
 4. **Copias:** con `origin = import`, `store_game_id`, el tipo y las horas; sin fecha.
 5. **Marcas:** `confirmed_at` en las filas y los juegos, y `library_game_id` en cada `import_entry`.
 6. **Limpieza:** en la misma transacción, lo que solo servía para revisar se borra de lo confirmado (§18). La fila queda con `source`, `source_key`, `confirmed_at` y en qué quedó (`match_state`, `excluded` y `entry_id`); el juego, con `igdb_id`, `catalog_game_id`, `library_game_id`, `excluded` y `confirmed_at`. Es lo que necesita «Reimportar sin duplicar».
-7. **Resumen:** «Entraron 480 juegos y 520 copias · 60 marcados «Sin interés» · 4 sin importar», con plurales ICU. «Sin importar» cuenta los juegos y las copias excluidos en esta confirmación. Si no había nada en «Listos para importar», el botón está deshabilitado y lo dice.
+7. **Resumen:** «Entraron 480 juegos y 520 copias · 60 marcados «Sin interés» · 4 sin importar», con plurales ICU. «Sin importar» cuenta los juegos y las copias excluidos en esta confirmación, también lo que no es un juego (§8). Si no había nada en «Listos para importar», el botón está deshabilitado y lo dice.
 
 Son unas 1000 filas en el peor caso (480 juegos y 520 copias): en lote, muy por debajo de los 8 s por consulta. Si el plan pasara de `MAX_CONFIRM_ENTRIES` = 600 juegos, se confirma en tandas de ese tamaño, cada una en su transacción y con el resumen sumado.
 
@@ -264,12 +290,12 @@ Todo texto nuevo va en `import` (pantalla) y `errors` (errores) de `es.json` y `
 
 ### 14. Tests
 
-- **Modelo:** cruce por título, no-juegos, grupos, sugerencias, juntar fuentes, la regla de una copia por tienda y el plan de confirmación, con filas armadas en el test. Acá viven la mayoría de los escenarios de la spec.
-- **Adapters:** IGN y Playnite con muestras chicas inventadas con el formato real: `tests/adapter/ign/ign-export-sample.json` (ya existe) y `tests/adapter/playnite/playnite-export-sample.json`, nueva, con unos 8 juegos (Epic con horas y sin horas, un ID con palabras, un Steam instalado que la cuenta tiene, uno que no, una beta, un soundtrack y un nombre tapado). Steam e IGDB con MSW (`multiquery`, `external_games` y las respuestas de perfil privado y nombre inexistente).
+- **Modelo:** cruce por título, no-juegos, búsqueda sin la edición, grupos y sus respuestas, juntar fuentes y nombres iguales, la regla de una copia por tienda y el plan de confirmación, con filas armadas en el test. Acá viven la mayoría de los escenarios de la spec.
+- **Adapters:** IGN y Playnite con muestras chicas inventadas con el formato real: `tests/adapter/ign/ign-export-sample.json` (ya existe) y `tests/adapter/playnite/playnite-export-sample.json`, nueva, con unos 8 juegos (Epic con horas y sin horas, un ID con palabras, un Steam instalado que la cuenta tiene, uno que no, una beta, un soundtrack y un título entre corchetes, que desde los ajustes de datos reales se busca como cualquier otro). Steam e IGDB con MSW (`multiquery`, `external_games` y las respuestas de perfil privado y nombre inexistente).
 - **Repositorios:** contra PGlite con las migraciones, con el test de «el usuario A no ve ni cambia nada del B» en `import_item`, `import_entry` y `store_connection`, el upsert sin duplicar y la transacción de confirmar entera o nada.
 - **Servicio:** con repositorios y adapters falsos: la tanda de cruce, la reimportación y confirmar.
 - **Componentes y hooks:** grupos, acciones de a uno y en lote, el aviso flotante, progreso y resumen, con `renderWithIntl`.
-- **E2e** en `tests/e2e/import.spec.ts`, a 390 y 1440 px y en inglés (`@i18n`): subir los dos archivos de muestra, conectar Steam contra `tests/e2e/support/steam-server.mts`, resolver un juego de cada grupo, confirmar, ver el resumen y verificar la biblioteca; «Retomar la revisión» cerrando la página a la mitad; «Volver a revisar» después de elegir un candidato; «Empezar de nuevo»; y las dos guías. El vencimiento se prueba en el servicio con un `clock` falso y contra PGlite, no en e2e: no se puede esperar 8 días. El servidor falso de IGDB suma `external_games` y `multiquery`.
+- **E2e** en `tests/e2e/import.spec.ts`, a 390 y 1440 px y en inglés (`@i18n`): subir los dos archivos de muestra, conectar Steam contra `tests/e2e/support/steam-server.mts`, resolver un juego de cada grupo, confirmar, ver el resumen y verificar la biblioteca; «Retomar la revisión» cerrando la página a la mitad; «Volver a revisar» después de elegir un candidato; «Empezar de nuevo»; las dos guías; y, desde los ajustes de datos reales, un mismo nombre de IGN y de Epic que se responde una vez, un título con la edición, lo que no es un juego en «Listos para importar» y una respuesta en lote. Esos casos van en archivos propios de los e2e (`tests/e2e/support/`), para no cambiar las muestras de los adapters. El vencimiento se prueba en el servicio con un `clock` falso y contra PGlite, no en e2e: no se puede esperar 8 días. El servidor falso de IGDB suma `external_games` y `multiquery`.
 
 ### 15. Diseño de la pantalla
 
@@ -277,12 +303,14 @@ Todo texto nuevo va en `import` (pantalla) y `errors` (errores) de `es.json` y `
 
 - **Arriba, tres fuentes** como las tarjetas de Tiendas: IGN y Playnite con «Subir archivo» (y, ya leído, «303 juegos · leído el 23 nov» con «Subir otro») y el link «¿Cómo lo saco?» a su guía (§17), y Steam con el campo del perfil y «Conectar» (y, conectada, «412 juegos · Traer de nuevo»). En el celu, una fila por fuente dentro de una sola tarjeta.
 - **Mientras cruza,** una barra de progreso con «Cruzando con IGDB · 120 de 540».
-- **La revisión:** en PC, a la izquierda la lista de grupos con su cantidad (como el menú de Ajustes) y a la derecha el grupo elegido: la pregunta, una línea que explica por qué están ahí, la barra de selección y una fila por juego. En los grupos de lote, la fila tiene su casilla de selección, portada, título, año, de dónde vino («IGN · Beat · 9», «Steam · 48 h», «Epic Games · Gratis») y sus opciones como radios con la sugerencia marcada. En las preguntas de a un juego, la fila dice cómo llegó y las opciones van debajo: los candidatos como tarjetas con portada, nombre completo y año, que bajan de renglón y ocupan el ancho que necesiten. En el celu, los grupos son botones que bajan de renglón (sin desplazamiento horizontal), las opciones van debajo de cada juego y la barra de selección es la misma que en PC.
+- **La revisión:** en PC, a la izquierda la lista de grupos con su cantidad (como el menú de Ajustes) y a la derecha el grupo elegido: la pregunta, una línea que explica por qué están ahí y qué hace cada respuesta, la barra de selección y una fila por juego. En los grupos de lote, la fila tiene su casilla de selección, portada, título, año, de dónde vino («IGN · Beat · 9», «Steam · 48 h», «Epic Games · Gratis · 0 h») y debajo sus respuestas como botones, todos iguales y ninguno marcado; «No importar» va último y en el color de quitar. En las preguntas de a un juego, la fila dice cómo llegó (una línea por origen) y las respuestas van debajo: los candidatos como tarjetas con portada, nombre completo y año, que bajan de renglón y ocupan el ancho que necesiten. En el celu, los grupos son botones que bajan de renglón (sin desplazamiento horizontal), las respuestas van debajo de cada juego y la barra de selección es la misma que en PC.
+- **La barra de selección** dice cuántos hay elegidos y ofrece las respuestas del grupo (en las preguntas de a un juego, solo «No importar»), «¿Cómo lo conseguiste?» y «Cancelar». No hay botón principal: ninguna respuesta pesa más que otra.
 - **Textos largos.** Ningún título, candidato ni opción se corta con «…» ni desborda: bajan de renglón (`overflow-wrap: anywhere`, sin `white-space: nowrap` en las opciones). Los botones de opción crecen en alto, con 44 px como mínimo.
 - **El aviso de cada acción** («X pasó a «Listos para importar» con …», «X volvió a «…»») es un aviso flotante fijo abajo, centrado y con el ancho del contenido, con `role="status"`. En el celu va encima de la barra de secciones. Dura 6 s (`TOAST_DURATION_MS`) o hasta la próxima acción, y no se lleva el foco. Así se ve aunque la fila ya no esté y aunque la lista sea larga.
 - **«Empezar de nuevo»** va en el encabezado de «Revisión», a la derecha, como botón secundario, y pide confirmación (§18). Si la revisión venció, arriba de las fuentes queda el aviso de que se descartó.
 - **Abajo,** «En «Listos para importar»: 237 juegos y 252 copias», la explicación de que se confirma todo lo que está ahí y «Confirmar importación», al final del contenido y no fijo, como «Guardar juego» en `02` §1: en el celu abajo está la barra de secciones. Después de confirmar, esa zona muestra el resumen.
-- **Al final del archivo de PC,** como ejemplos aparte: «¿Cómo lo dejaste?», un juego de «Listos para importar», la confirmación de «Empezar de nuevo», el aviso de revisión vencida, la biblioteca vacía con «Agregá tu primer juego» e «Importar tu biblioteca», y la guía de IGN. Al final del archivo del celu, la guía de Playnite.
+- **En el grupo elegido del archivo de PC** («¿Cuál de estos es?»), Fortnite con sus dos orígenes, Crash Bandicoot con cinco candidatos y Castlevania con «¿Es este juego?».
+- **Al final del archivo de PC,** como ejemplos aparte: «¿Cómo lo dejaste?»; «¿Lo vas a jugar alguna vez?» con su explicación, una fila con «Sí, algún día», «No» y «No importar» y la barra de selección con esas mismas respuestas; una fila de «¿Es de tu familia?» y una de «¿Es sin fin?»; «Listos para importar» con un juego, uno que ya estaba y lo que no es un juego («No se importa · no es un juego»); la confirmación de «Empezar de nuevo», el aviso de revisión vencida, la biblioteca vacía con «Agregá tu primer juego» e «Importar tu biblioteca», y la guía de IGN. Al final del archivo del celu, una fila de «Elegí un estado» con sus seis respuestas y la lista que abre «Otro estado», un juego de «Listos para importar», lo que no es un juego y la guía de Playnite.
 
 ### 16. Duración de HowLongToBeat
 
@@ -357,13 +385,16 @@ Después, el aviso flotante dice «Empezaste de nuevo: la revisión quedó vací
 
 - **[El `uid` de Epic en IGDB no es el app name de Playnite]** → Los 209 juegos de Epic cruzan por título. Se verifica contra IGDB real en la primera tarea del adapter; el diseño no cambia, solo crecen «¿Cuál de estos es?» y «No lo encontré».
 - **[Un título cruza con el juego equivocado]** (otro juego con el mismo nombre, de otro año) → Solo cruza solo con clave idéntica y un único resultado; con dos del mismo nombre, pregunta. Desde esta revisión el año no frena el cruce, porque el de Epic es el de la tienda: un remake con el mismo nombre que su original puede cruzar con el equivocado. Se ve en «Listos para importar» («Entra como…», con el año de IGDB) y se arregla después con «Vincular con IGDB» de la ficha.
-- **[La lista de sufijos deja pasar algo o se come un juego real]** («Demo» podría ser parte de un nombre) → El sufijo solo cuenta al final del título, y una fila que no encuentra su base no se descarta: va a «No lo encontré», donde se puede cargar igual.
+- **[La lista de sufijos deja pasar algo o se come un juego real]** («Demo» podría ser parte de un nombre) → El sufijo solo cuenta al final del título, y una fila que no encuentra su base no se descarta en silencio: queda a la vista en «Listos para importar» como «No se importa · no es un juego», y «Volver a revisar» la trae para cargarla igual.
+- **[Dos juegos distintos con el mismo nombre se juntan]** (Doom de 1993 en IGN y Doom de 2016 en Epic) → Una sola respuesta vale para los dos. La pregunta muestra cada origen con su año, así que se nota; el año no sirve para separarlos solos porque el de Epic es el de la tienda (§7). Si pasa, se elige uno y el otro se corrige después desde la ficha. Solo se juntan los que no cruzaron: dos que cruzan solos con juegos distintos de IGDB quedan separados.
+- **[Un título con la edición cruza con la ficha equivocada]** → Lo encontrado sin la edición nunca cruza solo: el usuario ve el candidato y elige.
 - **[La lista se mueve mientras se revisa]** (cada decisión saca la fila del grupo) → El aviso flotante nombra el juego y adónde fue, el foco pasa a la fila siguiente y «Volver a revisar» en «Listos para importar» deshace, también un candidato elegido.
 - **[Cientos de filas de catálogo de juegos que no se importan]** → Son datos públicos de IGDB y el catálogo ya es compartido. No pesan en el plan gratis (un par de miles de filas).
 - **[El exportador de Playnite cambia de formato]** → Se valida `schemaVersion = 1`; otra versión da «No reconozco este archivo» en lugar de importar datos raros.
 - **[La clave de Steam queda en un log]** → Va en la query de la URL, así que el adapter nunca registra URLs ni respuestas; los errores se loguean con el código HTTP solamente.
 - **[Un juego de IGN con dos filas de IGN para el mismo juego de IGDB]** → Las dos caen en el mismo `import_entry`; si sus estados difieren, se juntan como «dos estados» y va a «¿Cómo lo dejaste?».
 
+- **[Una respuesta se toca sin leer]** (ya no hay nada marcado, pero se puede tocar la primera) → Cada respuesta está dicha en palabras y el aviso flotante dice cómo va a entrar; «Volver a revisar» la deshace.
 - **[Se borra una revisión a medias sin querer]** → «Empezar de nuevo» pide confirmación y dice qué se borra; el vencimiento solo actúa después de 7 días sin tocarla y lo avisa en la próxima visita. Lo confirmado nunca se borra.
 - **[El marcador de IGN deja de andar]** (IGN cambia su página o su API interna) → La guía lo avisa y la importación de archivos sigue igual; se arregla el marcador. El marcador solo lee lo que la página de IGN ya muestra y no guarda nada fuera del navegador.
 

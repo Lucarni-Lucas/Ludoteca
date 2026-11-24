@@ -25,6 +25,17 @@ Cada tienda SHALL ofrecer su acción: «Sincronizar ahora» si se sincroniza sol
 - **WHEN** el usuario toca «Importar de nuevo» en Epic Games
 - **THEN** va a la importación con Playnite como fuente
 
+### Requirement: Desconectar Steam
+La tarjeta de Steam en Tiendas y la fuente Steam en Importar SHALL ofrecer «Desconectar», con confirmación. Desconectar MUST olvidar la cuenta, cortar la sincronización diaria y borrar lo traído de Steam que todavía no se confirmó en la importación, sin tocar las copias de Steam que ya están en la biblioteca. Después se puede conectar la misma cuenta u otra.
+
+#### Scenario: Desconectar
+- **WHEN** el usuario toca «Desconectar» en la tarjeta de Steam y confirma
+- **THEN** Steam pasa a «Sin conectar», sus copias de Steam siguen en la biblioteca con sus horas y ve «Desconectamos tu cuenta de Steam. Tus juegos quedan en la biblioteca.»
+
+#### Scenario: Cambiar de cuenta
+- **WHEN** el usuario desconecta su cuenta de Steam y conecta otra desde Importar
+- **THEN** los juegos de la cuenta nueva entran a la revisión y la sincronización diaria usa la cuenta nueva
+
 ### Requirement: Suscripciones en su sección
 La pantalla de Tiendas SHALL aclarar que Game Pass y las demás suscripciones se manejan en Suscripciones.
 

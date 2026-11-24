@@ -1,0 +1,59 @@
+{
+ "exportedAt": "2025-11-01T12:00:00.000Z",
+ "total": 2,
+ "count": 2,
+ "withScore": 1,
+ "errors": [],
+ "records": [
+  {
+   "added": "2025-04-01T12:00:00.000Z",
+   "alt": [],
+   "dev": [],
+   "flags": [
+    "completed"
+   ],
+   "hltb": [
+    0,
+    0,
+    0
+   ],
+   "ignId": "00000000-0000-4000-8000-000000000101",
+   "itchId": null,
+   "name": "Fortnite",
+   "platforms": [],
+   "review": null,
+   "score": 8,
+   "scoredAt": "2025-04-01T12:01:00.000Z",
+   "slug": "fortnite",
+   "status": "beat",
+   "steamId": null,
+   "updated": "2025-04-01T12:00:00.000Z",
+   "year": 2017
+  },
+  {
+   "added": "2025-04-01T12:00:00.000Z",
+   "alt": [],
+   "dev": [],
+   "flags": [
+    "backlog"
+   ],
+   "hltb": [
+    0,
+    0,
+    0
+   ],
+   "ignId": "00000000-0000-4000-8000-000000000102",
+   "itchId": null,
+   "name": "Snakebird Complete",
+   "platforms": [],
+   "review": null,
+   "score": null,
+   "scoredAt": null,
+   "slug": "snakebird-complete",
+   "status": "backlog",
+   "steamId": null,
+   "updated": "2025-04-01T12:00:00.000Z",
+   "year": 2015
+  }
+ ]
+}

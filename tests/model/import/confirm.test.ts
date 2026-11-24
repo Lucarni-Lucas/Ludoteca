@@ -142,6 +142,21 @@ describe("planImportConfirmation", () => {
     expect(plan.entryIds).toEqual([]);
   });
 
+  it("Demo sin su juego", () => {
+    const demo = entry("Cuphead Demo", [playniteItem("Cuphead Demo", STEAM, "268910", { matchState: "not_found" })], {
+      igdbId: null,
+      catalogGameId: null,
+      catalog: null,
+      answers: { excluded: true },
+    });
+
+    const plan = planImportConfirmation(openReview([demo]), CONTEXT);
+
+    expect(plan.games).toEqual([]);
+    expect(plan.entryIds).toEqual([demo.id]);
+    expect(plan.summary).toEqual({ games: 0, copies: 0, notInterested: 0, excluded: 1 });
+  });
+
   it("un plan sin nada en «Listos para importar» está vacío", () => {
     const toReview = entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["beat", "quit"] })]);
 

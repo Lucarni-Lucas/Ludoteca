@@ -70,7 +70,7 @@ export type EntryCatalog = Readonly<{
   endless: boolean;
 }>;
 
-/** Un juego a revisar: uno por cada juego de IGDB, o uno por fila si todavía no cruzó. */
+/** Un juego a revisar: uno por cada juego de IGDB, o uno por nombre mientras no cruza (design.md §4). */
 export type ImportEntry = Readonly<{
   id: string;
   igdbId: number | null;
@@ -103,10 +103,17 @@ export type OpenReview = Readonly<{
 /** Lo que trae IGDB de un juego cruzado, con lo que solo sirve para la revisión. */
 export type MatchedGame = IgdbGameData & Readonly<{ multiplayerOnly: boolean }>;
 
+/**
+ * Adónde va una fila que no cruzó y tiene el mismo nombre que otra (design.md §10): al juego a revisar abierto
+ * `joinEntryId`, o al que crea en la misma tanda la fila `joinItemId`. Sin ninguno, crea el suyo.
+ */
+export type SameNameJoin = Readonly<{ joinEntryId?: string; joinItemId?: string }>;
+
 export type ItemMatch =
   | Readonly<{ itemId: string; kind: "matched"; game: MatchedGame }>
-  | Readonly<{ itemId: string; kind: "candidates"; candidates: readonly ImportCandidate[] }>
-  | Readonly<{ itemId: string; kind: "not_found" }>
+  | (Readonly<{ itemId: string; kind: "candidates"; candidates: readonly ImportCandidate[] }> & SameNameJoin)
+  /** Con `notAGame`, una entrada que no es juego y no encontró su base: nace en «No importar» (design.md §8). */
+  | (Readonly<{ itemId: string; kind: "not_found"; notAGame?: true }> & SameNameJoin)
   /** Sin `baseItemId`, la fila se colgó de un juego que ya está en la biblioteca y no queda nada por hacer. */
   | Readonly<{ itemId: string; kind: "absorbed"; baseItemId: string | null }>;
 

@@ -153,12 +153,13 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
   }
 
   async function overview(userId: string): Promise<ImportOverview> {
-    const [open, sources, steamNow] = await Promise.all([
+    const [open, sources, steamNow, statusKeys] = await Promise.all([
       importRepo.listOpenReview(userId),
       importRepo.summarizeSources(userId),
       steamState(userId),
+      statusKeysOf(userId),
     ]);
-    const review = buildReview(open, { steamConnected: steamNow.accountId !== null });
+    const review = buildReview(open, { steamConnected: steamNow.accountId !== null, statusKeys });
 
     return { review, ready: countReady(review), sources: sources.map(toSourceView), steam: steamNow, progress: progressOf(open) };
   }
@@ -168,9 +169,18 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
     return last !== null && isReviewExpired(appDateOf(last), clock.today());
   }
 
+  async function statusKeysOf(userId: string): Promise<readonly string[]> {
+    const statuses = await statusService.listStatuses(userId);
+    return statuses.flatMap((status) => status.systemKey ?? []);
+  }
+
   async function reviewGamesOf(userId: string, entryIds: readonly string[]): Promise<readonly ReviewGame[]> {
-    const [open, steamNow] = await Promise.all([importRepo.listOpenReview(userId), steamConnection(userId)]);
-    const context = { steamConnected: steamNow !== null };
+    const [open, steamNow, statusKeys] = await Promise.all([
+      importRepo.listOpenReview(userId),
+      steamConnection(userId),
+      statusKeysOf(userId),
+    ]);
+    const context = { steamConnected: steamNow !== null, statusKeys };
 
     return entryIds.map((entryId) => {
       const entry = open.entries.find(({ id }) => id === entryId);
@@ -270,8 +280,7 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
     },
 
     async decide(userId, entryIds, decision) {
-      const [games, statuses] = await Promise.all([reviewGamesOf(userId, entryIds), statusService.listStatuses(userId)]);
-      const statusKeys = statuses.flatMap((status) => status.systemKey ?? []);
+      const [games, statusKeys] = await Promise.all([reviewGamesOf(userId, entryIds), statusKeysOf(userId)]);
       const plan = planDecision(games, decision, { statusKeys });
 
       for (const { entryIds: ids, write } of plan.writes) {

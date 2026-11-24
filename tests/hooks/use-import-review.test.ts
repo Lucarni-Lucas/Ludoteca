@@ -112,11 +112,11 @@ describe("useImportReview", () => {
 
     let saved: unknown = null;
     await act(async () => {
-      saved = await result.current.decide(["entrada"], { kind: "accept" });
+      saved = await result.current.decide(["entrada"], { kind: "choose", choice: { kind: "keep" } });
     });
 
     expect(saved).toEqual(LOADED);
-    expect(actions.decideAction).toHaveBeenCalledWith(["entrada"], { kind: "accept" });
+    expect(actions.decideAction).toHaveBeenCalledWith(["entrada"], { kind: "choose", choice: { kind: "keep" } });
     expect(result.current.overview).toEqual(LOADED);
   });
 

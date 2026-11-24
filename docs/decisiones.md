@@ -223,22 +223,25 @@ import_entry        un juego a revisar por cada juego de IGDB (o por fila que no
 
 - Los puntajes enteros pasan tal cual: 8 queda como 8.0.
 - **Cruce con IGDB:** primero por el ID de tienda: Steam y GOG. El ID de Epic que trae Playnite no es el que guarda IGDB, así que Epic cruza por título (verificado, `04` design.md §7). Por título, primero el nombre exacto de a 10 por pedido y después la búsqueda de a uno. Un solo resultado con el mismo nombre cruza aunque el año no coincida: el año de Epic suele ser el de la tienda (20XX llega con 2020 y en IGDB es de 2017). Varios con el mismo nombre, o uno solo con otro nombre, quedan para elegir.
-- **La importación es una revisión, no un volcado.** Cada juego está en un solo grupo, el primero que le toca. Hay dos clases de grupo:
-  - **Preguntas de a un juego** (1 a 3): la respuesta no se puede adivinar, así que **ninguna opción viene marcada**. Cada juego dice cómo llegó («En Epic: Castlevania Anniversary Collection · 2019») y los candidatos se ven con portada, nombre completo y año.
-  - **Grupos de lote** (4 a 7): las opciones son una elección de una sola opción con la sugerencia ya marcada, y «Pasar a Listos» la guarda en los seleccionados.
+- **Sin la edición:** si por título no aparece nada igual ni parecido y el título nombra una edición («Deluxe Edition», «Game of the Year Edition», «Complete»…), se busca de nuevo sin ella. Lo que aparezca así nunca cruza solo: «Styx: Shards of Darkness - Deluxe Edition» pregunta «¿Es este juego?» con «Styx: Shards of Darkness».
+- **Mismo nombre desde varias fuentes:** lo que no cruzó solo y llega con el mismo nombre de IGN y de una tienda (Fortnite, Snakebird Complete) es una sola pregunta, que muestra cada origen, y una sola respuesta vale para todos. Si ese nombre ya tenía una respuesta cuando llega el otro archivo, el nuevo tiene su propia pregunta.
+- **Lo que no es un juego** (demo, beta, Open Beta, Closed Beta, playtest, soundtrack, servidor…, por el final del título) se cuelga de su juego base si llega de la misma tienda o ya está en la biblioteca con esa tienda, y le suma sus horas. Si no, queda en «Listos para importar» como «No se importa · no es un juego», se puede traer con «Volver a revisar» y cuenta en el «sin importar» del resumen. Un título entre corchetes es un juego más: [REDACTED] es de 2024.
+- **La importación es una revisión, no un volcado.** Cada juego está en un solo grupo, el primero que le toca. Cada grupo es una pregunta corta y **sus opciones son respuestas en palabras, sin ninguna marcada**: tocar una la guarda y lleva el juego a «Listos para importar». No hay «Pasar a Listos».
+  - **Preguntas de a un juego** (1 a 3): la respuesta depende de cada juego, así que en lote solo vale «No importar». Cada juego dice cómo llegó («En Epic: Castlevania Anniversary Collection · 2019») y los candidatos se ven con portada, nombre completo y año.
+  - **Grupos de lote** (4 a 7): se seleccionan varios y se toca la misma respuesta en la barra de selección.
 
-  | # | Grupo | Le toca si… | Opciones (marcada primero en los de lote) |
+  | # | Grupo | Le toca si… | Respuestas |
   |---|---|---|---|
   | 1 | ¿Cuál de estos es? | Varios candidatos de IGDB, o uno solo con otro nombre | Un candidato por tarjeta, «Ninguno, lo busco yo» y No importar. Con un solo candidato de otro nombre: «¿Es este juego?» con Sí · No, lo busco yo · No importar |
   | 2 | ¿Cómo lo dejaste? | Dos estados de IGN (Overwatch) | Un botón por estado en palabras («Lo terminaste», «Lo abandonaste») · Otro estado · No importar |
   | 3 | No lo encontré | Sin cruce con IGDB | Buscar con otro nombre · Cargar a mano · No importar; a lo que no parece un juego se le suma una línea que lo dice |
-  | 4 | ¿Es de tu familia? | Steam de tu PC que tu cuenta no tiene | Familia · Comprado · Otro tipo · No importar |
-  | 5 | ¿Es sin fin? | Completado y solo multijugador en IGDB | Jugado · sin fin · Completado |
-  | 6 | ¿Lo vas a jugar alguna vez? | Pendiente de IGN sin puntaje, o con 0 h en todas sus copias | Pendiente · Sin interés · No importar |
-  | 7 | Elegí un estado | No vino de IGN y tiene horas jugadas | Un estado, con Pendiente |
-  | 8 | Listos para importar | Nada dudoso, o ya decidido | Cómo va a entrar («Entra como Pendiente · Epic Games · Gratis») y «Volver a revisar» |
+  | 4 | ¿Es de tu familia? | Steam de tu PC que tu cuenta no tiene | Sí, es de mi familia (Familia) · No, es mío (Comprado) · No importar |
+  | 5 | ¿Es sin fin? | Completado y solo multijugador en IGDB | Sí, no se termina (Jugado · sin fin) · No, lo terminé (Completado) · No importar |
+  | 6 | ¿Lo vas a jugar alguna vez? | Pendiente de IGN sin puntaje, o con 0 h en todas sus copias | Sí, algún día (Pendiente) · No (Sin interés: no se ve en la biblioteca, pero cuenta para «¿Lo tengo?») · No importar |
+  | 7 | Elegí un estado | No vino de IGN y tiene horas jugadas | Lo estoy jugando · Lo terminé · Lo abandoné · Lo probé · Otro estado (la lista con todos) · No importar |
+  | 8 | Listos para importar | Nada dudoso, o ya decidido | Cómo va a entrar («Entra como Pendiente · Epic Games · Gratis», o «No se importa · no es un juego») y «Volver a revisar» |
 
-- **Todo lo decidido pasa a «Listos para importar».** Elegir una opción la guarda y lleva el juego ahí; en los grupos de lote, «Pasar a Listos» guarda lo marcado sin cambiarlo, de a uno o en lote. En las preguntas de a un juego, la barra de selección solo ofrece «No importar». El tipo de copia se cambia en lote con «¿Cómo lo conseguiste?». «Confirmar importación» suma todo lo que está en «Listos para importar» y lo demás sigue esperando.
+- **«No importar» deja afuera el juego entero** en todos los grupos, también en «¿Es de tu familia?». El tipo de una copia se cambia, de a uno o en lote, con «¿Cómo lo conseguiste?». El aviso de cada respuesta dice cómo va a entrar («Beholder pasó a «Listos para importar» con «Sin interés».»). «Confirmar importación» suma todo lo que está en «Listos para importar» y lo demás sigue esperando.
 - **«Volver a revisar»** devuelve el juego a su grupo sin la decisión, también un candidato elegido, y el aviso dice adónde volvió. Los avisos de cada acción son flotantes, abajo de la pantalla.
 - **«Empezar de nuevo»** borra, previa confirmación, los archivos subidos, lo traído de Steam y lo decidido sin confirmar. No toca la biblioteca, lo ya importado ni la cuenta de Steam conectada.
 - **La revisión vence a los 7 días sin tocarla** (subir un archivo, traer de Steam, decidir, buscar con otro nombre o confirmar). Se chequea al abrir `/import`: si venció, se descarta como «Empezar de nuevo» y la pantalla lo avisa. No hay cron.

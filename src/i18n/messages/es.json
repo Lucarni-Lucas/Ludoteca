@@ -487,7 +487,7 @@
     "review": {
       "title": "Revisión",
       "nav": "Grupos de la revisión",
-      "rule": "Cada juego ya tiene marcada nuestra sugerencia. Si elegís otra opción, pasa a «Listos para importar». Para pasar lo marcado sin cambiarlo, seleccionalo y tocá «Pasar a Listos».",
+      "rule": "Tocá una respuesta y el juego pasa a «Listos para importar». Para responder lo mismo en varios, seleccionalos.",
       "readyRule": "Esto es lo que entra a tu biblioteca al confirmar. «Volver a revisar» devuelve un juego a su grupo.",
       "upToDate": "{count, plural, one {# ya estaba al día en tu biblioteca.} other {# ya estaban al día en tu biblioteca.}}",
       "empty": "No hay juegos en este grupo.",
@@ -496,15 +496,11 @@
       "selectAll": "Seleccionar los {count}",
       "select": "Seleccionar {title}",
       "selected": "{count, plural, one {# seleccionado} other {# seleccionados}}",
-      "passToReady": "Pasar a Listos",
       "copyKind": "¿Cómo lo conseguiste?",
       "copyKindStore": "¿Cómo lo conseguiste en {store}?",
       "cancel": "Cancelar",
       "backToReview": "Volver a revisar",
-      "optionsFor": "Qué hacer con {title}",
       "otherStatus": "Estado de {title}",
-      "otherKind": "Cómo conseguiste {title}",
-      "apply": "Aplicar",
       "searchAgain": "Buscar con otro nombre",
       "searchLabel": "Nombre en IGDB",
       "pick": "Elegir",
@@ -513,7 +509,6 @@
       "movedToReady": "«{title}» pasó a «Listos para importar» con «{choice}».",
       "movedManyToReady": "{count, plural, one {# juego pasó a «Listos para importar».} other {# juegos pasaron a «Listos para importar».}}",
       "movedBack": "«{title}» volvió a «{group}».",
-      "unchanged": "No había nada para pasar a «Listos para importar».",
       "origin": {
         "ign": "IGN · {statuses}",
         "ignScored": "IGN · {statuses} · {score}",
@@ -550,12 +545,17 @@
         "backlog": "como pendiente",
         "wishlist": "como «quiero jugarlo»"
       },
-      "notGame": "No parece un juego: es un soundtrack, una beta o un nombre oculto.",
+      "notGame": "No parece un juego: es una demo, una beta, un soundtrack o algo parecido.",
       "enters": "Entra como {status}",
       "entersManual": "Entra a mano como {status}",
       "entersNotInterested": "Sin interés",
       "entersEndless": "sin fin",
-      "inLibraryAdds": "Ya está en tu biblioteca · suma {copies}"
+      "inLibraryAdds": "Ya está en tu biblioteca · suma {copies}",
+      "notImported": "No se importa · no es un juego",
+      "allStatuses": "Todos los estados",
+      "apply": "Aplicar",
+      "answersFor": "Respuestas para {title}",
+      "otherStatusMany": "Estado de {count, plural, one {# juego} other {# juegos}}"
     },
     "groups": {
       "which": {
@@ -586,7 +586,7 @@
       "play": {
         "name": "¿Lo vas a jugar alguna vez?",
         "hint": "Pendientes sin puntaje o con 0 h",
-        "explanation": "Los tenés en alguna tienda, pero no tienen puntaje o nunca los abriste. «Sin interés» no se ve en la biblioteca pero cuenta para «¿Lo tengo?»."
+        "explanation": "Los tenés en alguna tienda, pero no tienen puntaje o nunca los abriste. «No» los suma a tu biblioteca como «Sin interés»: no los ves en la lista, pero «¿Lo tengo?» sabe que son tuyos. «No importar» los deja afuera."
       },
       "status": {
         "name": "Elegí un estado",
@@ -604,11 +604,10 @@
       "otherStatus": "Otro estado",
       "manual": "Cargar a mano",
       "exclude": "No importar",
-      "otherKind": "Otro tipo",
-      "endless": "Jugado · sin fin",
-      "completed": "Completado",
-      "keep": "Pendiente",
-      "notInterested": "Sin interés",
+      "endless": "Sí, no se termina",
+      "completed": "No, lo terminé",
+      "keep": "Sí, algún día",
+      "notInterested": "No",
       "searchNo": "No, lo busco yo",
       "yes": "Sí",
       "howLeft": {
@@ -618,6 +617,14 @@
         "paused": "Lo pausaste",
         "backlog": "Lo tenés pendiente",
         "wishlist": "Lo querés jugar"
+      },
+      "familyYes": "Sí, es de mi familia",
+      "familyNo": "No, es mío",
+      "statusAnswer": {
+        "playing": "Lo estoy jugando",
+        "completed": "Lo terminé",
+        "abandoned": "Lo abandoné",
+        "tried": "Lo probé"
       }
     },
     "confirm": {

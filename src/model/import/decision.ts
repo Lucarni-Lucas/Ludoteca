@@ -1,15 +1,13 @@
 import type { CopyKind } from "@/model/copy/copy";
 import { InvalidImportDecisionError } from "@/model/import/errors";
 import type { DecisionWrite, ImportCandidate } from "@/model/import/import-entry";
-import { isQuestionGroup, type ReviewChoice, type ReviewGame } from "@/model/import/review";
+import type { ReviewChoice, ReviewGame } from "@/model/import/review";
 import { STEAM_SLUG } from "@/model/store/store";
 
 /** Lo que el usuario hace con uno o varios juegos de un grupo. */
 export type ImportDecision =
-  /** Una de las opciones de la fila o de la barra de selección. */
+  /** Una de las respuestas de la fila o de la barra de selección. */
   | Readonly<{ kind: "choose"; choice: ReviewChoice }>
-  /** «Pasar a Listos»: guarda la sugerencia marcada como respuesta. Solo en los grupos de lote. */
-  | Readonly<{ kind: "accept" }>
   /** «Volver a revisar»: borra las respuestas y el juego vuelve a su grupo. */
   | Readonly<{ kind: "reset" }>
   /** «¿Cómo lo conseguiste?»: cambia el tipo de la copia de una tienda. */
@@ -55,20 +53,20 @@ function assertOffered(game: ReviewGame, choice: ReviewChoice): void {
 }
 
 /** La copia de una tienda que el juego sumaría; «Familia» solo existe en Steam. */
-function copyWrite(game: ReviewGame, storeId: string, copyKind: CopyKind | null, excluded: boolean): GameWrite {
+function copyWrite(game: ReviewGame, storeId: string, copyKind: CopyKind): GameWrite {
   const copy = game.suggestion.copies.find((suggested) => suggested.store.id === storeId);
 
   if (!copy || (copyKind === "family" && copy.store.slug !== STEAM_SLUG)) {
     invalid();
   }
 
-  return { kind: "write", write: { copies: { storeId, copyKind, excluded } } };
+  return { kind: "write", write: { copies: { storeId, copyKind, excluded: false } } };
 }
 
-/** Las opciones del grupo «¿Es de tu familia?» son sobre la copia de Steam. */
-function steamCopyWrite(game: ReviewGame, copyKind: CopyKind | null, excluded: boolean): GameWrite {
+/** «Sí, es de mi familia» y «No, es mío» son sobre la copia de Steam. */
+function steamCopyWrite(game: ReviewGame, copyKind: CopyKind): GameWrite {
   const steam = game.suggestion.copies.find((copy) => copy.store.slug === STEAM_SLUG);
-  return steam ? copyWrite(game, steam.store.id, copyKind, excluded) : invalid();
+  return steam ? copyWrite(game, steam.store.id, copyKind) : invalid();
 }
 
 function statusWrite(statusKey: string, context: DecisionContext): GameWrite {
@@ -84,9 +82,8 @@ function offeredWrite(game: ReviewGame, choice: ReviewChoice): GameWrite {
     case "manual":
       return answer({ manualTitle: game.title });
     case "exclude":
+      // «No importar» deja afuera el juego entero en todos los grupos (design.md §9).
       return answer({ excluded: true });
-    case "exclude_copy":
-      return steamCopyWrite(game, null, true);
     case "endless":
       return answer({ endlessAnswer: true });
     case "completed":
@@ -96,7 +93,7 @@ function offeredWrite(game: ReviewGame, choice: ReviewChoice): GameWrite {
     case "not_interested":
       return answer({ playAnswer: "not_interested" });
     default:
-      // «Buscar con otro nombre», «Otro estado» y «Otro tipo» solo abren un campo: no deciden nada.
+      // «Buscar con otro nombre» y «Otro estado» solo abren algo para elegir: no deciden nada.
       return invalid();
   }
 }
@@ -107,30 +104,18 @@ function choiceWrite(game: ReviewGame, choice: ReviewChoice, context: DecisionCo
   }
 
   if (choice.kind === "copy_kind") {
-    return steamCopyWrite(game, choice.copyKind, false);
+    return steamCopyWrite(game, choice.copyKind);
   }
 
   return offeredWrite(game, choice);
-}
-
-/** En una pregunta de a un juego no hay nada marcado que guardar: elige el usuario. */
-function acceptWrite(game: ReviewGame, context: DecisionContext): GameWrite {
-  if (isQuestionGroup(game.group)) {
-    invalid();
-  }
-
-  // «Listos para importar», o Steam sin conectar: no hay nada que pasar.
-  return game.marked ? choiceWrite(game, game.marked, context) : NO_WRITE;
 }
 
 function gameWrite(game: ReviewGame, decision: ImportDecision, context: DecisionContext): GameWrite {
   switch (decision.kind) {
     case "choose":
       return choiceWrite(game, decision.choice, context);
-    case "accept":
-      return acceptWrite(game, context);
     case "copy_kind":
-      return copyWrite(game, decision.storeId, decision.copyKind, false);
+      return copyWrite(game, decision.storeId, decision.copyKind);
     case "reset":
       return NO_WRITE;
   }
@@ -170,10 +155,6 @@ export function planDecision(
 }
 
 /** Lo que dice el aviso: «Beholder pasó a «Listos para importar» con «Sin interés».» */
-export function decidedChoice(game: ReviewGame, decision: ImportDecision): ReviewChoice | null {
-  if (decision.kind === "choose") {
-    return decision.choice;
-  }
-
-  return decision.kind === "accept" ? game.marked : null;
+export function decidedChoice(decision: ImportDecision): ReviewChoice | null {
+  return decision.kind === "choose" ? decision.choice : null;
 }

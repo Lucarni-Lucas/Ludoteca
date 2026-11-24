@@ -23,14 +23,13 @@ const choiceSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("candidate"), candidate: candidateSchema }),
   z.object({ kind: z.literal("status"), statusKey: z.string().min(1).max(MAX_STATUS_KEY_LENGTH) }),
   z.object({ kind: z.literal("copy_kind"), copyKind: z.enum(COPY_KINDS) }),
-  ...(["search", "other_status", "manual", "exclude", "other_kind", "exclude_copy", "endless", "completed", "keep", "not_interested"] as const).map(
+  ...(["search", "other_status", "manual", "exclude", "endless", "completed", "keep", "not_interested"] as const).map(
     (kind) => z.object({ kind: z.literal(kind) }),
   ),
 ]);
 
 export const decisionSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("choose"), choice: choiceSchema }),
-  z.object({ kind: z.literal("accept") }),
   z.object({ kind: z.literal("reset") }),
   z.object({ kind: z.literal("copy_kind"), storeId: z.uuid(), copyKind: z.enum(COPY_KINDS) }),
 ]);

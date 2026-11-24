@@ -49,16 +49,16 @@ describe("planDecision", () => {
     const [after] = applyPlan([beholder], plan).map(view);
     expect(game.group).toBe("play");
     expect(after).toMatchObject({ group: "ready", decided: true, suggestion: { notInterested: true } });
-    expect(decidedChoice(game, { kind: "choose", choice: { kind: "not_interested" } })).toEqual({ kind: "not_interested" });
+    expect(decidedChoice({ kind: "choose", choice: { kind: "not_interested" } })).toEqual({ kind: "not_interested" });
   });
 
-  it("Pasar lo marcado en lote", () => {
+  it("Responder en lote", () => {
     const entries = [
       entry("Portal 2", [playniteItem("Portal 2", STEAM, "620")]),
       entry("Watch Dogs", [playniteItem("Watch Dogs", STEAM, "243470")]),
     ];
 
-    const plan = planDecision(entries.map(view), { kind: "accept" }, CONTEXT);
+    const plan = planDecision(entries.map(view), { kind: "choose", choice: { kind: "copy_kind", copyKind: "family" } }, CONTEXT);
 
     expect(plan.writes).toEqual([
       {
@@ -82,28 +82,36 @@ describe("planDecision", () => {
     expect(kinds).toEqual(["purchased", "purchased", "purchased", "purchased", "purchased"]);
   });
 
-  it("«Pasar a Listos» guarda la sugerencia marcada de cada juego", () => {
-    const entries = [
-      entry("Among Us", [ignItem("Among Us", { ignStatuses: ["beat"] })], { multiplayerOnly: true }),
-      entry("112 Operator", [playniteItem("112 Operator", EPIC, "operator", { playtimeMinutes: 0 })]),
-    ];
+  it.each([
+    ["Sí, no se termina", { kind: "endless" as const }, { endlessAnswer: true }],
+    ["No, lo terminé", { kind: "completed" as const }, { endlessAnswer: false }],
+    ["No importar", { kind: "exclude" as const }, { excluded: true }],
+  ])("«%s» en «¿Es sin fin?» guarda su respuesta", (_answer, choice, answers) => {
+    const amongUs = entry("Among Us", [ignItem("Among Us", { ignStatuses: ["beat"] })], { multiplayerOnly: true });
 
-    const plan = planDecision(entries.map(view), { kind: "accept" }, CONTEXT);
+    const plan = planDecision([view(amongUs)], { kind: "choose", choice }, CONTEXT);
 
-    expect(plan.writes.map((group) => group.write)).toEqual([
-      { answers: { endlessAnswer: true } },
-      { answers: { playAnswer: "keep" } },
-    ]);
+    expect(plan.writes).toEqual([{ entryIds: [amongUs.id], write: { answers } }]);
+  });
+
+  it("Otro estado", () => {
+    const frostpunk = entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)]);
+    const context = { statusKeys: [...CONTEXT.statusKeys, "paused"] };
+
+    const plan = planDecision([view(frostpunk)], { kind: "choose", choice: { kind: "status", statusKey: "paused" } }, context);
+
+    const [after] = applyPlan([frostpunk], plan).map(view);
+    expect(after).toMatchObject({ group: "ready", suggestion: { statusKey: "paused" } });
   });
 
   it.each([
     ["¿Cuál de estos es?", entry("Doom", [ignItem("Doom", { matchState: "candidates", candidates: [CANDIDATE, { ...CANDIDATE, igdbId: 8, baseIgdbId: 8 }] })], { igdbId: null, catalog: null })],
     ["¿Cómo lo dejaste?", entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["beat", "quit"] })])],
     ["No lo encontré", entry("Crash", [ignItem("Crash", { matchState: "not_found" })], { igdbId: null, catalog: null })],
-  ])("«Pasar a Listos» en «%s» da InvalidImportDecisionError", (_group, value) => {
+  ])("«Sí, algún día» en «%s» da InvalidImportDecisionError: no es una respuesta del grupo", (_group, value) => {
     const game = view(value);
 
-    const decide = () => planDecision([game], { kind: "accept" }, CONTEXT);
+    const decide = () => planDecision([game], { kind: "choose", choice: { kind: "keep" } }, CONTEXT);
 
     expect(decide).toThrow(InvalidImportDecisionError);
   });
@@ -142,20 +150,20 @@ describe("planDecision", () => {
     expect(plan.writes[0].write).toEqual({ answers: { manualTitle: "Crash Bandicoot" } });
   });
 
-  it("«No importar» la copia de un familiar la excluye", () => {
-    const portal = entry("Portal 2", [playniteItem("Portal 2", STEAM, "620")]);
+  it("«No importar» en «¿Es de tu familia?» deja afuera el juego entero", () => {
+    const portal = entry("Portal 2", [ignItem("Portal 2", { ignStatuses: ["beat"], ignScore: 9 }), playniteItem("Portal 2", STEAM, "620")]);
 
-    const plan = planDecision([view(portal)], { kind: "choose", choice: { kind: "exclude_copy" } }, CONTEXT);
+    const plan = planDecision([view(portal)], { kind: "choose", choice: { kind: "exclude" } }, CONTEXT);
 
-    expect(plan.writes[0].write).toEqual({ copies: { storeId: STEAM.id, copyKind: null, excluded: true } });
+    expect(plan.writes[0].write).toEqual({ answers: { excluded: true } });
   });
 
-  it("«Pasar a Listos» en un juego de «Listos para importar» no escribe nada", () => {
-    const ready = entry("Celeste", [ignItem("Celeste", { ignStatuses: ["playing"], ignScore: 9 })]);
+  it("«Otro estado» solo abre la lista: no decide nada", () => {
+    const game = view(entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)]));
 
-    const plan = planDecision([view(ready)], { kind: "accept" }, CONTEXT);
+    const decide = () => planDecision([game], { kind: "choose", choice: { kind: "other_status" } }, CONTEXT);
 
-    expect(plan).toEqual({ writes: [], resets: [], candidates: [] });
+    expect(decide).toThrow(InvalidImportDecisionError);
   });
 
   it("Familia en un juego sin copia de Steam da InvalidImportDecisionError", () => {

@@ -173,15 +173,59 @@ async function saveMatched(tx: Database, userId: string, matches: readonly ItemM
 }
 
 /** Una fila sin cruce o con candidatos tiene su propio juego a revisar, para guardar lo que se decida. */
-async function saveUnmatched(tx: Database, userId: string, matches: readonly ItemMatch[]): Promise<void> {
-  for (const match of matches) {
-    if (match.kind !== "candidates" && match.kind !== "not_found") {
-      continue;
-    }
+type UnmatchedMatch = Extract<ItemMatch, { kind: "candidates" | "not_found" }>;
 
-    const [entry] = await tx.insert(importEntry).values({ userId }).returning({ id: importEntry.id });
-    const candidates = match.kind === "candidates" ? [...match.candidates] : [];
-    await updateItems(tx, userId, [match.itemId], { entryId: entry.id, matchState: match.kind, candidates });
+function unmatchedValues(match: UnmatchedMatch, entryId: string): Partial<ItemRow> {
+  const candidates = match.kind === "candidates" ? [...match.candidates] : [];
+  return { entryId, matchState: match.kind, candidates };
+}
+
+/** Los juegos a revisar abiertos del usuario entre los pedidos: uno ajeno o ya confirmado no recibe filas. */
+async function ownOpenEntries(tx: Database, userId: string, entryIds: readonly string[]): Promise<ReadonlySet<string>> {
+  if (entryIds.length === 0) {
+    return new Set();
+  }
+
+  const rows = await tx.select({ id: importEntry.id }).from(importEntry).where(openEntries(userId, entryIds));
+  return new Set(rows.map((row) => row.id));
+}
+
+async function createEntryFor(tx: Database, userId: string, match: UnmatchedMatch): Promise<string> {
+  // Lo que no es un juego nace en «No importar»: es una decisión del cruce, que se ve y se deshace (design.md §8).
+  const excluded = match.kind === "not_found" && match.notAGame === true;
+  const [entry] = await tx.insert(importEntry).values({ userId, excluded }).returning({ id: importEntry.id });
+  await updateItems(tx, userId, [match.itemId], unmatchedValues(match, entry.id));
+  return entry.id;
+}
+
+/**
+ * Una fila sin cruce o con candidatos tiene su juego a revisar, para guardar lo que se decida. Si el modelo la
+ * juntó con otra del mismo nombre (design.md §10), va al de esa; si no, crea el suyo.
+ */
+async function saveUnmatched(tx: Database, userId: string, matches: readonly ItemMatch[]): Promise<void> {
+  const unmatched = matches.filter((match): match is UnmatchedMatch => match.kind === "candidates" || match.kind === "not_found");
+  const owned = await ownOpenEntries(tx, userId, unmatched.flatMap((match) => match.joinEntryId ?? []));
+  const created = new Map<string, string>();
+  const followers: UnmatchedMatch[] = [];
+
+  for (const match of unmatched) {
+    if (match.joinEntryId !== undefined && owned.has(match.joinEntryId)) {
+      await updateItems(tx, userId, [match.itemId], unmatchedValues(match, match.joinEntryId));
+    } else if (match.joinItemId === undefined) {
+      created.set(match.itemId, await createEntryFor(tx, userId, match));
+    } else {
+      followers.push(match);
+    }
+  }
+
+  for (const match of followers) {
+    const entryId = created.get(match.joinItemId ?? "");
+
+    if (entryId) {
+      await updateItems(tx, userId, [match.itemId], unmatchedValues(match, entryId));
+    } else {
+      await createEntryFor(tx, userId, match);
+    }
   }
 }
 
@@ -287,7 +331,7 @@ async function moveOrMatch(tx: Database, userId: string, entryId: string, game: 
  */
 async function unchooseItems(tx: Database, userId: string, entryIds: readonly string[]): Promise<void> {
   const chosen = await tx
-    .select({ id: importItem.id })
+    .select({ id: importItem.id, chosenIgdbId: importItem.chosenIgdbId })
     .from(importItem)
     .where(and(itemsOfEntries(userId, entryIds), isNotNull(importItem.chosenIgdbId)));
 
@@ -295,13 +339,15 @@ async function unchooseItems(tx: Database, userId: string, entryIds: readonly st
     return;
   }
 
+  // Las filas que eligieron el mismo juego vuelven juntas: el mismo nombre sigue siendo una pregunta (design.md §10).
+  const byChoice = Map.groupBy(chosen, (row) => row.chosenIgdbId);
   const fresh = await tx
     .insert(importEntry)
-    .values(chosen.map(() => ({ userId })))
+    .values([...byChoice.keys()].map(() => ({ userId })))
     .returning({ id: importEntry.id });
 
-  for (const [index, { id }] of chosen.entries()) {
-    await updateItems(tx, userId, [id], { entryId: fresh[index].id, chosenIgdbId: null });
+  for (const [index, rows] of [...byChoice.values()].entries()) {
+    await updateItems(tx, userId, rows.map((row) => row.id), { entryId: fresh[index].id, chosenIgdbId: null });
   }
 
   const stillUsed = await tx

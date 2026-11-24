@@ -9,8 +9,11 @@ import { signInAsNewAccount } from "./support/session.ts";
 
 const IGN_SAMPLE = path.resolve("tests/adapter/ign/ign-export-sample.json");
 const PLAYNITE_SAMPLE = path.resolve("tests/adapter/playnite/playnite-export-sample.json");
-// Castlevania con otro nombre en IGDB, 20XX con otro año y un nombre muy largo (tasks.md 8.10).
+// Castlevania con otro nombre en IGDB, 20XX con otro año y un nombre muy largo (tasks.md 8.10); Fortnite y
+// Snakebird Complete también de IGN, Styx con la edición, [REDACTED] y lo que no es un juego (tasks.md 9.6).
 const PLAYNITE_REAL_CASES = path.resolve("tests/e2e/support/playnite-real-cases.json");
+const IGN_REAL_CASES = path.resolve("tests/e2e/support/ign-real-cases.json");
+const NOT_A_GAME = "No se importa · no es un juego";
 const LONG_TITLE = "The Legend of Heroes: Trails of Cold Steel IV - The End of Saga - Digital Deluxe Edition with Every Bonus";
 const NARROW_WIDTH = 360;
 const NARROW_HEIGHT = 800;
@@ -61,8 +64,9 @@ async function openGroup(page: Page, name: string): Promise<void> {
   await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
 }
 
+/** Toca una respuesta de la fila. Con texto, el nombre entero: «No» no es «No importar». */
 async function choose(page: Page, title: string, option: string | RegExp): Promise<void> {
-  await gameRow(page, title).getByRole("radio", { name: option }).click();
+  await gameRow(page, title).getByRole("button", { name: option, exact: true }).click();
   await expect(toast(page, `«${title}» pasó a «Listos para importar»`)).toBeVisible();
 }
 
@@ -99,7 +103,7 @@ test.describe("importación", () => {
 
     await openGroup(page, "¿Cuál de estos es?");
     await expect(gameRow(page, "Crash Bandicoot")).toContainText("En IGN: Crash Bandicoot · 1996");
-    await expect(gameRow(page, "Crash Bandicoot").getByRole("radio", { checked: true })).toHaveCount(0);
+    await expect(gameRow(page, "Crash Bandicoot").getByRole("radio")).toHaveCount(0);
     await choose(page, "Crash Bandicoot", candidate("Crash Bandicoot", 1996));
     await expect(gameRow(page, "Castlevania Anniversary Collection")).toContainText("¿Es este juego?");
     await choose(page, "Castlevania Anniversary Collection", "Sí");
@@ -107,26 +111,31 @@ test.describe("importación", () => {
     await expect(gameRow(page, "Overwatch")).toContainText("IGN lo tiene como terminado y como abandonado.");
     await choose(page, "Overwatch", "Lo terminaste");
     await openGroup(page, "No lo encontré");
-    await gameRow(page, "[REDACTED]").getByRole("button", { name: "No importar" }).click();
-    await expect(toast(page, "«[REDACTED]» no se va a importar.")).toBeVisible();
+    await gameRow(page, LONG_TITLE).getByRole("button", { name: "No importar" }).click();
+    await expect(toast(page, `«${LONG_TITLE}» no se va a importar.`)).toBeVisible();
     await gameRow(page, "Cartas del Faro").getByRole("button", { name: "Cargar a mano" }).click();
     await expect(toast(page, "«Cartas del Faro» pasó a «Listos para importar» con «Cargar a mano».")).toBeVisible();
     await openGroup(page, "¿Es de tu familia?");
-    await choose(page, "Portal 2", "Familia");
+    await choose(page, "Portal 2", "Sí, es de mi familia");
     await openGroup(page, "¿Es sin fin?");
-    await choose(page, "Among Us", "Jugado · sin fin");
+    await choose(page, "Among Us", "Sí, no se termina");
+    await expect(toast(page, "«Among Us» pasó a «Listos para importar» con «Jugado · sin fin».")).toBeVisible();
     await openGroup(page, "¿Lo vas a jugar alguna vez?");
-    await choose(page, "8BitMMO", "Sin interés");
+    await choose(page, "8BitMMO", "No");
+    await expect(toast(page, "«8BitMMO» pasó a «Listos para importar» con «Sin interés».")).toBeVisible();
     await openGroup(page, "Elegí un estado");
     await expect(gameRow(page, "20XX")).toBeVisible();
-    await gameRow(page, "Hollow Knight").getByLabel("Estado de Hollow Knight").selectOption({ label: "Jugando" });
-    await gameRow(page, "Hollow Knight").getByRole("button", { name: "Aplicar" }).click();
-    await expect(toast(page, "«Hollow Knight» pasó a «Listos para importar» con «Jugando».")).toBeVisible();
+    await gameRow(page, "Hollow Knight").getByRole("button", { name: "Otro estado" }).click();
+    await page.getByRole("group", { name: "Estado de Hollow Knight" }).getByRole("button", { name: "En pausa" }).click();
+    await expect(toast(page, "«Hollow Knight» pasó a «Listos para importar» con «En pausa».")).toBeVisible();
     await page.getByRole("checkbox", { name: /^Seleccionar los \d+$/ }).click();
-    await page.getByRole("group", { name: "Selección" }).getByRole("button", { name: "Pasar a Listos" }).click();
+    const bar = page.getByRole("group", { name: "Selección" });
+    await expect(bar.getByRole("button", { name: "Pasar a Listos" })).toHaveCount(0);
+    await bar.getByRole("button", { name: "Lo terminé", exact: true }).click();
     await expect(toast(page, "pasaron a «Listos para importar».")).toBeVisible();
     await openGroup(page, "Listos para importar");
-    await expect(gameRow(page, "Grand Theft Auto V")).toContainText("Entra como Pendiente · Epic Games · Gratis");
+    await expect(gameRow(page, "Grand Theft Auto V")).toContainText("Entra como Completado · Epic Games · Gratis");
+    await expect(gameRow(page, "Q.U.B.E. 2 Soundtrack")).toContainText(NOT_A_GAME);
 
     await page.getByRole("button", { name: "Confirmar importación" }).click();
 
@@ -150,7 +159,43 @@ test.describe("importación", () => {
     await openGroup(page, "Elegí un estado");
 
     await expect(gameRow(page, "20XX")).toContainText("2017");
-    await expect(groupButton(page, "¿Cuál de estos es?")).toContainText("1");
+    await openGroup(page, "¿Cuál de estos es?");
+    await expect(gameRow(page, "Castlevania Anniversary Collection")).toBeVisible();
+    await expect(gameRow(page, "20XX")).toHaveCount(0);
+  });
+
+  test("Fortnite de IGN y de Epic, Styx sin la edición y lo que no es un juego", async ({ page }) => {
+    await signInAsNewAccount(page);
+    await page.goto("/import");
+    await upload(page, "IGN", IGN_REAL_CASES);
+    await upload(page, "Playnite", PLAYNITE_REAL_CASES);
+    await waitForMatching(page);
+
+    await openGroup(page, "¿Cuál de estos es?");
+    await expect(gameRow(page, "Fortnite")).toContainText("En IGN: Fortnite · 2017");
+    await expect(gameRow(page, "Fortnite")).toContainText("En Epic: Fortnite · 2020");
+    await expect(gameRow(page, "Styx: Shards of Darkness - Deluxe Edition")).toContainText("¿Es este juego?");
+    await expect(gameRow(page, "Styx: Shards of Darkness - Deluxe Edition")).toContainText("Styx: Shards of Darkness2017");
+    await choose(page, "Fortnite", candidate("Fortnite", 2017));
+    await openGroup(page, "No lo encontré");
+    await expect(gameRow(page, "Snakebird Complete")).toContainText("En IGN: Snakebird Complete · 2015");
+    await expect(gameRow(page, "Snakebird Complete")).toContainText("En Epic: Snakebird Complete · 2019");
+    await gameRow(page, "Snakebird Complete").getByRole("button", { name: "No importar" }).click();
+    await expect(toast(page, "«Snakebird Complete» no se va a importar.")).toBeVisible();
+    await expect(gameRow(page, "Snakebird Complete")).toHaveCount(0);
+    await openGroup(page, "Elegí un estado");
+    await expect(gameRow(page, "[REDACTED]")).toContainText("2024");
+    await openGroup(page, "Listos para importar");
+    await expect(gameRow(page, "Fortnite")).toHaveCount(1);
+    await expect(gameRow(page, "Fortnite")).toContainText("Entra como Completado · Epic Games · Gratis");
+    await expect(gameRow(page, "Ubisoft Connect Services")).toContainText(NOT_A_GAME);
+    await expect(gameRow(page, "Homicipher: Demo")).toContainText(NOT_A_GAME);
+
+    await gameRow(page, "Homicipher: Demo").getByRole("button", { name: "Volver a revisar" }).click();
+
+    await expect(toast(page, "«Homicipher: Demo» volvió a «No lo encontré».")).toBeVisible();
+    await openGroup(page, "No lo encontré");
+    await expect(gameRow(page, "Homicipher: Demo")).toContainText("No parece un juego: es una demo, una beta, un soundtrack o algo parecido.");
   });
 
   test("Volver después de elegir un candidato", async ({ page }) => {
@@ -167,10 +212,8 @@ test.describe("importación", () => {
     await expect(toast(page, "«Crash Bandicoot» volvió a «¿Cuál de estos es?».")).toBeVisible();
     await expect(gameRow(page, "Crash Bandicoot")).toHaveCount(0);
     await openGroup(page, "¿Cuál de estos es?");
-    await expect(gameRow(page, "Crash Bandicoot").getByRole("radio", { name: candidate("Crash Bandicoot", 2017) })).toHaveAttribute(
-      "aria-checked",
-      "false",
-    );
+    await expect(gameRow(page, "Crash Bandicoot").getByRole("button", { name: candidate("Crash Bandicoot", 2017) })).toBeVisible();
+    await expect(gameRow(page, "Crash Bandicoot").getByRole("radio")).toHaveCount(0);
   });
 
   test("Retomar la revisión", async ({ page }) => {
@@ -179,7 +222,7 @@ test.describe("importación", () => {
     await upload(page, "IGN", IGN_SAMPLE);
     await waitForMatching(page);
     await openGroup(page, "¿Es sin fin?");
-    await choose(page, "Among Us", "Completado");
+    await choose(page, "Among Us", "No, lo terminé");
 
     await page.reload();
 
@@ -194,7 +237,7 @@ test.describe("importación", () => {
     await signInAsNewAccount(page);
     await importAllSources(page);
     await openGroup(page, "¿Es sin fin?");
-    await choose(page, "Among Us", "Completado");
+    await choose(page, "Among Us", "No, lo terminé");
 
     await page.getByRole("button", { name: "Empezar de nuevo" }).click();
     await page.getByRole("dialog", { name: "¿Empezar de nuevo?" }).getByRole("button", { name: "Empezar de nuevo" }).click();
@@ -215,7 +258,7 @@ test.describe("importación", () => {
     await importAllSources(page);
     await openGroup(page, "¿Lo vas a jugar alguna vez?");
 
-    await gameRow(page, "8BitMMO").getByRole("radio", { name: "Sin interés" }).click();
+    await gameRow(page, "8BitMMO").getByRole("button", { name: "No", exact: true }).click();
 
     await expect(toast(page, "«8BitMMO» pasó a «Listos para importar» con «Sin interés».")).toBeInViewport();
   });
@@ -315,7 +358,8 @@ test.describe("importación en inglés", { tag: "@i18n" }, () => {
 
     await expect(page.getByRole("heading", { level: 1, name: en("import.title") })).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: en("import.groups.endless.name") })).toBeVisible();
-    await expect(gameRow(page, "Among Us").getByRole("radio", { name: en("import.choices.endless") })).toHaveAttribute("aria-checked", "true");
+    await expect(gameRow(page, "Among Us").getByRole("button", { name: en("import.choices.endless"), exact: true })).toBeVisible();
+    await expect(gameRow(page, "Among Us").getByRole("radio")).toHaveCount(0);
     await expect(page.getByRole("button", { name: en("import.confirm.action") })).toBeVisible();
     await expectNoSpanish(page, "la importación");
 

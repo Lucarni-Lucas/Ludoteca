@@ -487,7 +487,7 @@
     "review": {
       "title": "Review",
       "nav": "Review groups",
-      "rule": "Each game already has our suggestion selected. If you choose another option, it moves to “Ready to import”. To move the selected option without changing it, select the game and tap “Move to Ready”.",
+      "rule": "Tap an answer and the game moves to “Ready to import”. To give several the same answer, select them.",
       "readyRule": "This is what enters your library when you confirm. “Review again” sends a game back to its group.",
       "upToDate": "{count, plural, one {# was already up to date in your library.} other {# were already up to date in your library.}}",
       "empty": "There are no games in this group.",
@@ -496,15 +496,11 @@
       "selectAll": "Select all {count}",
       "select": "Select {title}",
       "selected": "{count, plural, one {# selected} other {# selected}}",
-      "passToReady": "Move to Ready",
       "copyKind": "How did you get it?",
       "copyKindStore": "How did you get it on {store}?",
       "cancel": "Cancel",
       "backToReview": "Review again",
-      "optionsFor": "What to do with {title}",
       "otherStatus": "Status of {title}",
-      "otherKind": "How you got {title}",
-      "apply": "Apply",
       "searchAgain": "Search with another name",
       "searchLabel": "Name on IGDB",
       "pick": "Choose",
@@ -513,7 +509,6 @@
       "movedToReady": "“{title}” moved to “Ready to import” with “{choice}”.",
       "movedManyToReady": "{count, plural, one {# game moved to “Ready to import”.} other {# games moved to “Ready to import”.}}",
       "movedBack": "“{title}” went back to “{group}”.",
-      "unchanged": "There was nothing to move to “Ready to import”.",
       "origin": {
         "ign": "IGN · {statuses}",
         "ignScored": "IGN · {statuses} · {score}",
@@ -550,12 +545,17 @@
         "backlog": "in the backlog",
         "wishlist": "on the wishlist"
       },
-      "notGame": "It doesn’t look like a game: it’s a soundtrack, a beta or a hidden name.",
+      "notGame": "It doesn’t look like a game: it’s a demo, a beta, a soundtrack or something similar.",
       "enters": "Enters as {status}",
       "entersManual": "Enters by hand as {status}",
       "entersNotInterested": "Not interested",
       "entersEndless": "endless",
-      "inLibraryAdds": "Already in your library · adds {copies}"
+      "inLibraryAdds": "Already in your library · adds {copies}",
+      "notImported": "Not imported · not a game",
+      "allStatuses": "All statuses",
+      "apply": "Apply",
+      "answersFor": "Answers for {title}",
+      "otherStatusMany": "Status of {count, plural, one {# game} other {# games}}"
     },
     "groups": {
       "which": {
@@ -586,7 +586,7 @@
       "play": {
         "name": "Will you ever play it?",
         "hint": "Backlog with no score or 0 h",
-        "explanation": "You own them in some store, but they have no score or you never opened them. “Not interested” doesn’t show in the library but counts for “Do I own it?”."
+        "explanation": "You own them in some store, but they have no score or you never opened them. “No” adds them to your library as “Not interested”: you don’t see them in the list, but “Do I own it?” knows they’re yours. “Don’t import” leaves them out."
       },
       "status": {
         "name": "Choose a status",
@@ -604,11 +604,10 @@
       "otherStatus": "Another status",
       "manual": "Add by hand",
       "exclude": "Don’t import",
-      "otherKind": "Another type",
-      "endless": "Played · endless",
-      "completed": "Completed",
-      "keep": "Backlog",
-      "notInterested": "Not interested",
+      "endless": "Yes, it never ends",
+      "completed": "No, I beat it",
+      "keep": "Yes, someday",
+      "notInterested": "No",
       "searchNo": "No, I’ll search",
       "yes": "Yes",
       "howLeft": {
@@ -618,6 +617,14 @@
         "paused": "You paused it",
         "backlog": "It’s in your backlog",
         "wishlist": "You want to play it"
+      },
+      "familyYes": "Yes, it’s my family’s",
+      "familyNo": "No, it’s mine",
+      "statusAnswer": {
+        "playing": "I’m playing it",
+        "completed": "I beat it",
+        "abandoned": "I quit it",
+        "tried": "I tried it"
       }
     },
     "confirm": {

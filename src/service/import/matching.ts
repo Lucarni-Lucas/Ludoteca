@@ -1,17 +1,20 @@
 import type { IgdbSearchResult } from "@/model/game/catalog";
-import type { ImportItem, ItemMatch, LibraryTitle, MatchedGame } from "@/model/import/import-entry";
+import type { ImportItem, ItemMatch, LibraryTitle, MatchedGame, OpenReview } from "@/model/import/import-entry";
 import {
   type ExternalId,
   type ExternalStoreKey,
+  editionRetryOf,
   externalIdOf,
   findBaseItem,
   isNonGameItem,
   MATCHING_BATCH_SIZE,
+  MAX_EDITION_SEARCHES,
   MAX_TITLE_SEARCHES,
   resolveNonGame,
   titlesOf,
 } from "@/model/import/matching";
-import { matchByTitle, type TitleMatch } from "@/model/import/title-match";
+import { joinSameName } from "@/model/import/same-name";
+import { matchByTitle, matchWithoutEdition, type TitleMatch } from "@/model/import/title-match";
 
 export type MatchingIgdb = Readonly<{
   findByExternalIds(store: ExternalStoreKey, uids: readonly string[]): Promise<ReadonlyMap<string, number>>;
@@ -23,6 +26,7 @@ export type MatchingRepo = Readonly<{
   listPendingItems(userId: string, limit: number): Promise<readonly ImportItem[]>;
   listOpenItems(userId: string): Promise<readonly ImportItem[]>;
   listLibraryTitles(userId: string): Promise<readonly LibraryTitle[]>;
+  listOpenReview(userId: string): Promise<OpenReview>;
   saveMatches(userId: string, matches: readonly ItemMatch[]): Promise<void>;
 }>;
 
@@ -61,14 +65,40 @@ async function lookUp(igdb: MatchingIgdb, games: readonly ImportItem[]): Promise
   const forTitle = games.filter((item) => igdbIdOf(item, byExternal) === null).slice(0, MAX_TITLE_SEARCHES);
   const results = forTitle.length > 0 ? await igdb.searchMany(forTitle.map((item) => item.title)) : new Map();
 
-  return [
-    ...byId,
-    ...forTitle.map((item) => ({
-      item,
-      igdbId: null,
-      title: matchByTitle({ titles: titlesOf(item), year: item.year }, results.get(item.title) ?? []),
-    })),
-  ];
+  const byTitle = forTitle.map((item) => ({
+    item,
+    igdbId: null,
+    title: matchByTitle({ titles: titlesOf(item), year: item.year }, results.get(item.title) ?? []),
+  }));
+
+  return [...byId, ...(await retryWithoutEdition(igdb, byTitle))];
+}
+
+/**
+ * Lo que quedaría en «No lo encontré» y nombra una edición se busca sin ella, hasta `MAX_EDITION_SEARCHES`;
+ * los demás no se guardan y siguen pendientes para la tanda siguiente (design.md §7).
+ */
+async function retryWithoutEdition(igdb: MatchingIgdb, lookups: readonly Lookup[]): Promise<readonly Lookup[]> {
+  const retries = lookups.flatMap((lookup) => {
+    const stripped = lookup.title ? editionRetryOf(lookup.item, lookup.title) : null;
+    return stripped === null ? [] : [{ lookup, stripped }];
+  });
+
+  if (retries.length === 0) {
+    return lookups;
+  }
+
+  const now = retries.slice(0, MAX_EDITION_SEARCHES);
+  const later = new Set(retries.slice(MAX_EDITION_SEARCHES).map(({ lookup }) => lookup));
+  const results = await igdb.searchMany(now.map(({ stripped }) => stripped));
+  const retried = new Map(
+    now.map(({ lookup, stripped }) => [
+      lookup,
+      { ...lookup, title: matchWithoutEdition({ titles: [stripped], year: lookup.item.year }, results.get(stripped) ?? []) },
+    ]),
+  );
+
+  return lookups.filter((lookup) => !later.has(lookup)).map((lookup) => retried.get(lookup) ?? lookup);
 }
 
 function toMatch(lookup: Lookup, games: ReadonlyMap<number, MatchedGame>): ItemMatch {
@@ -128,7 +158,11 @@ export function createMatchingStep({ importRepo, igdb }: Readonly<{ importRepo: 
         return;
       }
 
-      const [open, library] = await Promise.all([importRepo.listOpenItems(userId), importRepo.listLibraryTitles(userId)]);
+      const [open, library, review] = await Promise.all([
+        importRepo.listOpenItems(userId),
+        importRepo.listLibraryTitles(userId),
+        importRepo.listOpenReview(userId),
+      ]);
       const lookups = await lookUp(igdb, withPendingBases(pending, open));
       const games = await igdb.getGamesData(chosenIgdbIds(lookups));
       const matches = lookups.map((lookup) => toMatch(lookup, games));
@@ -139,7 +173,9 @@ export function createMatchingStep({ importRepo, igdb }: Readonly<{ importRepo: 
         return match ? [match] : [];
       });
 
-      await importRepo.saveMatches(userId, [...matches, ...nonGames]);
+      // El mismo nombre desde varias fuentes es una sola pregunta (design.md §10).
+      const joined = joinSameName(matches, [...pending, ...open], review.entries);
+      await importRepo.saveMatches(userId, [...joined, ...nonGames]);
     },
   };
 }

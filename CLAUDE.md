@@ -158,6 +158,7 @@ SonarQube Cloud con menos de 10 issues. El código se escribe así desde el prin
 - Radix sin estilos solo para la ventana emergente, la barra deslizable y los interruptores. Otra primitiva se consulta antes.
 - Cada acción da una respuesta visible: si guarda, actualiza o no cambia nada, la pantalla lo dice («Datos actualizados», «Ya estaba al día»).
 - En una misma pantalla, dos controles no hacen lo mismo.
+- Si la pantalla hace una pregunta, sus opciones son respuestas a esa pregunta, dichas en palabras («Sí, algún día», «No»), no nombres internos, y ninguna viene marcada de antemano.
 - Accesible: todo lo que se acciona es un `button` o un link, con foco visible y zona táctil de al menos 44 px.
 - Usable desde 360 px de ancho, sin desplazamiento horizontal.
 

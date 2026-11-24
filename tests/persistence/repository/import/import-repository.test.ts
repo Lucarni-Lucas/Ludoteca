@@ -143,6 +143,20 @@ describe("createImportRepository", () => {
       expect(entries[0].items.map((item) => item.matchState).toSorted()).toEqual(["absorbed", "matched"]);
     });
 
+    it("Demo sin su juego: su juego a revisar nace en «No importar»", async () => {
+      await imports.upsertItems(USER_A, [newItem("demo", { title: "Cuphead Demo" }), newItem("viejo")]);
+
+      await imports.saveMatches(USER_A, [
+        { itemId: await itemIdOf(USER_A, "demo"), kind: "not_found", notAGame: true },
+        { itemId: await itemIdOf(USER_A, "viejo"), kind: "not_found" },
+      ]);
+
+      const { entries } = await imports.listOpenReview(USER_A);
+      const excluded = new Map(entries.map((entry) => [entry.items[0].sourceKey, entry.answers.excluded]));
+      expect(Object.fromEntries(excluded)).toEqual({ demo: true, viejo: false });
+      expect(entries.find((entry) => entry.answers.excluded)?.items[0]).toMatchObject({ matchState: "not_found" });
+    });
+
     it("una entrada colgada de un juego de la biblioteca queda confirmada", async () => {
       await imports.upsertItems(USER_A, [newItem("soundtrack")]);
 
@@ -322,6 +336,92 @@ describe("createImportRepository", () => {
     });
   });
 
+  describe("mismo nombre desde varias fuentes", () => {
+    const fortnites = [candidate(1, "Fortnite", 2017), candidate(2, "Fortnite", 2018)];
+
+    async function fortniteOfIgnAndEpic(): Promise<readonly [string, string]> {
+      await imports.upsertItems(USER_A, [
+        newItem("fortnite-ign", { title: "Fortnite", year: 2017, ignScore: 8 }),
+        newItem("epic:Fortnite", { source: "playnite", title: "Fortnite", year: 2020, playtimeMinutes: 7200 }),
+      ]);
+      return [await itemIdOf(USER_A, "fortnite-ign"), await itemIdOf(USER_A, "epic:Fortnite")];
+    }
+
+    it("Fortnite de IGN y de Epic", async () => {
+      const [ign, epic] = await fortniteOfIgnAndEpic();
+
+      await imports.saveMatches(USER_A, [
+        { itemId: ign, kind: "candidates", candidates: fortnites },
+        { itemId: epic, kind: "candidates", candidates: fortnites, joinItemId: ign },
+      ]);
+
+      const { entries } = await imports.listOpenReview(USER_A);
+      expect(entries).toHaveLength(1);
+      expect(entries[0].items.map((value) => value.sourceKey).toSorted()).toEqual(["epic:Fortnite", "fortnite-ign"]);
+      const [game] = buildReview(await imports.listOpenReview(USER_A), { steamConnected: false }).groups[0].games;
+      expect(game.origins).toHaveLength(2);
+    });
+
+    it("una fila de otra tanda se suma al juego a revisar que espera", async () => {
+      const [ign, epic] = await fortniteOfIgnAndEpic();
+      await imports.saveMatches(USER_A, [{ itemId: ign, kind: "not_found" }]);
+      const [waiting] = (await imports.listOpenReview(USER_A)).entries;
+
+      await imports.saveMatches(USER_A, [{ itemId: epic, kind: "not_found", joinEntryId: waiting.id }]);
+
+      const { entries } = await imports.listOpenReview(USER_A);
+      expect(entries.map((value) => [value.id, value.items.length])).toEqual([[waiting.id, 2]]);
+    });
+
+    it("Mismo nombre sin encontrar: «No importar» deja afuera a los dos", async () => {
+      const [ign, epic] = await fortniteOfIgnAndEpic();
+      await imports.saveMatches(USER_A, [
+        { itemId: ign, kind: "not_found" },
+        { itemId: epic, kind: "not_found", joinItemId: ign },
+      ]);
+      const [waiting] = (await imports.listOpenReview(USER_A)).entries;
+
+      await imports.saveDecision(USER_A, [waiting.id], { answers: { excluded: true } });
+
+      const review = buildReview(await imports.listOpenReview(USER_A), { steamConnected: false });
+      expect(review.excluded).toBe(1);
+      expect(review.groups.flatMap((group) => group.games)).toEqual([]);
+    });
+
+    it("«Volver a revisar» después de elegir deja a Fortnite como una sola pregunta", async () => {
+      const [ign, epic] = await fortniteOfIgnAndEpic();
+      await imports.saveMatches(USER_A, [
+        { itemId: ign, kind: "candidates", candidates: fortnites },
+        { itemId: epic, kind: "candidates", candidates: fortnites, joinItemId: ign },
+      ]);
+      const [waiting] = (await imports.listOpenReview(USER_A)).entries;
+      await imports.matchEntry(USER_A, waiting.id, matchedGame(1, "Fortnite"), fortnites[0]);
+      const [chosen] = (await imports.listOpenReview(USER_A)).entries;
+
+      await imports.clearDecision(USER_A, [chosen.id]);
+
+      const { entries } = await imports.listOpenReview(USER_A);
+      expect(entries).toHaveLength(1);
+      expect(entries[0]).toMatchObject({ igdbId: null });
+      expect(entries[0].items.map((value) => value.chosenIgdbId)).toEqual([null, null]);
+    });
+
+    it("el usuario A no ve ni cambia nada del B al juntar el mismo nombre", async () => {
+      await imports.upsertItems(USER_A, [newItem("fortnite-ign", { title: "Fortnite" })]);
+      await imports.saveMatches(USER_A, [{ itemId: await itemIdOf(USER_A, "fortnite-ign"), kind: "not_found" }]);
+      const [entryOfA] = (await imports.listOpenReview(USER_A)).entries;
+      await imports.upsertItems(USER_B, [newItem("epic:Fortnite", { source: "playnite", title: "Fortnite" })]);
+
+      await imports.saveMatches(USER_B, [{ itemId: await itemIdOf(USER_B, "epic:Fortnite"), kind: "not_found", joinEntryId: entryOfA.id }]);
+
+      const [afterOfA] = (await imports.listOpenReview(USER_A)).entries;
+      expect(afterOfA.items).toHaveLength(1);
+      const [entryOfB] = (await imports.listOpenReview(USER_B)).entries;
+      expect(entryOfB.id).not.toBe(entryOfA.id);
+      expect(entryOfB.items.map((value) => value.sourceKey)).toEqual(["epic:Fortnite"]);
+    });
+  });
+
   describe("aislamiento", () => {
     it("el usuario A no ve ni cambia nada del B", async () => {
       await imports.upsertItems(USER_A, [newItem("1", { title: "Hades" })]);
@@ -343,6 +443,16 @@ describe("createImportRepository", () => {
       expect(entryAfter.items[0]).toMatchObject({ title: "Hades", matchState: "matched", entryId: entryA.id });
       const itemsOfB = await database.db.select().from(importItem).where(eq(importItem.userId, USER_B));
       expect(itemsOfB.map((item) => item.title)).toEqual(["Otro"]);
+    });
+
+    it("el usuario A no ve ni cambia nada del B al guardar lo que no es un juego", async () => {
+      await imports.upsertItems(USER_A, [newItem("demo", { title: "Cuphead Demo" })]);
+      const demoOfA = await itemIdOf(USER_A, "demo");
+
+      await imports.saveMatches(USER_B, [{ itemId: demoOfA, kind: "not_found", notAGame: true }]);
+
+      expect(await imports.listPendingItems(USER_A, 10)).toEqual([expect.objectContaining({ id: demoOfA, entryId: null })]);
+      expect((await imports.listOpenReview(USER_B)).entries).toEqual([]);
     });
 
     it("el usuario A no ve ni cambia nada del B al volver a revisar", async () => {

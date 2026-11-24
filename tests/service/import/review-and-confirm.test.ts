@@ -4,7 +4,7 @@ import { ImportEntryNotFoundError, InvalidImportDecisionError } from "@/model/im
 import { gamesInGroup } from "@/model/import/review";
 
 import { entry, EPIC, ignItem, openReview, playniteItem, STEAM, steamItem } from "../../model/import/import-fixtures";
-import { createFakeConnections, createFakeIgdb, createFakeImportRepo, matchedGame, setup, USER_ID } from "./fakes";
+import { createFakeConnections, createFakeIgdb, createFakeImportRepo, matchedGame, setup, STATUSES, USER_ID } from "./fakes";
 
 const CONNECTED = { storeId: STEAM.id, accountId: "76561197960287930", lastSyncedAt: null };
 
@@ -33,7 +33,7 @@ describe("getOverview", () => {
 
     const overview = await service.getOverview(USER_ID);
 
-    expect(gamesInGroup(overview.review, "family")[0]).toMatchObject({ choices: [], marked: null });
+    expect(gamesInGroup(overview.review, "family")[0]).toMatchObject({ choices: [] });
     expect(overview.steam.accountId).toBeNull();
   });
 });
@@ -49,14 +49,17 @@ describe("decide", () => {
     expect(importRepo.applyConfirmation).not.toHaveBeenCalled();
   });
 
-  it("Pasar lo marcado en lote guarda una sola respuesta para todos", async () => {
+  it("Responder en lote guarda una sola respuesta para todos", async () => {
     const entries = [
       entry("Portal 2", [playniteItem("Portal 2", STEAM, "620")]),
       entry("Watch Dogs", [playniteItem("Watch Dogs", STEAM, "243470")]),
     ];
     const { service, importRepo } = setup({ importRepo: withReview(entries), connections: createFakeConnections(CONNECTED) });
 
-    await service.decide(USER_ID, entries.map((value) => value.id), { kind: "accept" });
+    await service.decide(USER_ID, entries.map((value) => value.id), {
+      kind: "choose",
+      choice: { kind: "copy_kind", copyKind: "family" },
+    });
 
     expect(importRepo.saveDecision).toHaveBeenCalledTimes(1);
     expect(importRepo.saveDecision).toHaveBeenCalledWith(USER_ID, entries.map((value) => value.id), {
@@ -106,7 +109,7 @@ describe("decide", () => {
     const own = entry("Beholder", [ignItem("Beholder", { ignStatuses: ["backlog"] })]);
     const { service, importRepo } = setup({ importRepo: withReview([own]) });
 
-    const decide = service.decide(USER_ID, [own.id, "00000000-0000-4000-8000-0000000000ff"], { kind: "accept" });
+    const decide = service.decide(USER_ID, [own.id, "00000000-0000-4000-8000-0000000000ff"], { kind: "choose", choice: { kind: "exclude" } });
 
     await expect(decide).rejects.toBeInstanceOf(ImportEntryNotFoundError);
     expect(importRepo.saveDecision).not.toHaveBeenCalled();
@@ -207,5 +210,22 @@ describe("confirm", () => {
     await service.confirm(USER_ID);
 
     expect(statusService.listStatuses).toHaveBeenCalledWith(USER_ID);
+  });
+});
+
+describe("respuestas de «Elegí un estado»", () => {
+  it("la revisión ofrece solo las respuestas cuyo estado tiene el usuario", async () => {
+    const terraria = entry("Terraria", [steamItem("Terraria", "105600", 12 * 60)]);
+    const statuses = STATUSES.filter((status) => status.systemKey !== "tried");
+    const { service } = setup({ importRepo: withReview([terraria]), statuses });
+
+    const overview = await service.getOverview(USER_ID);
+
+    const [game] = gamesInGroup(overview.review, "status");
+    expect(game.choices.flatMap((choice) => (choice.kind === "status" ? [choice.statusKey] : []))).toEqual([
+      "playing",
+      "completed",
+      "abandoned",
+    ]);
   });
 });
