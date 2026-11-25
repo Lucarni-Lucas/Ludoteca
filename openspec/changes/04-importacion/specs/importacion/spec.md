@@ -202,7 +202,7 @@ El sistema SHALL agrupar los juegos que el usuario tiene, con horas jugadas, per
 - **THEN** Frostpunk pasa a «Listos para importar» con «En pausa»
 
 ### Requirement: Grupo «¿Cuál de estos es?»
-Los juegos con varios candidatos en IGDB SHALL agruparse en «¿Cuál de estos es?». Cada uno muestra cómo llegó (fuente, nombre y año) y los candidatos con portada, nombre completo y año, más «Ninguno, lo busco yo» y «No importar». Ninguna opción viene marcada: elegir una lleva el juego a «Listos para importar».
+Los juegos con varios candidatos en IGDB SHALL agruparse en «¿Cuál de estos es?». Cada uno muestra cómo llegó (fuente, nombre y año) y los candidatos con portada, nombre completo y año, más «Ninguno, lo busco yo» y «No importar». Ninguna opción viene marcada: elegir una dice qué juego es, y el juego sigue como pide «Después de decir qué juego es».
 
 #### Scenario: Elegir entre varios
 - **WHEN** IGN trae Crash Bandicoot de 1996 e IGDB devuelve cinco juegos con ese nombre
@@ -214,7 +214,22 @@ Los juegos con varios candidatos en IGDB SHALL agruparse en «¿Cuál de estos e
 
 #### Scenario: Buscar otro
 - **WHEN** el usuario toca «Ninguno, lo busco yo» y elige otro juego en la búsqueda
-- **THEN** el juego pasa a «Listos para importar» con el juego elegido
+- **THEN** el juego queda como el elegido y pasa al grupo que le toque con sus datos
+
+### Requirement: Después de decir qué juego es
+Decir qué juego es («¿Cuál de estos es?», «¿Es este juego?», buscarlo con otro nombre o cargarlo a mano) SHALL resolver solo esa pregunta. Después el juego MUST pasar al grupo que le toque con sus datos, como uno que se cruzó solo: «¿Lo vas a jugar alguna vez?», «¿Es sin fin?», «Elegí un estado» o, si no le falta nada, «Listos para importar».
+
+#### Scenario: Elegido sin jugar
+- **WHEN** el usuario elige «Love» de 2015 para LOVE de Epic, que llegó con 0 h y sin puntaje
+- **THEN** LOVE pasa a «¿Lo vas a jugar alguna vez?» y la pantalla dice «LOVE pasó a «¿Lo vas a jugar alguna vez?».»
+
+#### Scenario: Cargado a mano sin jugar
+- **WHEN** el usuario carga a mano un juego de «No lo encontré» que llegó de IGN en Backlog, sin puntaje y con una copia de Epic con 0 h
+- **THEN** el juego pasa a «¿Lo vas a jugar alguna vez?» como cargado a mano
+
+#### Scenario: Elegido sin dudas
+- **WHEN** el usuario elige un candidato para Crash Bandicoot, que llegó de IGN como Beat con 8
+- **THEN** Crash Bandicoot pasa a «Listos para importar» como «Completado» con 8.0
 
 ### Requirement: Grupo «¿Cómo lo dejaste?»
 Los juegos que llegan de IGN con dos estados SHALL agruparse en «¿Cómo lo dejaste?», con un botón por cada estado dicho en palabras («Lo terminaste», «Lo abandonaste»), más «Otro estado» y «No importar». Ninguna opción viene marcada.
@@ -231,7 +246,7 @@ Los juegos que no se pudieron cruzar con IGDB SHALL agruparse con tres opciones:
 - **THEN** queda en «No lo encontré» con esas tres opciones
 
 ### Requirement: Respuestas sin marcar
-En todos los grupos, las opciones de un juego SHALL ser respuestas a la pregunta del grupo, dichas en palabras, y ninguna MUST venir marcada. Tocar una respuesta lleva el juego a «Listos para importar». En lote, el usuario selecciona varios juegos y toca la misma respuesta.
+En todos los grupos, las opciones de un juego SHALL ser respuestas a la pregunta del grupo, dichas en palabras, y ninguna MUST venir marcada. Tocar una respuesta contesta la pregunta del grupo, y el juego pasa al siguiente grupo que le toque o, si no le queda ninguna pregunta, a «Listos para importar». En lote, el usuario selecciona varios juegos y toca la misma respuesta.
 
 #### Scenario: Nada marcado
 - **WHEN** el usuario abre «¿Lo vas a jugar alguna vez?» y 112 Operator llega de Epic con 0 h
@@ -242,7 +257,7 @@ En todos los grupos, las opciones de un juego SHALL ser respuestas a la pregunta
 - **THEN** los dos pasan a «Listos para importar» con la copia «Steam · Familia»
 
 ### Requirement: Grupo «Listos para importar»
-Los juegos sin nada dudoso y los que el usuario ya decidió en cualquier otro grupo SHALL agruparse en «Listos para importar», y cada uno MUST decir cómo va a entrar (estado, tienda y tipo de copia). Responder por un juego, o por los seleccionados, MUST llevarlos a «Listos para importar», y la pantalla SHALL decirlo. «Confirmar importación» confirma todo lo que está en «Listos para importar» y los demás grupos siguen esperando.
+Los juegos sin nada dudoso y los que el usuario ya decidió en cualquier otro grupo SHALL agruparse en «Listos para importar», y cada uno MUST decir cómo va a entrar (estado, tienda y tipo de copia). Un juego MUST llegar a «Listos para importar» cuando no le queda ninguna pregunta, y después de cada respuesta la pantalla SHALL decir adónde fue. «Confirmar importación» confirma todo lo que está en «Listos para importar» y los demás grupos siguen esperando.
 
 #### Scenario: Decidir pasa a «Listos para importar»
 - **WHEN** el usuario responde «No» para Beholder en «¿Lo vas a jugar alguna vez?»
@@ -257,11 +272,15 @@ Los juegos sin nada dudoso y los que el usuario ya decidió en cualquier otro gr
 - **THEN** 112 Operator dice «Entra como Pendiente · Epic Games · Gratis»
 
 ### Requirement: Volver a revisar
-Un juego de «Listos para importar» SHALL poder volver a su grupo con «Volver a revisar», sin la decisión que se había tomado, sea cual sea el grupo del que vino.
+Un juego de «Listos para importar», o uno que pasó a otro grupo después de decir qué juego es, SHALL poder volver con «Volver a revisar» a su primera pregunta, sin ninguna de las respuestas que se habían dado.
 
 #### Scenario: Volver después de elegir un candidato
 - **WHEN** el usuario eligió un candidato para Crash Bandicoot en «¿Cuál de estos es?» y después toca «Volver a revisar» en «Listos para importar»
 - **THEN** Crash Bandicoot vuelve a «¿Cuál de estos es?» sin candidato elegido y deja de estar en «Listos para importar»
+
+#### Scenario: Volver desde otro grupo
+- **WHEN** el usuario eligió «Love» de 2015 para LOVE, que pasó a «¿Lo vas a jugar alguna vez?», y toca «Volver a revisar»
+- **THEN** LOVE vuelve a «¿Cuál de estos es?» sin juego elegido
 
 ### Requirement: Guía para exportar de Playnite
 La importación SHALL ofrecer, desde la fuente Playnite, una página «¿Cómo lo saco?» que explique en una línea qué es Playnite y en pasos cortos cómo instalar el exportador desde la página de su autor, exportar la biblioteca en JSON y subir el archivo.

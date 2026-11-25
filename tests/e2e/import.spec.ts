@@ -64,10 +64,13 @@ async function openGroup(page: Page, name: string): Promise<void> {
   await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
 }
 
-/** Toca una respuesta de la fila. Con texto, el nombre entero: «No» no es «No importar». */
+/**
+ * Toca una respuesta de la fila. Con texto, el nombre entero: «No» no es «No importar». El juego pasa al grupo
+ * que le toque, no siempre a «Listos para importar» (tasks.md 10).
+ */
 async function choose(page: Page, title: string, option: string | RegExp): Promise<void> {
   await gameRow(page, title).getByRole("button", { name: option, exact: true }).click();
-  await expect(toast(page, `«${title}» pasó a «Listos para importar»`)).toBeVisible();
+  await expect(toast(page, `«${title}» pasó a «`)).toBeVisible();
 }
 
 async function importAllSources(page: Page): Promise<void> {
@@ -107,9 +110,12 @@ test.describe("importación", () => {
     await choose(page, "Crash Bandicoot", candidate("Crash Bandicoot", 1996));
     await expect(gameRow(page, "Castlevania Anniversary Collection")).toContainText("¿Es este juego?");
     await choose(page, "Castlevania Anniversary Collection", "Sí");
+    await expect(toast(page, "«Castlevania Anniversary Collection» pasó a «Elegí un estado».")).toBeVisible();
     await openGroup(page, "¿Cómo lo dejaste?");
     await expect(gameRow(page, "Overwatch")).toContainText("IGN lo tiene como terminado y como abandonado.");
     await choose(page, "Overwatch", "Lo terminaste");
+    // Solo multijugador: después de decir cómo lo dejó, le toca «¿Es sin fin?» (tasks.md 10.1).
+    await expect(toast(page, "«Overwatch» pasó a «¿Es sin fin?».")).toBeVisible();
     await openGroup(page, "No lo encontré");
     await gameRow(page, LONG_TITLE).getByRole("button", { name: "No importar" }).click();
     await expect(toast(page, `«${LONG_TITLE}» no se va a importar.`)).toBeVisible();
@@ -120,6 +126,7 @@ test.describe("importación", () => {
     await openGroup(page, "¿Es sin fin?");
     await choose(page, "Among Us", "Sí, no se termina");
     await expect(toast(page, "«Among Us» pasó a «Listos para importar» con «Jugado · sin fin».")).toBeVisible();
+    await choose(page, "Overwatch", "Sí, no se termina");
     await openGroup(page, "¿Lo vas a jugar alguna vez?");
     await choose(page, "8BitMMO", "No");
     await expect(toast(page, "«8BitMMO» pasó a «Listos para importar» con «Sin interés».")).toBeVisible();
@@ -132,7 +139,8 @@ test.describe("importación", () => {
     const bar = page.getByRole("group", { name: "Selección" });
     await expect(bar.getByRole("button", { name: "Pasar a Listos" })).toHaveCount(0);
     await bar.getByRole("button", { name: "Lo terminé", exact: true }).click();
-    await expect(toast(page, "pasaron a «Listos para importar».")).toBeVisible();
+    // Cada uno pasa al grupo que le toca: Rocket League, solo multijugador, sigue a «¿Es sin fin?» (tasks.md 10.2).
+    await expect(toast(page, "cambiaron de grupo:")).toContainText("a «¿Es sin fin?»");
     await openGroup(page, "Listos para importar");
     await expect(gameRow(page, "Grand Theft Auto V")).toContainText("Entra como Completado · Epic Games · Gratis");
     await expect(gameRow(page, "Q.U.B.E. 2 Soundtrack")).toContainText(NOT_A_GAME);
@@ -196,6 +204,38 @@ test.describe("importación", () => {
     await expect(toast(page, "«Homicipher: Demo» volvió a «No lo encontré».")).toBeVisible();
     await openGroup(page, "No lo encontré");
     await expect(gameRow(page, "Homicipher: Demo")).toContainText("No parece un juego: es una demo, una beta, un soundtrack o algo parecido.");
+  });
+
+  test("Elegido sin jugar", async ({ page }) => {
+    await signInAsNewAccount(page);
+    await page.goto("/import");
+    await upload(page, "Playnite", PLAYNITE_REAL_CASES);
+    await waitForMatching(page);
+    await openGroup(page, "¿Cuál de estos es?");
+
+    await choose(page, "LOVE", candidate("Love", 2015));
+
+    await expect(toast(page, "«LOVE» pasó a «¿Lo vas a jugar alguna vez?».")).toBeVisible();
+    await expect(gameRow(page, "LOVE")).toHaveCount(0);
+    await openGroup(page, "¿Lo vas a jugar alguna vez?");
+    await expect(gameRow(page, "Love").getByRole("button", { name: "Sí, algún día" })).toBeVisible();
+  });
+
+  test("Volver desde otro grupo", async ({ page }) => {
+    await signInAsNewAccount(page);
+    await page.goto("/import");
+    await upload(page, "Playnite", PLAYNITE_REAL_CASES);
+    await waitForMatching(page);
+    await openGroup(page, "¿Cuál de estos es?");
+    await choose(page, "LOVE", candidate("Love", 2015));
+    await openGroup(page, "¿Lo vas a jugar alguna vez?");
+
+    await gameRow(page, "Love").getByRole("button", { name: "Volver a revisar" }).click();
+
+    await expect(toast(page, "«LOVE» volvió a «¿Cuál de estos es?».")).toBeVisible();
+    await expect(gameRow(page, "Love")).toHaveCount(0);
+    await openGroup(page, "¿Cuál de estos es?");
+    await expect(gameRow(page, "LOVE").getByRole("button", { name: candidate("Love", 2015) })).toBeVisible();
   });
 
   test("Volver después de elegir un candidato", async ({ page }) => {

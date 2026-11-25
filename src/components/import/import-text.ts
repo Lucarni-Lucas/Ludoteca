@@ -160,9 +160,15 @@ export function useImportText() {
     return t("review.ignHas", { list: new Intl.ListFormat(locale, { type: "conjunction" }).format(parts) });
   }
 
+  /** «2 a «¿Lo vas a jugar alguna vez?» y 1 a «Listos para importar»», con la conjunción del idioma. */
+  function list(parts: readonly string[]): string {
+    return new Intl.ListFormat(locale, { type: "conjunction" }).format(parts);
+  }
+
   return {
     choice,
     result,
+    list,
     statusName,
     howLeft,
     arrival,

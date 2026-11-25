@@ -369,6 +369,51 @@ describe("ReviewPanel", () => {
       expect(within(screen.getByRole("group", { name: "¿Cuál es Fortnite?" })).getAllByRole("button")).toHaveLength(2);
     });
 
+    it("Elegido sin jugar", async () => {
+      const love = candidate(40, "Love", 2015);
+      const waiting = entry("LOVE", [playniteItem("LOVE", EPIC, "love", { matchState: "candidates", candidates: [love, candidate(41, "Love", 2022)] })], {
+        igdbId: null,
+        catalogGameId: null,
+        catalog: null,
+      });
+      const game = view(waiting);
+      const chosen = entry("Love", waiting.items.map((value) => ({ ...value, chosenIgdbId: 40 })), { igdbId: 40 });
+      const { onNotify } = renderPanel({ group: "which", games: [game], onDecide: vi.fn(async () => reviewOf(chosen)) });
+
+      await userEvent.click(within(screen.getByRole("group", { name: "¿Cuál es LOVE?" })).getAllByRole("button")[0]);
+
+      expect(onNotify).toHaveBeenCalledWith("«LOVE» pasó a «¿Lo vas a jugar alguna vez?».");
+    });
+
+    it("en lote, si cada juego fue a un grupo distinto, el aviso cuenta cuántos fueron a cada uno", async () => {
+      const portal = entry("Portal 2", [playniteItem("Portal 2", STEAM, "620"), playniteItem("Portal 2", EPIC, "p")]);
+      const watchDogs = entry("Watch Dogs", [playniteItem("Watch Dogs", STEAM, "243470")]);
+      const family = (value: ImportEntry) => ({ ...value, items: value.items.map((row) => (row.store === STEAM ? { ...row, copyKind: "family" as const } : row)) });
+      const { onNotify } = renderPanel({
+        group: "family",
+        games: [view(portal), view(watchDogs)],
+        onDecide: vi.fn(async () => reviewOf(family(portal), family(watchDogs))),
+      });
+
+      await userEvent.click(screen.getByRole("checkbox", { name: "Seleccionar los 2" }));
+      await userEvent.click(within(screen.getByRole("group", { name: "Selección" })).getByRole("button", { name: "Sí, es de mi familia" }));
+
+      expect(onNotify).toHaveBeenCalledWith("2 juegos cambiaron de grupo: 1 a «¿Lo vas a jugar alguna vez?» y 1 a «Listos para importar».");
+    });
+
+    it("en «No lo encontré», la barra de selección no ofrece «Cargar a mano»: es de a un juego", async () => {
+      const games = ["Juego viejo", "Otro viejo"].map((title) =>
+        view(entry(title, [ignItem(title, { matchState: "not_found" })], { igdbId: null, catalogGameId: null, catalog: null })),
+      );
+      renderPanel({ group: "not_found", games });
+
+      await userEvent.click(screen.getByRole("checkbox", { name: "Seleccionar los 2" }));
+
+      const bar = screen.getByRole("group", { name: "Selección" });
+      expect(within(bar).queryByRole("button", { name: "Cargar a mano" })).not.toBeInTheDocument();
+      expect(within(bar).getByRole("button", { name: "No importar" })).toBeInTheDocument();
+    });
+
     it("en las preguntas, la barra de selección ofrece solo «No importar»", async () => {
       const games = [view(crashEntry())];
       const { onDecide, onNotify } = renderPanel({ group: "which", games });
@@ -414,6 +459,40 @@ describe("ReviewPanel", () => {
 
       expect(screen.getByText("Entra como Pendiente · Sin interés · Steam · Comprado")).toBeInTheDocument();
       expect(screen.getByText("Entra como Jugado · sin fin")).toBeInTheDocument();
+    });
+
+    it("Volver desde otro grupo", async () => {
+      const love = candidate(40, "Love", 2015);
+      const chosen = view(entry("Love", [playniteItem("LOVE", EPIC, "love", { matchState: "candidates", candidates: [love], chosenIgdbId: 40 })], { igdbId: 40 }));
+      const back = entry("LOVE", [playniteItem("LOVE", EPIC, "love", { matchState: "candidates", candidates: [love, candidate(41, "Love", 2022)] })], {
+        igdbId: null,
+        catalogGameId: null,
+        catalog: null,
+      });
+      const next = reviewOf({ ...back, items: back.items.map((value) => ({ ...value, id: chosen.itemIds[0] })) });
+      const { onDecide, onNotify } = renderPanel({ group: "play", games: [chosen], onDecide: vi.fn(async () => next) });
+
+      await userEvent.click(screen.getByRole("button", { name: "Volver a revisar" }));
+
+      expect(onDecide).toHaveBeenCalledWith([chosen.entryId], { kind: "reset" });
+      expect(onNotify).toHaveBeenCalledWith("«LOVE» volvió a «¿Cuál de estos es?».");
+    });
+
+    it("«Volver a revisar» no aparece en un juego sin respuestas", () => {
+      renderPanel({ group: "play", games: [operator()] });
+
+      expect(screen.queryByRole("button", { name: "Volver a revisar" })).not.toBeInTheDocument();
+    });
+
+    it("la barra ofrece «Volver a revisar» si alguno de los seleccionados tiene respuesta", async () => {
+      const love = candidate(40, "Love", 2015);
+      const chosen = view(entry("Love", [playniteItem("LOVE", EPIC, "love", { matchState: "candidates", candidates: [love], chosenIgdbId: 40 })], { igdbId: 40 }));
+      const { onDecide } = renderPanel({ group: "play", games: [chosen, operator()] });
+
+      await userEvent.click(screen.getByRole("checkbox", { name: "Seleccionar los 2" }));
+      await userEvent.click(within(screen.getByRole("group", { name: "Selección" })).getByRole("button", { name: "Volver a revisar" }));
+
+      expect(onDecide).toHaveBeenCalledWith(expect.arrayContaining([chosen.entryId]), { kind: "reset" });
     });
 
     it("Volver después de elegir un candidato", async () => {

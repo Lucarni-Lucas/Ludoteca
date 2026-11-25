@@ -388,6 +388,89 @@ describe("reviewGame", () => {
       expect(game).toMatchObject({ group: "ready", choices: [], decided: false });
     });
 
+    describe("después de decir qué juego es", () => {
+      const love = { igdbId: 40, baseIgdbId: 40, title: "Love", year: 2015, coverUrl: null };
+
+      it("Elegido sin jugar", () => {
+        const chosen = entry(
+          "Love",
+          [playniteItem("LOVE", EPIC, "love", { playtimeMinutes: 0, matchState: "candidates", candidates: [love], chosenIgdbId: 40 })],
+          { igdbId: 40 },
+        );
+
+        const game = review(chosen);
+
+        expect(game).toMatchObject({ group: "play", decided: true });
+      });
+
+      it("Cargado a mano sin jugar", () => {
+        const manual = entry(
+          "Juego viejo",
+          [ignItem("Juego viejo", { ignStatuses: ["backlog"], matchState: "not_found" }), playniteItem("Juego viejo", EPIC, "viejo", { matchState: "not_found" })],
+          { igdbId: null, catalogGameId: null, catalog: null, answers: { manualTitle: "Juego viejo" } },
+        );
+
+        const game = review(manual);
+
+        expect(game).toMatchObject({ group: "play", manual: true, decided: true });
+      });
+
+      it("Elegido sin dudas", () => {
+        const crash = { igdbId: 1, baseIgdbId: 1, title: "Crash Bandicoot", year: 1996, coverUrl: null };
+        const chosen = entry(
+          "Crash Bandicoot",
+          [ignItem("Crash Bandicoot", { ignStatuses: ["beat"], ignScore: 8, matchState: "candidates", candidates: [crash], chosenIgdbId: 1 })],
+          { igdbId: 1 },
+        );
+
+        const game = review(chosen);
+
+        expect(game).toMatchObject({ group: "ready", suggestion: { statusKey: "completed", score: 8 } });
+      });
+
+      it("un juego elegido que es solo multijugador y llegó como Completado va a «¿Es sin fin?»", () => {
+        const overwatch = { igdbId: 7, baseIgdbId: 7, title: "Overwatch", year: 2016, coverUrl: null };
+        const chosen = entry(
+          "Overwatch",
+          [ignItem("Overwatch", { ignStatuses: ["beat"], ignScore: 5, matchState: "candidates", candidates: [overwatch], chosenIgdbId: 7 })],
+          { igdbId: 7, multiplayerOnly: true },
+        );
+
+        const game = review(chosen);
+
+        expect(game.group).toBe("endless");
+      });
+
+      it("un juego elegido que ya está en la biblioteca no pasa por las preguntas que deciden su estado", () => {
+        const chosen = entry(
+          "Love",
+          [playniteItem("LOVE", EPIC, "love", { playtimeMinutes: 0, matchState: "candidates", candidates: [love], chosenIgdbId: 40 })],
+          { igdbId: 40 },
+        );
+        const library = [{ catalogGameId: chosen.catalogGameId ?? "", libraryGameId: "game-love", copies: [] }];
+
+        const game = review(chosen, CONNECTED, library);
+
+        expect(game.group).toBe("ready");
+      });
+    });
+
+    it("«Sí, es de mi familia» en un juego con 0 h en otra tienda lo lleva a «¿Lo vas a jugar alguna vez?»", () => {
+      const portal = entry("Portal 2", [playniteItem("Portal 2", STEAM, "620", { copyKind: "family" }), playniteItem("Portal 2", EPIC, "p")]);
+
+      const game = review(portal);
+
+      expect(game).toMatchObject({ group: "play", decided: true });
+    });
+
+    it("«¿Cómo lo conseguiste?» no saltea preguntas", () => {
+      const operator = entry("112 Operator", [playniteItem("112 Operator", EPIC, "operator", { copyKind: "purchased" })]);
+
+      const game = review(operator);
+
+      expect(game.group).toBe("play");
+    });
+
     it("lo decidido pasa a «Listos para importar» aunque le tocara otro grupo", () => {
       const amongUs = entry("Among Us", [ignItem("Among Us", { ignStatuses: ["beat"] })], {
         multiplayerOnly: true,

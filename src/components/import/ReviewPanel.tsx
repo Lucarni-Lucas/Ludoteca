@@ -7,7 +7,7 @@ import { useCopyText } from "@/components/copy/copy-text";
 import controls from "@/components/ui/controls.module.css";
 import { COPY_KINDS } from "@/model/copy/copy";
 import type { ImportDecision } from "@/model/import/decision";
-import { type ImportReview, isQuestionGroup, type ReviewChoice, type ReviewGame, type ReviewGroup } from "@/model/import/review";
+import { canGoBack, type ImportReview, isQuestionGroup, type ReviewChoice, type ReviewGame, type ReviewGroup } from "@/model/import/review";
 import type { Store } from "@/model/store/store";
 
 import { useImportText } from "./import-text";
@@ -124,7 +124,7 @@ function SelectionBar({ group, selected, statuses, disabled, onDecide, onCancel 
     <div role="group" aria-label={t("selection")} className={styles.bar}>
       <span className={styles.barCount}>{t("selected", { count: selected.length })}</span>
       <div className={styles.barActions}>
-        {group === "ready" ? (
+        {selected.some(canGoBack) ? (
           <button type="button" className={controls.secondary} disabled={disabled} onClick={() => onDecide({ kind: "reset" })}>
             {t("backToReview")}
           </button>
@@ -169,6 +169,7 @@ type MessageText = Readonly<{
   t: ReturnType<typeof useTranslations<"import.review">>;
   result: (choice: ReviewChoice, game: ReviewGame) => string;
   groupName: (group: ReviewGroup) => string;
+  list: (parts: readonly string[]) => string;
 }>;
 
 /** Dónde quedó un juego después de «Volver a revisar»: se lo busca por sus filas, que no cambian. */
@@ -183,6 +184,41 @@ function resetMessage(games: readonly ReviewGame[], next: ImportReview, text: Me
     : text.t("movedManyBack", { count: games.length });
 }
 
+/** Adónde fue cada juego después de la respuesta: se lo busca por sus filas en la revisión nueva. */
+function destinationsOf(games: readonly ReviewGame[], next: ImportReview): readonly ReviewGroup[] {
+  return games.flatMap((game) => findByItem(next, game.itemIds[0])?.group ?? []);
+}
+
+function singleMessage(game: ReviewGame, choice: ReviewChoice | null, destination: ReviewGroup | undefined, text: MessageText): string {
+  if (destination === game.group) {
+    return text.t("stayed", { title: game.title, group: text.groupName(destination) });
+  }
+
+  if (destination !== undefined && destination !== "ready") {
+    return text.t("movedTo", { title: game.title, group: text.groupName(destination) });
+  }
+
+  // Dice cómo va a entrar, no el texto del botón: después de «No», «Sin interés» (design.md §9).
+  return choice
+    ? text.t("movedToReady", { title: game.title, choice: text.result(choice, game) })
+    : text.t("movedManyToReady", { count: 1 });
+}
+
+/** En lote: si todos fueron al mismo grupo lo dice así; si no, cuántos fueron a cada uno (design.md §9). */
+function manyMessage(count: number, destinations: readonly ReviewGroup[], text: MessageText): string {
+  const byGroup = Map.groupBy(destinations, (group) => group);
+
+  if (byGroup.size > 1) {
+    const parts = [...byGroup].map(([group, games]) => text.t("movedPart", { count: games.length, group: text.groupName(group) }));
+    return text.t("movedManySplit", { count, list: text.list(parts) });
+  }
+
+  const [only] = byGroup.keys();
+  return only === undefined || only === "ready"
+    ? text.t("movedManyToReady", { count })
+    : text.t("movedManyTo", { count, group: text.groupName(only) });
+}
+
 function decidedMessage(games: readonly ReviewGame[], decision: ImportDecision, next: ImportReview, text: MessageText): string {
   if (decision.kind === "reset") {
     return resetMessage(games, next, text);
@@ -190,18 +226,13 @@ function decidedMessage(games: readonly ReviewGame[], decision: ImportDecision, 
 
   const [game] = games;
   const choice = decision.kind === "choose" ? decision.choice : null;
-  const single = games.length === 1;
 
   if (choice?.kind === "exclude") {
-    return single ? text.t("excluded", { title: game.title }) : text.t("excludedMany", { count: games.length });
+    return games.length === 1 ? text.t("excluded", { title: game.title }) : text.t("excludedMany", { count: games.length });
   }
 
-  if (single && choice) {
-    // Dice cómo va a entrar, no el texto del botón: después de «No», «Sin interés» (design.md §9).
-    return text.t("movedToReady", { title: game.title, choice: text.result(choice, game) });
-  }
-
-  return text.t("movedManyToReady", { count: games.length });
+  const destinations = destinationsOf(games, next);
+  return games.length === 1 ? singleMessage(game, choice, destinations[0], text) : manyMessage(games.length, destinations, text);
 }
 
 /** El grupo elegido: la pregunta, por qué están ahí, la selección en lote y una fila por juego (design.md §9). */
@@ -262,7 +293,7 @@ export function ReviewPanel({
     );
 
     if (next) {
-      onNotify(decidedMessage(targets, decision, next, { t: tReview, result: text.result, groupName: text.groupName }));
+      onNotify(decidedMessage(targets, decision, next, { t: tReview, result: text.result, groupName: text.groupName, list: text.list }));
       setSelectedIds(new Set());
       setDecisions((count) => count + 1);
       pendingFocus.current = Math.max(index, 0);

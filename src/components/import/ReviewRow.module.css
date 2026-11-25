@@ -361,3 +361,9 @@
     padding-left: calc(var(--touch-target) + var(--space-12));
   }
 }
+
+/* «Volver a revisar» en un grupo que no es «Listos para importar»: a la derecha del título (design.md §15). */
+.backToReview {
+  flex: none;
+  margin-left: auto;
+}

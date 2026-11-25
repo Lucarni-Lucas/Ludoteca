@@ -26,6 +26,11 @@ export type ReviewGroup = (typeof REVIEW_GROUPS)[number];
 /** Las preguntas de a un juego: la respuesta depende de cada uno, así que en lote solo vale «No importar». */
 const QUESTION_GROUPS: readonly ReviewGroup[] = ["which", "how_left", "not_found"];
 
+/** «Volver a revisar» lleva a la primera pregunta: en las que dicen qué juego es, ya está ahí (design.md §9). */
+export function canGoBack(game: Readonly<{ group: ReviewGroup; decided: boolean }>): boolean {
+  return game.decided && game.group !== "which" && game.group !== "not_found";
+}
+
 export function isQuestionGroup(group: ReviewGroup): boolean {
   return QUESTION_GROUPS.includes(group);
 }
@@ -84,7 +89,7 @@ export type ReviewGame = Readonly<{
   /** Las filas del juego: después de «Volver a revisar» dicen adónde volvió, aunque cambie de juego a revisar. */
   itemIds: readonly string[];
   suggestion: ReviewSuggestion;
-  /** El usuario decidió algo: en «Listos para importar» se puede volver a revisar. */
+  /** Tiene alguna respuesta del usuario o del cruce: en cualquier grupo se puede volver a revisar. */
   decided: boolean;
   /** El juego ya está en la biblioteca: solo suma copias. */
   libraryGameId: string | null;
@@ -215,9 +220,16 @@ function isEndlessQuestion(facts: EntryFacts, suggestion: ReviewSuggestion): boo
   return suggestion.statusKey === COMPLETED_KEY && facts.entry.multiplayerOnly && facts.entry.answers.endlessAnswer === null;
 }
 
+/** Cargado a mano, el juego ya dice qué es aunque sus filas sigan sin cruce. */
+function isIdentified(entry: ImportEntry): boolean {
+  return entry.answers.manualTitle !== null;
+}
+
 /** Las preguntas de a un juego van primero: sin saber qué juego es, lo demás no se puede decidir. */
 function questionOf(facts: EntryFacts): ReviewGroup | null {
-  if (hasOpenState(facts.entry, "candidates")) {
+  const identified = isIdentified(facts.entry);
+
+  if (!identified && hasOpenState(facts.entry, "candidates")) {
     return "which";
   }
 
@@ -225,22 +237,26 @@ function questionOf(facts: EntryFacts): ReviewGroup | null {
     return "how_left";
   }
 
-  return hasOpenState(facts.entry, "not_found") ? "not_found" : null;
+  return !identified && hasOpenState(facts.entry, "not_found") ? "not_found" : null;
 }
 
+/**
+ * El primer grupo cuya pregunta el juego todavía no contestó: cada respuesta contesta solo la suya, también
+ * decir qué juego es, y el juego sigue al grupo que le toque (design.md §9).
+ */
 function groupOf(facts: EntryFacts, suggestion: ReviewSuggestion): ReviewGroup {
-  const { decided } = facts;
-  const question = decided ? null : questionOf(facts);
+  const question = questionOf(facts);
 
   if (question) {
     return question;
   }
 
-  if (isFamilyQuestion(facts.copies) && !decided) {
+  if (isFamilyQuestion(facts.copies)) {
     return "family";
   }
 
-  if (decided || facts.library) {
+  // Un juego que ya está en la biblioteca no cambia de estado: no pasa por las preguntas que lo deciden.
+  if (facts.library) {
     return "ready";
   }
 

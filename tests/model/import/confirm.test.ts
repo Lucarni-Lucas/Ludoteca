@@ -78,7 +78,7 @@ describe("planImportConfirmation", () => {
         answers: { playAnswer: "not_interested" },
       }),
       entry("Portal 2", [playniteItem("Portal 2", STEAM, "620", { excluded: true }), playniteItem("Portal 2", EPIC, "p")], {
-        answers: { statusKey: "backlog" },
+        answers: { statusKey: "backlog", playAnswer: "keep" },
       }),
       entry("Excluido", [ignItem("Excluido")], { answers: { excluded: true } }),
     ];

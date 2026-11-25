@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { decidedChoice, type DecisionPlan, planDecision } from "@/model/import/decision";
 import { InvalidImportDecisionError } from "@/model/import/errors";
 import { type DecisionWrite, type ImportEntry, NO_ANSWERS } from "@/model/import/import-entry";
-import { type ReviewGame, reviewGame } from "@/model/import/review";
+import { canGoBack, type ReviewGame, reviewGame } from "@/model/import/review";
 
 import { entry, EPIC, ignItem, playniteItem, STEAM, steamItem } from "./import-fixtures";
 
@@ -69,6 +69,18 @@ describe("planDecision", () => {
     const after = applyPlan(entries, plan).map(view);
     expect(after.map((game) => game.group)).toEqual(["ready", "ready"]);
     expect(after.map((game) => game.suggestion.copies[0].kind)).toEqual(["family", "family"]);
+  });
+
+  it("en lote, cada juego pasa al grupo que le toca después de la respuesta", () => {
+    const entries = [
+      entry("Portal 2", [playniteItem("Portal 2", STEAM, "620"), playniteItem("Portal 2", EPIC, "p")]),
+      entry("Watch Dogs", [playniteItem("Watch Dogs", STEAM, "243470")]),
+    ];
+
+    const plan = planDecision(entries.map(view), { kind: "choose", choice: { kind: "copy_kind", copyKind: "family" } }, CONTEXT);
+
+    const after = applyPlan(entries, plan).map(view);
+    expect(after.map((game) => game.group)).toEqual(["play", "ready"]);
   });
 
   it("Cambiar el tipo en lote", () => {
@@ -208,6 +220,51 @@ describe("planDecision", () => {
     const decide = () => planDecision([game], { kind: "choose", choice: { kind: "status", statusKey: "otro" } }, CONTEXT);
 
     expect(decide).toThrow(InvalidImportDecisionError);
+  });
+
+  it("Volver desde otro grupo", () => {
+    const love = { igdbId: 40, baseIgdbId: 40, title: "Love", year: 2015, coverUrl: null };
+    const chosen = entry("Love", [playniteItem("LOVE", EPIC, "love", { matchState: "candidates", candidates: [love], chosenIgdbId: 40 })], {
+      igdbId: 40,
+    });
+    const game = view(chosen);
+
+    const plan = planDecision([game], { kind: "reset" }, CONTEXT);
+
+    expect(game.group).toBe("play");
+    expect(canGoBack(game)).toBe(true);
+    expect(plan.resets).toEqual([chosen.id]);
+  });
+
+  it("un juego cargado a mano vuelve a «No lo encontré»", () => {
+    const manual = entry(
+      "Juego viejo",
+      [ignItem("Juego viejo", { ignStatuses: ["backlog"], matchState: "not_found" }), playniteItem("Juego viejo", EPIC, "viejo", { matchState: "not_found" })],
+      {
+      igdbId: null,
+      catalogGameId: null,
+      catalog: null,
+        answers: { manualTitle: "Juego viejo" },
+      },
+    );
+
+    const plan = planDecision([view(manual)], { kind: "reset" }, CONTEXT);
+
+    const [after] = applyPlan([manual], plan).map(view);
+    expect(view(manual).group).toBe("play");
+    expect(after.group).toBe("not_found");
+  });
+
+  it("en «¿Cuál de estos es?» no se ofrece «Volver a revisar» aunque haya cambiado el tipo de copia", () => {
+    const doom = entry("Doom", [playniteItem("Doom", EPIC, "doom", { matchState: "candidates", candidates: [CANDIDATE], copyKind: "purchased" })], {
+      igdbId: null,
+      catalog: null,
+    });
+
+    const game = view(doom);
+
+    expect(game).toMatchObject({ group: "which", decided: true });
+    expect(canGoBack(game)).toBe(false);
   });
 
   it("«Volver a revisar» devuelve el juego a su grupo", () => {

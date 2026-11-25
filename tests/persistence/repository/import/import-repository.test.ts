@@ -302,6 +302,18 @@ describe("createImportRepository", () => {
       expect(groupOfOnlyGame(review)).not.toBe("ready");
     });
 
+    it("volver desde el grupo al que pasó después de elegir lo deja en «¿Cuál de estos es?»", async () => {
+      const entryId = await chooseCandidate();
+      const before = groupOfOnlyGame(await imports.listOpenReview(USER_A));
+
+      await imports.clearDecision(USER_A, [entryId]);
+
+      const review = await imports.listOpenReview(USER_A);
+      expect(before).not.toBe("which");
+      expect(groupOfOnlyGame(review)).toBe("which");
+      expect(review.entries[0].items[0]).toMatchObject({ chosenIgdbId: null });
+    });
+
     it("lo elegido con «Buscar con otro nombre» vuelve a «No lo encontré»", async () => {
       await imports.upsertItems(USER_A, [newItem("viejo", { title: "Juego Viejo" })]);
       await imports.saveMatches(USER_A, [{ itemId: await itemIdOf(USER_A, "viejo"), kind: "not_found" }]);

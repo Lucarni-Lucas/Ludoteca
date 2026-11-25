@@ -7,7 +7,7 @@ import { GameCover } from "@/components/game/GameCover";
 import controls from "@/components/ui/controls.module.css";
 import { keptCopies } from "@/model/import/copies";
 import type { ImportCandidate } from "@/model/import/import-entry";
-import { isQuestionGroup, type ReviewChoice, type ReviewGame } from "@/model/import/review";
+import { canGoBack, isQuestionGroup, type ReviewChoice, type ReviewGame } from "@/model/import/review";
 
 import { useImportText } from "./import-text";
 import styles from "./ReviewRow.module.css";
@@ -161,6 +161,17 @@ function Origins({ game }: Readonly<{ game: ReviewGame }>) {
   );
 }
 
+/** Devuelve el juego a su primera pregunta sin respuestas; solo si tiene alguna (design.md §9). */
+function BackToReview({ game, disabled, onReset }: Pick<RowProps, "game" | "disabled" | "onReset">) {
+  const t = useTranslations("import.review");
+
+  return canGoBack(game) ? (
+    <button type="button" className={`${controls.ghost} ${styles.backToReview}`} disabled={disabled} onClick={onReset}>
+      {t("backToReview")}
+    </button>
+  ) : null;
+}
+
 function GameHeading({ game }: Readonly<{ game: ReviewGame }>) {
   return (
     <p className={styles.title}>
@@ -183,6 +194,7 @@ function BatchRow(props: RowProps) {
           <GameHeading game={game} />
           <Origins game={game} />
         </div>
+        <BackToReview {...props} />
       </div>
       {game.choices.length > 0 ? (
         <div className={styles.options}>
@@ -325,6 +337,7 @@ function QuestionRow(props: RowProps) {
       <div className={styles.arrivalLine}>
         <SelectToggle label={t("select", { title: game.title })} checked={selected} onToggle={onToggle} />
         <Arrivals game={game} />
+        <BackToReview {...props} />
       </div>
       {game.group === "which" ? <WhichOptions {...props} /> : null}
       {game.group === "how_left" ? <HowLeftOptions {...props} /> : null}
@@ -362,11 +375,7 @@ function ReadyRow({ game, selected, disabled, onToggle, onReset }: RowProps) {
           {game.nonGame ? t("notImported") : text.entersAs(game)}
         </p>
       </div>
-      {game.decided ? (
-        <button type="button" className={controls.ghost} disabled={disabled} onClick={onReset}>
-          {t("backToReview")}
-        </button>
-      ) : null}
+      <BackToReview game={game} disabled={disabled} onReset={onReset} />
     </li>
   );
 }

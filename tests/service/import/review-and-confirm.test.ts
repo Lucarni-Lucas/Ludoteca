@@ -67,6 +67,19 @@ describe("decide", () => {
     });
   });
 
+  it("Volver desde otro grupo", async () => {
+    const love = { igdbId: 40, baseIgdbId: 40, title: "Love", year: 2015, coverUrl: null };
+    const chosen = entry("Love", [playniteItem("LOVE", EPIC, "love", { matchState: "candidates", candidates: [love], chosenIgdbId: 40 })], {
+      igdbId: 40,
+    });
+    const { service, importRepo } = setup({ importRepo: withReview([chosen]) });
+
+    await service.decide(USER_ID, [chosen.id], { kind: "reset" });
+
+    expect(importRepo.clearDecision).toHaveBeenCalledWith(USER_ID, [chosen.id]);
+    expect(importRepo.saveDecision).not.toHaveBeenCalled();
+  });
+
   it("«Volver a revisar» borra las respuestas", async () => {
     const decided = entry("Beholder", [ignItem("Beholder", { ignStatuses: ["backlog"] })], { answers: { playAnswer: "keep" } });
     const { service, importRepo } = setup({ importRepo: withReview([decided]) });

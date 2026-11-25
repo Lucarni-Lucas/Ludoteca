@@ -55,6 +55,9 @@ const GAMES: readonly FakeGame[] = [
   { id: 27, name: "Fortnite", year: 2018, modes: ["multiplayer", "battle-royale"] },
   { id: 28, name: "Styx: Shards of Darkness", year: 2017, modes: ["single-player"] },
   { id: 29, name: "[REDACTED]", year: 2024, modes: ["single-player"] },
+  // La tercera prueba (04 tasks.md 10.5): LOVE de Epic, con 0 h, tiene dos candidatos con su nombre.
+  { id: 30, name: "Love", year: 2015, modes: ["single-player"] },
+  { id: 31, name: "Love", year: 2022, modes: ["single-player"] },
 ];
 
 // La fuente de Steam en external_games, verificada contra IGDB real (04 design.md §7).

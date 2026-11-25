@@ -148,7 +148,7 @@ a{color:#ECEEF2}a:hover{color:#FFFFFF}
         <section aria-labelledby="grupo-actual" style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
           <div>
             <h2 id="grupo-actual" style="margin: 0; font: 700 26px/1.15 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif">¿Cuál de estos es?</h2>
-            <p style="margin: 6px 0 0; color: #9AA3B2; max-width: 70ch">IGDB tiene más de un juego parecido. Elegí el tuyo: pasa a «Listos para importar». Si no está, buscalo con otro nombre.</p>
+            <p style="margin: 6px 0 0; color: #9AA3B2; max-width: 70ch">IGDB tiene más de un juego parecido. Elegí el tuyo y sigue con lo que le falte. Si no está, buscalo con otro nombre.</p>
           </div>
 
           <ul style="list-style: none; margin: 0; padding: 0; border-radius: 16px; background: #161A21; border: 1px solid #2A303B; overflow: hidden">
@@ -277,7 +277,28 @@ a{color:#ECEEF2}a:hover{color:#FFFFFF}
             <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #FFC2B7; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">No importar</button>
           </div>
         </li>
+        <li style="display: flex; flex-direction: column; gap: 12px; padding: 12px 18px 16px 4px; border-top: 1px solid #222832">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <button type="button" role="checkbox" aria-checked="false" aria-label="Seleccionar LOVE" style="flex: none; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer"><span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 6px; border: 2px solid #3A414E"></span></button>
+            <span aria-hidden="true" style="flex: none; width: 48px; height: 64px; border-radius: 6px; background: #45302F repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 10px); display: grid; place-items: center; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #C5CCD8">L</span>
+            <div style="flex: 1; min-width: 0">
+              <p style="margin: 0; font-weight: 600; overflow-wrap: anywhere">Love <span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">2015</span></p>
+              <p style="margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 6px"><span style="padding: 3px 8px; border-radius: 6px; background: #1E232C; font: 500 12px/1.3 'JetBrains Mono', ui-monospace, monospace; color: #C5CCD8">Epic Games · Gratis · 0 h</span></p>
+            </div>
+            <button type="button" style="flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 0; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Volver a revisar</button>
+          </div>
+          <div role="group" aria-label="¿Vas a jugar Love alguna vez?" style="display: flex; flex-wrap: wrap; gap: 8px; padding-left: 56px">
+            <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">Sí, algún día</button>
+            <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">No</button>
+            <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #FFC2B7; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">No importar</button>
+          </div>
+        </li>
       </ul>
+      <p style="margin: 0; font-size: 12px; color: #9AA3B2">↑ Love llegó a este grupo después de elegirlo en «¿Cuál de estos es?»: «Volver a revisar» lo devuelve a esa pregunta sin respuestas. Al elegirlo, el aviso dijo:</p>
+      <div role="status" style="align-self: center; max-width: min(640px, 100%); box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 14px; background: #1E232C; border: 1px solid rgba(200,242,90,0.4); box-shadow: 0 12px 32px rgba(0,0,0,0.5); font-size: 14px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C8F25A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="m5 12 5 5 9-10"></path></svg>
+        <span>«LOVE» pasó a «¿Lo vas a jugar alguna vez?».</span>
+      </div>
       <p style="margin: 0; font-size: 12px; color: #9AA3B2">↓ Con varios seleccionados, la barra ofrece las mismas respuestas. Ninguna pesa más que otra.</p>
       <div role="group" aria-label="Selección" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 14px; border: 1px solid #C8F25A; background: #1E232C">
         <span style="font-weight: 600">3 seleccionados</span>
@@ -410,7 +431,7 @@ a{color:#ECEEF2}a:hover{color:#FFFFFF}
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":4500}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":4750}}'>
 class Component extends DCLogic {
   // Pantalla estática: los grupos, las filas y las cantidades son de ejemplo (design.md §15 y §17).
   renderVals() {
