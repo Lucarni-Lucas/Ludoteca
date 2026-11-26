@@ -367,3 +367,22 @@
   flex: none;
   margin-left: auto;
 }
+
+/*
+ * En el celu, como en design/Movil-Importar.dc.html: el texto a la derecha de la portada y «Volver a revisar»
+ * debajo del texto, en lugar de bajar todo de renglón.
+ */
+@media (max-width: 1023px) {
+  .readyRow {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--space-10);
+  }
+
+  .readyRow > .backToReview {
+    grid-column: 3;
+    justify-self: start;
+    margin-left: calc(var(--space-12) * -1);
+  }
+}

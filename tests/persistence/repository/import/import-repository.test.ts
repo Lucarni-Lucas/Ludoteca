@@ -397,7 +397,10 @@ describe("createImportRepository", () => {
 
       const review = buildReview(await imports.listOpenReview(USER_A), { steamConnected: false });
       expect(review.excluded).toBe(1);
-      expect(review.groups.flatMap((group) => group.games)).toEqual([]);
+      const games = review.groups.flatMap((group) => group.games);
+      expect(games).toHaveLength(1);
+      expect(games[0]).toMatchObject({ group: "ready", excluded: true });
+      expect(games[0].origins).toHaveLength(2);
     });
 
     it("«Volver a revisar» después de elegir deja a Fortnite como una sola pregunta", async () => {

@@ -272,11 +272,15 @@ Los juegos sin nada dudoso y los que el usuario ya decidió en cualquier otro gr
 - **THEN** 112 Operator dice «Entra como Pendiente · Epic Games · Gratis»
 
 ### Requirement: Volver a revisar
-Un juego de «Listos para importar», o uno que pasó a otro grupo después de decir qué juego es, SHALL poder volver con «Volver a revisar» a su primera pregunta, sin ninguna de las respuestas que se habían dado.
+Un juego de «Listos para importar» (también uno que el usuario dejó afuera con «No importar», que se ve ahí como «No se importa»), o uno que pasó a otro grupo después de decir qué juego es, SHALL poder volver con «Volver a revisar» a su primera pregunta, sin ninguna de las respuestas que se habían dado.
 
 #### Scenario: Volver después de elegir un candidato
 - **WHEN** el usuario eligió un candidato para Crash Bandicoot en «¿Cuál de estos es?» y después toca «Volver a revisar» en «Listos para importar»
 - **THEN** Crash Bandicoot vuelve a «¿Cuál de estos es?» sin candidato elegido y deja de estar en «Listos para importar»
+
+#### Scenario: Arrepentirse de «No importar»
+- **WHEN** el usuario tocó «No importar» en 112 Operator, en «¿Lo vas a jugar alguna vez?», y se arrepiente
+- **THEN** 112 Operator aparece en «Listos para importar» como «No se importa», toca «Volver a revisar» y vuelve a «¿Lo vas a jugar alguna vez?» sin respuesta
 
 #### Scenario: Volver desde otro grupo
 - **WHEN** el usuario eligió «Love» de 2015 para LOVE, que pasó a «¿Lo vas a jugar alguna vez?», y toca «Volver a revisar»

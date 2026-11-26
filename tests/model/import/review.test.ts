@@ -368,16 +368,41 @@ describe("reviewGame", () => {
       expect(game).toMatchObject({ group: "ready", nonGame: true, decided: true, choices: [] });
     });
 
-    it("un juego que el usuario excluyó no aparece en ningún grupo", () => {
+    it("un juego que el usuario excluyó en «No lo encontré» está en «Listos para importar» y vuelve a su pregunta", () => {
       const excluded = entry("Crash", [ignItem("Crash", { matchState: "not_found" })], {
         igdbId: null,
         catalog: null,
         answers: { excluded: true },
       });
 
-      const game = reviewGame(excluded, [], CONNECTED);
+      const game = review(excluded);
 
-      expect(game).toBeNull();
+      expect(game).toMatchObject({ group: "ready", excluded: true, decided: true, choices: [], nonGame: false });
+      expect(review({ ...excluded, answers: { ...excluded.answers, excluded: false } }).group).toBe("not_found");
+    });
+
+    it("Arrepentirse de «No importar»", () => {
+      const operator = entry("112 Operator", [playniteItem("112 Operator", EPIC, "operator", { playtimeMinutes: 0 })], {
+        answers: { excluded: true },
+      });
+
+      const game = review(operator);
+
+      expect(game).toMatchObject({ group: "ready", excluded: true, decided: true });
+      expect(review({ ...operator, answers: { ...operator.answers, excluded: false } }).group).toBe("play");
+    });
+
+    it("un juego excluido en «¿Cuál de estos es?» vuelve a esa pregunta sin respuesta", () => {
+      const candidates = [
+        { igdbId: 1, baseIgdbId: 1, title: "Doom", year: 1993, coverUrl: null },
+        { igdbId: 2, baseIgdbId: 2, title: "Doom", year: 2016, coverUrl: null },
+      ];
+      const doom = entry("Doom", [ignItem("Doom", { matchState: "candidates", candidates })], { igdbId: null, catalog: null, answers: { excluded: true } });
+
+      const game = review(doom);
+
+      expect(game.group).toBe("ready");
+      expect(review({ ...doom, answers: { ...doom.answers, excluded: false } }).group).toBe("which");
     });
 
     it("un juego sin nada dudoso está en «Listos para importar» sin opciones", () => {
@@ -576,7 +601,8 @@ describe("buildReview", () => {
       "status",
       "ready",
     ]);
-    expect(gamesInGroup(result, "ready").map((game) => game.title)).toEqual(["Abzû", "Zelda"]);
+    expect(gamesInGroup(result, "ready").map((game) => game.title)).toEqual(["Abzû", "Excluido", "Zelda"]);
+    expect(countReady(result).games).toBe(2);
     expect(gamesInGroup(result, "endless").map((game) => game.title)).toEqual(["Among Us"]);
     expect(result).toMatchObject({ excluded: 1, upToDate: 1 });
   });

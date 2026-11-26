@@ -116,7 +116,7 @@ Qué tests se corren y cuándo:
 
 - **Durante una tarea:** solo los afectados por lo que se tocó. `npx vitest related <archivos tocados> --run` corre los tests que importan esos archivos, directa o indirectamente; `npx vitest run --changed` hace lo mismo con todo lo que no está commiteado. En e2e, solo los specs de las pantallas tocadas: `npx playwright test tests/e2e/<pantalla>.spec.ts`.
 - **Cuando lo tocado no se ve en los imports**, se amplía a mano: una migración o un cambio en `persistence/sql/` corre todos los tests de `tests/persistence/`; un cambio en `config/`, `shared/` o `styles/tokens.css`, toda la suite de Vitest.
-- **Suite completa** (`npm test` y `npm run test:e2e`): en la última tarea de cada etapa, antes de archivarla, y en el CI con cada push.
+- **Suite completa** (`npm test` y `npm run test:e2e`): solo en el CI, con cada push. El agente no la corre en la PC, tampoco al cerrar una etapa: la etapa se archiva recién con el CI en verde, y si falla se arregla antes.
 
 **REGLA INNEGOCIABLE:** no se modifica ni se borra un test existente sin un «sí» explícito del usuario. Un test que falla se arregla arreglando el código, no el test. Mover un test de carpeta y ajustar solo sus imports no cuenta como modificarlo.
 
@@ -166,9 +166,9 @@ SonarQube Cloud con menos de 10 issues. El código se escribe así desde el prin
 
 Una tarea o un cambio están terminados cuando:
 
-1. Los tests afectados pasan (ver «Qué tests se corren y cuándo»), con casos felices y de borde, y cada escenario de la spec tiene su test. Al cerrar la etapa, `npm test` completo.
+1. Los tests afectados pasan (ver «Qué tests se corren y cuándo»), con casos felices y de borde, y cada escenario de la spec tiene su test. Al cerrar la etapa, la suite completa pasa en el CI.
 2. `npm run lint`, `npm run typecheck` y `npm run build` terminan sin errores.
-3. Los e2e de las pantallas tocadas pasan, a 390 y a 1440 px. Al cerrar la etapa, `npm run test:e2e` completo.
+3. Los e2e de las pantallas tocadas pasan, a 390 y a 1440 px. Al cerrar la etapa, los e2e completos pasan en el CI.
 4. Cada pantalla tocada se comparó con su `.dc.html` de `design/`.
 5. No aparecen issues nuevos en SonarQube.
 6. Las tareas de `tasks.md` están marcadas.

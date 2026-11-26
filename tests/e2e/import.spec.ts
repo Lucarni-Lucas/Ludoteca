@@ -221,6 +221,24 @@ test.describe("importación", () => {
     await expect(gameRow(page, "Love").getByRole("button", { name: "Sí, algún día" })).toBeVisible();
   });
 
+  test("Arrepentirse de «No importar»", async ({ page }) => {
+    await signInAsNewAccount(page);
+    await page.goto("/import");
+    await upload(page, "Playnite", PLAYNITE_SAMPLE);
+    await waitForMatching(page);
+    await openGroup(page, "¿Lo vas a jugar alguna vez?");
+    await gameRow(page, "112 Operator").getByRole("button", { name: "No importar" }).click();
+    await expect(toast(page, "«112 Operator» no se va a importar.")).toBeVisible();
+    await openGroup(page, "Listos para importar");
+    await expect(gameRow(page, "112 Operator")).toContainText("No se importa");
+
+    await gameRow(page, "112 Operator").getByRole("button", { name: "Volver a revisar" }).click();
+
+    await expect(toast(page, "«112 Operator» volvió a «¿Lo vas a jugar alguna vez?».")).toBeVisible();
+    await openGroup(page, "¿Lo vas a jugar alguna vez?");
+    await expect(gameRow(page, "112 Operator").getByRole("button", { name: "Sí, algún día" })).toBeVisible();
+  });
+
   test("Volver desde otro grupo", async ({ page }) => {
     await signInAsNewAccount(page);
     await page.goto("/import");

@@ -98,6 +98,8 @@ export type ReviewGame = Readonly<{
    * importa, y traída con «Volver a revisar» está en «No lo encontré» (design.md §8).
    */
   nonGame: boolean;
+  /** Tiene «No importar», del usuario o del cruce: está en «Listos para importar» como «No se importa». */
+  excluded: boolean;
 }>;
 
 export type ReviewGroupView = Readonly<{ group: ReviewGroup; games: readonly ReviewGame[] }>;
@@ -106,6 +108,7 @@ export type ImportReview = Readonly<{
   groups: readonly ReviewGroupView[];
   /** Juegos que ya estaban en la biblioteca con todas sus copias. */
   upToDate: number;
+  /** Juegos con «No importar»: también están en «Listos para importar», como «No se importa». */
   excluded: number;
   pendingCount: number;
   itemCount: number;
@@ -308,11 +311,6 @@ function isNonGameEntry(entry: ImportEntry): boolean {
   return entry.items.every((item) => detectNonGame(item.title) !== null);
 }
 
-/** Lo que no es un juego y el cruce dejó en «No importar»: se ve en «Listos para importar» (design.md §8). */
-function isExcludedNonGame(entry: ImportEntry): boolean {
-  return entry.answers.excluded && hasOpenState(entry, "not_found") && isNonGameEntry(entry);
-}
-
 const EXCLUDE: ReviewChoice = { kind: "exclude" };
 const OTHER_STATUS: ReviewChoice = { kind: "other_status" };
 
@@ -399,19 +397,19 @@ function factsOf(entry: ImportEntry, library: readonly LibraryMatch[], context: 
 }
 
 /**
- * `null` si no hay nada que revisar: un juego excluido por el usuario o que ya estaba con todas sus copias.
- * Lo que no es un juego y excluyó el cruce sí se ve, en «Listos para importar» (design.md §8).
+ * `null` si no hay nada que revisar: un juego que ya estaba con todas sus copias. Uno con «No importar», del
+ * usuario o del cruce, se ve en «Listos para importar» como «No se importa», para poder traerlo (design.md §9).
  */
 export function reviewGame(entry: ImportEntry, library: readonly LibraryMatch[], context: ReviewContext): ReviewGame | null {
   const facts = factsOf(entry, library, context);
-  const excludedNonGame = isExcludedNonGame(entry);
+  const { excluded } = entry.answers;
 
-  if ((entry.answers.excluded && !excludedNonGame) || (facts.library && keptCopies(facts.copies).length === 0)) {
+  if (!excluded && facts.library && keptCopies(facts.copies).length === 0) {
     return null;
   }
 
   const suggestion = suggestionOf(facts);
-  const group = excludedNonGame ? "ready" : groupOf(facts, suggestion);
+  const group = excluded ? "ready" : groupOf(facts, suggestion);
   const firstItem = entry.items[0];
 
   return {
@@ -422,12 +420,13 @@ export function reviewGame(entry: ImportEntry, library: readonly LibraryMatch[],
     estimatedHours: entry.catalog?.estimatedHours ?? suggestion.hltbHours,
     origins: entry.items.filter((item) => item.matchState !== "absorbed").map(originOf),
     group,
-    choices: choicesOf(group, facts, context),
+    choices: excluded ? [] : choicesOf(group, facts, context),
     isThisQuestion: group === "which" && isThisQuestion(entry),
     manual: entry.answers.manualTitle !== null,
     itemIds: entry.items.map((item) => item.id),
     suggestion,
-    decided: facts.decided || excludedNonGame,
+    decided: facts.decided || excluded,
+    excluded,
     libraryGameId: facts.library?.libraryGameId ?? null,
     nonGame: hasOpenState(entry, "not_found") && isNonGameEntry(entry),
   };
@@ -441,15 +440,12 @@ function byTitle(a: ReviewGame, b: ReviewGame): number {
 export function buildReview(open: OpenReview, context: ReviewContext): ImportReview {
   const games: ReviewGame[] = [];
   let upToDate = 0;
-  let excluded = 0;
 
   for (const entry of open.entries) {
     const game = reviewGame(entry, open.library, context);
 
     if (game) {
       games.push(game);
-    } else if (entry.answers.excluded) {
-      excluded += 1;
     } else {
       upToDate += 1;
     }
@@ -461,7 +457,7 @@ export function buildReview(open: OpenReview, context: ReviewContext): ImportRev
       games: games.filter((game) => game.group === group).toSorted(byTitle),
     })),
     upToDate,
-    excluded,
+    excluded: games.filter((game) => game.excluded).length,
     pendingCount: open.pendingCount,
     itemCount: open.itemCount,
   };
@@ -477,8 +473,8 @@ export type ReadyCounts = Readonly<{ games: number; copies: number }>;
 export function countReady(review: ImportReview): ReadyCounts {
   const ready = gamesInGroup(review, "ready");
 
-  // Lo que no es un juego está en «Listos para importar» pero no entra (design.md §9).
-  const entering = ready.filter((game) => !game.nonGame);
+  // Lo que tiene «No importar», del usuario o del cruce, está en «Listos para importar» pero no entra (design.md §9).
+  const entering = ready.filter((game) => !game.excluded);
 
   return {
     games: entering.filter((game) => game.libraryGameId === null).length,

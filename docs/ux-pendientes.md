@@ -27,6 +27,7 @@ Cómo anotar: una línea por cosa, en la sección de su pantalla, con qué pasa 
 
 - Juegos con nombres muy largos o con muchas versiones: los candidatos se cortan o bajan de renglón y queda desprolijo. → Pensar candidatos en tarjetas o en una lista vertical.
 - Los avisos de cada acción tienen que verse cerca de donde tocaste, no arriba de todo.
+- Las portadas de la revisión son muy chicas: cuesta distinguir qué juego es, en todos los grupos y en los candidatos. → Portadas más grandes en toda la importación.
 
 ## Agregar juego (`/add`)
 

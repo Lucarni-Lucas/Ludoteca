@@ -560,7 +560,8 @@
       "movedManyTo": "{count, plural, one {# game moved to “{group}”.} other {# games moved to “{group}”.}}",
       "movedManySplit": "{count} games changed group: {list}.",
       "movedPart": "{count} to “{group}”",
-      "stayed": "“{title}” is still in “{group}”."
+      "stayed": "“{title}” is still in “{group}”.",
+      "excludedEntry": "Not imported"
     },
     "groups": {
       "which": {

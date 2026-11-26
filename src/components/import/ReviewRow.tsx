@@ -348,7 +348,7 @@ function QuestionRow(props: RowProps) {
   );
 }
 
-/** Lo que no es un juego no tiene portada: un círculo tachado dice que no entra. */
+/** Lo que no se importa no tiene portada: un círculo tachado dice que no entra. */
 function NonGameCover() {
   return (
     <span aria-hidden="true" className={styles.nonGameCover}>
@@ -361,6 +361,18 @@ function NonGameCover() {
 }
 
 /** «Listos para importar»: cómo va a entrar y, si lo decidió el usuario o el cruce, «Volver a revisar». */
+/** «No se importa»: lo dejó afuera el usuario con «No importar», o el cruce porque no es un juego (design.md §9). */
+function NotImportedInfo({ game }: Readonly<{ game: ReviewGame }>) {
+  const t = useTranslations("import.review");
+
+  return (
+    <div className={styles.readyInfo}>
+      <p className={`${styles.title} ${styles.muted}`}>{game.title}</p>
+      <p className={`${styles.enters} ${styles.muted}`}>{game.nonGame ? t("notImported") : t("excludedEntry")}</p>
+    </div>
+  );
+}
+
 function ReadyRow({ game, selected, disabled, onToggle, onReset }: RowProps) {
   const t = useTranslations("import.review");
   const text = useImportText();
@@ -368,13 +380,15 @@ function ReadyRow({ game, selected, disabled, onToggle, onReset }: RowProps) {
   return (
     <li className={styles.readyRow}>
       <SelectToggle label={t("select", { title: game.title })} checked={selected} onToggle={onToggle} />
-      {game.nonGame ? <NonGameCover /> : <GameCover title={game.title} coverUrl={game.coverUrl} variant="small" />}
-      <div className={styles.readyInfo}>
-        {game.nonGame ? <p className={`${styles.title} ${styles.muted}`}>{game.title}</p> : <GameHeading game={game} />}
-        <p className={game.nonGame ? `${styles.enters} ${styles.muted}` : styles.enters}>
-          {game.nonGame ? t("notImported") : text.entersAs(game)}
-        </p>
-      </div>
+      {game.excluded ? <NonGameCover /> : <GameCover title={game.title} coverUrl={game.coverUrl} variant="small" />}
+      {game.excluded ? (
+        <NotImportedInfo game={game} />
+      ) : (
+        <div className={styles.readyInfo}>
+          <GameHeading game={game} />
+          <p className={styles.enters}>{text.entersAs(game)}</p>
+        </div>
+      )}
       <BackToReview game={game} disabled={disabled} onReset={onReset} />
     </li>
   );

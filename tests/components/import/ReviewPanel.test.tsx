@@ -511,6 +511,34 @@ describe("ReviewPanel", () => {
       expect(onNotify).toHaveBeenCalledWith("«Crash Bandicoot» volvió a «¿Cuál de estos es?».");
     });
 
+    it("Arrepentirse de «No importar»", async () => {
+      const excluded = entry("112 Operator", [playniteItem("112 Operator", EPIC, "operator", { playtimeMinutes: 0 })], {
+        answers: { excluded: true },
+      });
+      const game = view(excluded);
+      const back = { ...excluded, answers: { ...excluded.answers, excluded: false } };
+      const { onDecide, onNotify } = renderPanel({ group: "ready", games: [game], onDecide: vi.fn(async () => reviewOf(back)) });
+
+      await userEvent.click(screen.getByRole("button", { name: "Volver a revisar" }));
+
+      expect(screen.getByText("No se importa")).toBeInTheDocument();
+      expect(screen.queryByText(/Entra como/)).not.toBeInTheDocument();
+      expect(onDecide).toHaveBeenCalledWith([game.entryId], { kind: "reset" });
+      expect(onNotify).toHaveBeenCalledWith("«112 Operator» volvió a «¿Lo vas a jugar alguna vez?».");
+    });
+
+    it("en lote, la barra de «Listos para importar» ofrece «Volver a revisar» para los que tienen «No importar»", async () => {
+      const games = ["Doom", "Quake"].map((title) =>
+        view(entry(title, [playniteItem(title, EPIC, title, { playtimeMinutes: 0 })], { answers: { excluded: true } })),
+      );
+      const { onDecide } = renderPanel({ group: "ready", games });
+
+      await userEvent.click(screen.getByRole("checkbox", { name: "Seleccionar los 2" }));
+      await userEvent.click(within(screen.getByRole("group", { name: "Selección" })).getByRole("button", { name: "Volver a revisar" }));
+
+      expect(onDecide).toHaveBeenCalledWith(games.map((value) => value.entryId), { kind: "reset" });
+    });
+
     it("Demo sin su juego", async () => {
       const demo = view(
         entry("Cuphead Demo", [playniteItem("Cuphead Demo", STEAM, "268910", { matchState: "not_found" })], {
