@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { readIgnExport } from "@/adapter/ign/ign-adapter";
 import { readPlayniteExport } from "@/adapter/playnite/playnite-adapter";
 import { gamesInGroup } from "@/model/import/review";
+import { DEFAULT_STATUSES } from "@/model/status/status";
 import { createImportRepository, type ImportRepository } from "@/persistence/repository/import/import-repository";
 import { createStoreConnectionRepository } from "@/persistence/repository/store/store-connection-repository";
 import { importEntry } from "@/persistence/sql/import/import-entry";
@@ -106,7 +107,7 @@ describe("importación contra la base", () => {
 
     const library = await repositories.games.listLibrary(USER_A);
     const byTitle = new Map(library.map((game) => [game.title, game]));
-    expect(await countRows(database, status)).toBe(10);
+    expect(await countRows(database, status)).toBe(DEFAULT_STATUSES.length);
     expect(await countRows(database, journalEntry)).toBe(0);
     expect(byTitle.get("20 Minutes Till Dawn")).toMatchObject({ score: 5, status: { systemKey: "abandoned" } });
     expect(byTitle.get("60 Seconds!")).toMatchObject({ hltbHours: 2.3, status: { systemKey: "completed" } });
@@ -119,7 +120,7 @@ describe("importación contra la base", () => {
     const open = await imports.listOpenReview(USER_A);
     const statuses = await seedStatuses(repositories, USER_A);
     const [first, second] = open.entries.filter((value) => value.catalogGameId !== null);
-    const values = { statusId: statuses[0].id, statusSince: TODAY, score: null, notInterested: false, endless: null, hltbHours: null };
+    const values = { statusId: statuses[0].id, statusSince: TODAY, score: null, hidden: false, endless: null, hltbHours: null };
     const broken = {
       games: [
         { entryId: first.id, target: { kind: "igdb" as const, catalogGameId: first.catalogGameId ?? "", values }, copies: [] },
@@ -127,7 +128,7 @@ describe("importación contra la base", () => {
         { entryId: second.id, target: { kind: "manual" as const, title: "Roto", year: null, values: { ...values, statusId: MISSING_ID } }, copies: [] },
       ],
       entryIds: [first.id, second.id],
-      summary: { games: 2, copies: 0, notInterested: 0, excluded: 0 },
+      summary: { games: 2, copies: 0, hidden: 0, excluded: 0 },
     };
 
     const apply = imports.applyConfirmation(USER_A, broken);
@@ -331,7 +332,7 @@ describe("importación contra la base", () => {
         igdbId: 504230,
         catalogGameId: expect.any(String),
         libraryGameId: expect.any(String),
-        statusKey: null,
+        statusId: null,
         endlessAnswer: null,
         playAnswer: null,
         manualTitle: null,
@@ -372,7 +373,7 @@ describe("importación contra la base", () => {
 
     const summaryOfB = await service.confirm(USER_B);
 
-    expect(summaryOfB).toEqual({ games: 0, copies: 0, notInterested: 0, excluded: 0 });
+    expect(summaryOfB).toEqual({ games: 0, copies: 0, hidden: 0, excluded: 0 });
     expect(await repositories.games.listLibrary(USER_B)).toEqual([]);
     expect((await imports.listOpenReview(USER_A)).entries.length).toBeGreaterThan(0);
     expect(await imports.summarizeSources(USER_B)).toEqual([]);

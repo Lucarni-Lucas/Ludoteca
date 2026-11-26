@@ -2,6 +2,7 @@ import type { CopyKind } from "@/model/copy/copy";
 import { InvalidImportDecisionError } from "@/model/import/errors";
 import type { DecisionWrite, ImportCandidate } from "@/model/import/import-entry";
 import type { ReviewChoice, ReviewGame } from "@/model/import/review";
+import { BACKLOG_KEY, findStatusByKey, offeredStatuses, type Status } from "@/model/status/status";
 import { STEAM_SLUG } from "@/model/store/store";
 
 /** Lo que el usuario hace con uno o varios juegos de un grupo. */
@@ -21,7 +22,8 @@ export type DecisionPlan = Readonly<{
   candidates: readonly Readonly<{ entryId: string; candidate: ImportCandidate }>[];
 }>;
 
-export type DecisionContext = Readonly<{ statusKeys: readonly string[] }>;
+/** Los estados activos del usuario: el elegido tiene que estar entre los que se le ofrecen al juego. */
+export type DecisionContext = Readonly<{ statuses: readonly Status[] }>;
 
 type GameWrite =
   | Readonly<{ kind: "write"; write: DecisionWrite }>
@@ -69,11 +71,23 @@ function steamCopyWrite(game: ReviewGame, copyKind: CopyKind): GameWrite {
   return steam ? copyWrite(game, steam.store.id, copyKind) : invalid();
 }
 
-function statusWrite(statusKey: string, context: DecisionContext): GameWrite {
-  return context.statusKeys.includes(statusKey) ? answer({ statusKey }) : invalid();
+/**
+ * Una respuesta de la fila, o uno de «Otro estado» que se le ofrece al juego. Los estados de IGN de «¿Cómo lo
+ * dejaste?» valen aunque no se le ofrecerían: Overwatch, solo multijugador, sigue después a «¿Es sin fin?».
+ */
+function statusWrite(game: ReviewGame, statusId: string, context: DecisionContext): GameWrite {
+  const inRow = game.choices.some((choice) => choice.kind === "status" && choice.status.id === statusId);
+  const offered = offeredStatuses(context.statuses, { endless: game.endless }).some((status) => status.id === statusId);
+  return inRow || offered ? answer({ statusId }) : invalid();
 }
 
-function offeredWrite(game: ReviewGame, choice: ReviewChoice): GameWrite {
+/** «Ocultar»: entra oculto, en el Backlog del usuario. */
+function hideWrite(context: DecisionContext): GameWrite {
+  const backlog = findStatusByKey(context.statuses, BACKLOG_KEY);
+  return backlog ? answer({ statusId: backlog.id, playAnswer: "hidden" }) : invalid();
+}
+
+function offeredWrite(game: ReviewGame, choice: ReviewChoice, context: DecisionContext): GameWrite {
   assertOffered(game, choice);
 
   switch (choice.kind) {
@@ -90,8 +104,12 @@ function offeredWrite(game: ReviewGame, choice: ReviewChoice): GameWrite {
       return answer({ endlessAnswer: false });
     case "keep":
       return answer({ playAnswer: "keep" });
-    case "not_interested":
-      return answer({ playAnswer: "not_interested" });
+    case "played":
+      return answer({ playAnswer: "played" });
+    case "hidden":
+      return answer({ playAnswer: "hidden" });
+    case "hide":
+      return hideWrite(context);
     default:
       // «Buscar con otro nombre» y «Otro estado» solo abren algo para elegir: no deciden nada.
       return invalid();
@@ -100,14 +118,14 @@ function offeredWrite(game: ReviewGame, choice: ReviewChoice): GameWrite {
 
 function choiceWrite(game: ReviewGame, choice: ReviewChoice, context: DecisionContext): GameWrite {
   if (choice.kind === "status") {
-    return statusWrite(choice.statusKey, context);
+    return statusWrite(game, choice.status.id, context);
   }
 
   if (choice.kind === "copy_kind") {
     return steamCopyWrite(game, choice.copyKind);
   }
 
-  return offeredWrite(game, choice);
+  return offeredWrite(game, choice, context);
 }
 
 function gameWrite(game: ReviewGame, decision: ImportDecision, context: DecisionContext): GameWrite {
@@ -154,7 +172,7 @@ export function planDecision(
   return { writes: [...writes.values()], resets: [], candidates };
 }
 
-/** Lo que dice el aviso: «Beholder pasó a «Listos para importar» con «Sin interés».» */
+/** Lo que dice el aviso: «Beholder pasó a «Listos para importar», oculto.» */
 export function decidedChoice(decision: ImportDecision): ReviewChoice | null {
   return decision.kind === "choose" ? decision.choice : null;
 }

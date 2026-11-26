@@ -41,7 +41,7 @@ test.describe("ayuda «?»", () => {
     await signInAsNewAccount(page);
     const gamePath = await addFromIgdb(page, "hades", "Hades");
     await page.goto(gamePath);
-    const button = helpButton(page, "Sin interés");
+    const button = helpButton(page, "Oculto");
     await button.click();
     const popover = page.getByText(/Lo tenés pero no pensás jugarlo/);
     await expect(popover).toBeVisible();
@@ -56,7 +56,7 @@ test.describe("ayuda «?»", () => {
     await signInAsNewAccount(page);
     const gamePath = await addFromIgdb(page, "hades", "Hades");
     await page.goto(gamePath);
-    const button = helpButton(page, "Sin interés");
+    const button = helpButton(page, "Oculto");
     await button.click();
     const popover = page.getByText(/Lo tenés pero no pensás jugarlo/);
     await expect(popover).toBeVisible();
@@ -95,7 +95,7 @@ test.describe("ayuda «?»", () => {
       page,
       edit,
       "Sin fin",
-      "Un juego que no se termina, como un multijugador: no tiene duración estimada.",
+      "Un juego que no se termina, como un multijugador: no tiene duración estimada y, cuando lo dejás, queda «Jugado».",
     );
     await expect(edit).toBeVisible();
   });
@@ -139,8 +139,8 @@ test.describe("ayuda «?»", () => {
     await expectHelpOpensAndCloses(
       page,
       filters,
-      "Sin interés",
-      "Lo tenés pero no pensás jugarlo: no aparece en la biblioteca ni en los conteos. Lo ves con «Mostrar sin interés».",
+      "Oculto",
+      "Lo tenés pero no pensás jugarlo: no aparece en la biblioteca ni en los conteos, pero «¿Lo tengo?» sabe que es tuyo. Lo ves con «Mostrar ocultos».",
     );
     await expectHelpOpensAndCloses(
       page,

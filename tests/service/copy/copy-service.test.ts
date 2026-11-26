@@ -6,7 +6,7 @@ import { InvalidStoreNameError } from "@/model/store/errors";
 import { createCopyService } from "@/service/copy/copy-service";
 
 import { buildGame, statusByKey } from "../../model/game/library-fixtures";
-import { clock, createFakeGameRepo, createFakeStoreRepo, fakeStoreResolver, statusService, TODAY, USER_ID } from "../game/fakes";
+import { clock, createFakeGameRepo, createFakeStoreRepo, fakeStoreResolver, TODAY, USER_ID } from "../game/fakes";
 
 function createFakeCopyRepo() {
   return {
@@ -24,7 +24,6 @@ function buildService(games = [buildGame({ id: "juego" })], storeRepo = createFa
     gameRepo,
     copyRepo,
     storeRepo,
-    statusService,
     storeResolver: fakeStoreResolver(storeRepo),
     clock,
   });
@@ -44,7 +43,6 @@ describe("addCopy", () => {
       USER_ID,
       "juego",
       { storeId: "steam", kind: "purchased", acquiredOn: null, familyOwner: null },
-      null,
     );
   });
 
@@ -97,40 +95,6 @@ describe("addCopy", () => {
 
     expect((copyRepo.addCopy.mock.calls[0] as unknown[])[2]).toMatchObject({ familyOwner: null });
   });
-
-  it("Compra de un juego deseado", async () => {
-    const game = buildGame({ id: "frostpunk", title: "Frostpunk", status: statusByKey("wishlist") });
-    const { service, copyRepo } = buildService([game]);
-
-    const result = await service.addCopy(USER_ID, "frostpunk", PURCHASED);
-
-    expect(result.movedTo).toMatchObject({ systemKey: "backlog", name: "Pendiente" });
-    expect((copyRepo.addCopy.mock.calls[0] as unknown[])[3]).toEqual({
-      statusId: "backlog",
-      statusSince: TODAY,
-      entry: { occurredOn: TODAY, fromStatusId: "wishlist", toStatusId: "backlog" },
-    });
-  });
-
-  it("Copia que no es propia", async () => {
-    const game = buildGame({ id: "frostpunk", status: statusByKey("wishlist") });
-    const { service, copyRepo } = buildService([game]);
-
-    const result = await service.addCopy(USER_ID, "frostpunk", { ...PURCHASED, kind: "subscription" });
-
-    expect(result.movedTo).toBeNull();
-    expect((copyRepo.addCopy.mock.calls[0] as unknown[])[3]).toBeNull();
-  });
-
-  it("no mueve un juego que no está en «Quiero jugarlo»", async () => {
-    const game = buildGame({ id: "hades", status: statusByKey("playing") });
-    const { service, copyRepo } = buildService([game]);
-
-    const result = await service.addCopy(USER_ID, "hades", PURCHASED);
-
-    expect(result.movedTo).toBeNull();
-    expect((copyRepo.addCopy.mock.calls[0] as unknown[])[3]).toBeNull();
-  });
 });
 
 describe("marcar «Ya no lo tengo»", () => {
@@ -168,15 +132,15 @@ describe("marcar «Ya no lo tengo»", () => {
 describe("addCopy de tipo Otro", () => {
   const GIFT = { store: { storeId: "steam" }, kind: "other" as const, acquiredOn: null, familyOwner: null, kindDetail: "Regalo" };
 
-  it("Regalo de un juego deseado", async () => {
+  it("agregar una copia a un juego de «Quiero jugarlo» no le cambia el estado", async () => {
     const game = buildGame({ id: "silksong", title: "Hollow Knight: Silksong", status: statusByKey("wishlist") });
     const { service, copyRepo } = buildService([game]);
 
-    const result = await service.addCopy(USER_ID, "silksong", GIFT);
+    await service.addCopy(USER_ID, "silksong", GIFT);
 
-    expect(result.movedTo).toMatchObject({ systemKey: "backlog", name: "Pendiente" });
-    expect((copyRepo.addCopy.mock.calls[0] as unknown[])[2]).toMatchObject({ kind: "other", kindDetail: "Regalo" });
-    expect((copyRepo.addCopy.mock.calls[0] as unknown[])[3]).toMatchObject({ statusId: "backlog" });
+    const call = copyRepo.addCopy.mock.calls[0] as unknown[];
+    expect(call[2]).toMatchObject({ kind: "other", kindDetail: "Regalo" });
+    expect(call).toHaveLength(3);
   });
 
   it("Otro sin detalle", async () => {
@@ -188,7 +152,6 @@ describe("addCopy de tipo Otro", () => {
       USER_ID,
       "juego",
       { storeId: "steam", kind: "other", acquiredOn: null, familyOwner: null },
-      null,
     );
   });
 

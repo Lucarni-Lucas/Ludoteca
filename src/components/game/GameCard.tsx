@@ -8,7 +8,6 @@ import { useStatusText } from "@/components/status/status-text";
 import { ClockIcon } from "@/components/ui/icons";
 import { effectiveCover, formatHours, hasPlayedHours, type LibraryGame, playedHours } from "@/model/game/library-game";
 import { formatScore } from "@/model/game/score";
-import { isWishlist } from "@/model/status/status";
 
 import { GameCover } from "./GameCover";
 import styles from "./GameCard.module.css";
@@ -35,7 +34,8 @@ function playedText(game: LibraryGame, t: CardTranslator): string | null {
 function CardContents({ game }: Readonly<{ game: LibraryGame }>) {
   const t = useTranslations("library.card");
   const statusText = useStatusText();
-  const notBought = isWishlist(game.status) && game.copies.length === 0;
+  // Cualquier juego sin copias, esté en el estado que esté (`04` design.md §19).
+  const notBought = game.copies.length === 0;
   const played = playedText(game, t);
 
   return (
@@ -70,7 +70,7 @@ function CardContents({ game }: Readonly<{ game: LibraryGame }>) {
         </span>
         <span className={styles.chips}>
           {game.source === "manual" ? <span className={styles.badge}>{t("manual")}</span> : null}
-          {game.notInterested ? <span className={styles.badge}>{t("notInterested")}</span> : null}
+          {game.hidden ? <span className={styles.badge}>{t("hidden")}</span> : null}
           <CopyChips copies={game.copies} notBought={notBought} />
         </span>
       </span>

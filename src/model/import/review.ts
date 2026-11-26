@@ -13,10 +13,22 @@ import type { IgnStatus, ImportSource } from "@/model/import/import-row";
 import { detectNonGame } from "@/model/import/non-game";
 import { titleKey } from "@/model/import/title-match";
 import { normalizeText } from "@/model/game/normalize-text";
-import { BACKLOG_KEY } from "@/model/status/status";
+import {
+  ABANDONED_KEY,
+  BACKLOG_KEY,
+  COMPLETED_KEY,
+  findStatusByKey,
+  PLAYED_KEY,
+  PLAYING_KEY,
+  type Status,
+  TRIED_KEY,
+} from "@/model/status/status";
 
-const COMPLETED_KEY = "completed";
-export const PLAYED_KEY = "played";
+/** Con menos de esto jugado, un juego en Backlog pregunta si lo vas a jugar; con esto o más, cómo lo dejaste. */
+export const MIN_PLAYED_MINUTES = 60;
+
+/** Lo que la revisión necesita de un estado para ofrecerlo y nombrarlo. */
+export type StatusRef = Pick<Status, "id" | "name" | "systemKey">;
 
 /** En este orden: cada juego está en el primero que le toca (design.md §9). */
 export const REVIEW_GROUPS = ["which", "how_left", "not_found", "family", "endless", "play", "status", "ready"] as const;
@@ -39,7 +51,7 @@ export function isQuestionGroup(group: ReviewGroup): boolean {
 export type ReviewChoice =
   | Readonly<{ kind: "candidate"; candidate: ImportCandidate }>
   | Readonly<{ kind: "search" }>
-  | Readonly<{ kind: "status"; statusKey: string }>
+  | Readonly<{ kind: "status"; status: StatusRef }>
   | Readonly<{ kind: "other_status" }>
   | Readonly<{ kind: "manual" }>
   | Readonly<{ kind: "exclude" }>
@@ -47,7 +59,12 @@ export type ReviewChoice =
   | Readonly<{ kind: "endless" }>
   | Readonly<{ kind: "completed" }>
   | Readonly<{ kind: "keep" }>
-  | Readonly<{ kind: "not_interested" }>;
+  /** «Ya lo jugué»: no contesta el estado, pasa a «Elegí un estado». */
+  | Readonly<{ kind: "played" }>
+  /** «No» en «¿Lo vas a jugar alguna vez?»: entra oculto, en Backlog. */
+  | Readonly<{ kind: "hidden" }>
+  /** «Ocultar» en «Elegí un estado»: entra oculto, en Backlog. */
+  | Readonly<{ kind: "hide" }>;
 
 /** De dónde vino cada fila, para «IGN · Beat · 9» o «En Epic: Castlevania Anniversary Collection · 2019». */
 export type ReviewOrigin = Readonly<{
@@ -64,9 +81,10 @@ export type ReviewOrigin = Readonly<{
 
 /** Lo que entraría a la biblioteca, ya con las decisiones aplicadas. */
 export type ReviewSuggestion = Readonly<{
-  statusKey: string;
+  /** Vacío si el estado que le tocaría no está activo: entonces el juego pregunta en «Elegí un estado». */
+  status: StatusRef | null;
   score: number | null;
-  notInterested: boolean;
+  hidden: boolean;
   endless: boolean;
   hltbHours: number | null;
   copies: readonly SuggestedCopy[];
@@ -84,6 +102,8 @@ export type ReviewGame = Readonly<{
   choices: readonly ReviewChoice[];
   /** Un solo candidato con otro nombre: la pregunta es «¿Es este juego?». */
   isThisQuestion: boolean;
+  /** Solo multijugador o «Sí, no se termina»: cambia qué estados se le ofrecen (design.md §19). */
+  endless: boolean;
   /** Entra cargado a mano, con el título que trajo. */
   manual: boolean;
   /** Las filas del juego: después de «Volver a revisar» dicen adónde volvió, aunque cambie de juego a revisar. */
@@ -116,8 +136,11 @@ export type ImportReview = Readonly<{
 
 export type ReviewContext = Readonly<{
   steamConnected: boolean;
-  /** Los `system_key` de los estados del usuario: una respuesta de «Elegí un estado» sin su estado no se ofrece. */
-  statusKeys?: readonly string[];
+  /**
+   * Los estados activos del usuario: un estado de fábrica se reconoce por su `system_key` aunque esté renombrado,
+   * y una respuesta cuyo estado no está activo no se ofrece (design.md §9, «Los estados del usuario»).
+   */
+  statuses: readonly Status[];
 }>;
 
 /** Lo que se sabe de un juego antes de elegir su grupo. */
@@ -126,7 +149,13 @@ type EntryFacts = Readonly<{
   library: LibraryMatch | undefined;
   ignItems: readonly ImportItem[];
   copies: readonly SuggestedCopy[];
-  ignStatusKeys: readonly string[];
+  /** Los estados activos que corresponden a los de IGN. */
+  ignStatuses: readonly Status[];
+  /** Algún estado de IGN no tiene un estado activo. */
+  ignInactive: boolean;
+  /** Solo multijugador, o se respondió que no se termina. */
+  endless: boolean;
+  statuses: readonly Status[];
   decided: boolean;
 }>;
 
@@ -139,14 +168,22 @@ function ignStatusesOf(items: readonly ImportItem[]): readonly IgnStatus[] {
   return [...new Set(items.flatMap((item) => item.ignStatuses))];
 }
 
-function ignStatusKeys(items: readonly ImportItem[], copies: readonly SuggestedCopy[]): readonly string[] {
-  const suggestion = suggestIgnStatus(ignStatusesOf(items), keptCopies(copies).length > 0);
+function ignStatusKeys(items: readonly ImportItem[]): readonly string[] {
+  const suggestion = suggestIgnStatus(ignStatusesOf(items));
 
   if (suggestion.kind === "none") {
     return [];
   }
 
   return suggestion.kind === "single" ? [suggestion.statusKey] : suggestion.statusKeys;
+}
+
+function activeByKeys(statuses: readonly Status[], keys: readonly string[]): readonly Status[] {
+  return keys.flatMap((key) => findStatusByKey(statuses, key) ?? []);
+}
+
+function toRef(status: Status): StatusRef {
+  return { id: status.id, name: status.name, systemKey: status.systemKey };
 }
 
 function firstScore(items: readonly ImportItem[]): number | null {
@@ -162,25 +199,48 @@ function hasChosenGame(entry: ImportEntry): boolean {
 }
 
 function isDecided(entry: ImportEntry, copies: readonly SuggestedCopy[]): boolean {
-  const { statusKey, endlessAnswer, playAnswer, manualTitle } = entry.answers;
-  const answered = [statusKey, endlessAnswer, playAnswer, manualTitle].some((answer) => answer !== null);
+  const { statusId, endlessAnswer, playAnswer, manualTitle } = entry.answers;
+  const answered = [statusId, endlessAnswer, playAnswer, manualTitle].some((answer) => answer !== null);
 
   return answered || copies.some((copy) => copy.chosen) || hasChosenGame(entry);
 }
 
-function baseStatusKey(facts: EntryFacts): string {
-  return facts.entry.answers.statusKey ?? facts.ignStatusKeys[0] ?? BACKLOG_KEY;
+/**
+ * El elegido, si no el de IGN, si no Backlog. Si IGN lo trae solo en estados desactivados no hay sugerencia: no
+ * se adivina otro estado.
+ */
+function baseStatus(facts: EntryFacts): Status | null {
+  const { statusId } = facts.entry.answers;
+
+  if (statusId !== null) {
+    return facts.statuses.find((status) => status.id === statusId) ?? null;
+  }
+
+  if (facts.ignInactive && facts.ignStatuses.length === 0) {
+    return null;
+  }
+
+  return facts.ignStatuses[0] ?? findStatusByKey(facts.statuses, BACKLOG_KEY) ?? null;
+}
+
+function suggestedStatus(facts: EntryFacts): Status | null {
+  if (facts.entry.answers.endlessAnswer === true) {
+    return findStatusByKey(facts.statuses, PLAYED_KEY) ?? null;
+  }
+
+  return baseStatus(facts);
 }
 
 function suggestionOf(facts: EntryFacts): ReviewSuggestion {
   const { entry, ignItems, copies } = facts;
-  const endless = entry.answers.endlessAnswer === true;
+  const status = suggestedStatus(facts);
 
   return {
-    statusKey: endless ? PLAYED_KEY : baseStatusKey(facts),
+    status: status ? toRef(status) : null,
     score: firstScore(ignItems),
-    notInterested: entry.answers.playAnswer === "not_interested",
-    endless,
+    hidden: entry.answers.playAnswer === "hidden",
+    // «Jugado» solo existe para un juego sin fin: entra con la marca aunque IGDB no lo diga.
+    endless: entry.answers.endlessAnswer === true || status?.systemKey === PLAYED_KEY,
     hltbHours: hltbOf(ignItems),
     copies,
   };
@@ -192,27 +252,47 @@ function hasOpenState(entry: ImportEntry, state: ImportItem["matchState"]): bool
 }
 
 function needsStatusChoice(facts: EntryFacts): boolean {
-  return facts.entry.answers.statusKey === null && facts.ignStatusKeys.length > 1;
+  return facts.entry.answers.statusId === null && facts.ignStatuses.length > 1;
 }
 
 function knownHours(copies: readonly SuggestedCopy[]): readonly number[] {
   return keptCopies(copies).flatMap((copy) => (copy.playtimeMinutes === null ? [] : [copy.playtimeMinutes]));
 }
 
-function isPlayQuestion(facts: EntryFacts, suggestion: ReviewSuggestion): boolean {
-  const hours = knownHours(facts.copies);
-  const neverPlayed = hours.length > 0 && hours.every((minutes) => minutes === 0);
-  const unscoredFromIgn = facts.ignItems.length > 0 && suggestion.score === null;
-
-  return suggestion.statusKey === BACKLOG_KEY && facts.entry.answers.playAnswer === null && (unscoredFromIgn || neverPlayed);
+/** Sin ninguna copia con horas conocidas no hay total: `null` (design.md §9, «Las horas de 6 y 7»). */
+function playedMinutes(copies: readonly SuggestedCopy[]): number | null {
+  const hours = knownHours(copies);
+  return hours.length === 0 ? null : hours.reduce((total, minutes) => total + minutes, 0);
 }
 
-function isStatusQuestion(facts: EntryFacts): boolean {
+function isPlayQuestion(facts: EntryFacts, suggestion: ReviewSuggestion): boolean {
+  const { statusId, playAnswer } = facts.entry.answers;
+  const minutes = playedMinutes(facts.copies);
+
   return (
-    facts.ignItems.length === 0 &&
-    facts.entry.answers.statusKey === null &&
-    knownHours(facts.copies).some((minutes) => minutes > 0)
+    suggestion.status?.systemKey === BACKLOG_KEY &&
+    statusId === null &&
+    playAnswer === null &&
+    suggestion.score === null &&
+    minutes !== null &&
+    minutes < MIN_PLAYED_MINUTES
   );
+}
+
+/** «Ya lo jugué», o jugado sin un estado de IGN que sirva, o un estado que no está activo (design.md §9). */
+function isStatusQuestion(facts: EntryFacts, suggestion: ReviewSuggestion): boolean {
+  const { statusId, playAnswer } = facts.entry.answers;
+
+  if (statusId !== null || playAnswer === "hidden") {
+    return false;
+  }
+
+  if (playAnswer === "played" || suggestion.status === null) {
+    return true;
+  }
+
+  const minutes = playedMinutes(facts.copies);
+  return suggestion.status.systemKey === BACKLOG_KEY && minutes !== null && minutes >= MIN_PLAYED_MINUTES;
 }
 
 function isFamilyQuestion(copies: readonly SuggestedCopy[]): boolean {
@@ -220,7 +300,9 @@ function isFamilyQuestion(copies: readonly SuggestedCopy[]): boolean {
 }
 
 function isEndlessQuestion(facts: EntryFacts, suggestion: ReviewSuggestion): boolean {
-  return suggestion.statusKey === COMPLETED_KEY && facts.entry.multiplayerOnly && facts.entry.answers.endlessAnswer === null;
+  return (
+    suggestion.status?.systemKey === COMPLETED_KEY && facts.entry.multiplayerOnly && facts.entry.answers.endlessAnswer === null
+  );
 }
 
 /** Cargado a mano, el juego ya dice qué es aunque sus filas sigan sin cruce. */
@@ -271,7 +353,7 @@ function groupOf(facts: EntryFacts, suggestion: ReviewSuggestion): ReviewGroup {
     return "play";
   }
 
-  return isStatusQuestion(facts) ? "status" : "ready";
+  return isStatusQuestion(facts, suggestion) ? "status" : "ready";
 }
 
 function openItems(entry: ImportEntry): readonly ImportItem[] {
@@ -314,17 +396,23 @@ function isNonGameEntry(entry: ImportEntry): boolean {
 const EXCLUDE: ReviewChoice = { kind: "exclude" };
 const OTHER_STATUS: ReviewChoice = { kind: "other_status" };
 
-/** Las respuestas de «Elegí un estado», en este orden; «Otro estado» abre la lista con todos (design.md §9). */
-export const STATUS_ANSWER_KEYS = ["playing", COMPLETED_KEY, "abandoned", "tried"] as const;
+/** Las respuestas de «Elegí un estado», en este orden; «Otro estado» abre la lista (design.md §9). */
+export const STATUS_ANSWER_KEYS = [PLAYING_KEY, COMPLETED_KEY, ABANDONED_KEY, TRIED_KEY] as const;
+
+/** Las de un juego sin fin: «Lo sigo jugando», «Ya no lo juego» y «Lo probé». */
+export const ENDLESS_STATUS_ANSWER_KEYS = [PLAYING_KEY, PLAYED_KEY, TRIED_KEY] as const;
 
 function whichChoices(entry: ImportEntry): readonly ReviewChoice[] {
   const candidates = candidatesOf(entry).map((candidate) => ({ kind: "candidate" as const, candidate }));
   return [...candidates, { kind: "search" }, EXCLUDE];
 }
 
+function statusChoice(status: Status): ReviewChoice {
+  return { kind: "status", status: toRef(status) };
+}
+
 function howLeftChoices(facts: EntryFacts): readonly ReviewChoice[] {
-  const statuses = facts.ignStatusKeys.map((statusKey) => ({ kind: "status" as const, statusKey }));
-  return [...statuses, OTHER_STATUS, EXCLUDE];
+  return [...facts.ignStatuses.map(statusChoice), OTHER_STATUS, EXCLUDE];
 }
 
 function familyChoices(copies: readonly SuggestedCopy[]): readonly ReviewChoice[] {
@@ -335,18 +423,29 @@ function familyChoices(copies: readonly SuggestedCopy[]): readonly ReviewChoice[
   return [{ kind: "copy_kind", copyKind: "family" }, { kind: "copy_kind", copyKind: "purchased" }, EXCLUDE];
 }
 
-/** Sin los estados del usuario se ofrecen los cuatro: al confirmar se crean los de fábrica. */
-function statusChoices(context: ReviewContext): readonly ReviewChoice[] {
-  const available = STATUS_ANSWER_KEYS.filter((statusKey) => context.statusKeys?.includes(statusKey) ?? true);
-  return [...available.map((statusKey) => ({ kind: "status" as const, statusKey })), OTHER_STATUS, EXCLUDE];
+function hasActive(facts: EntryFacts, systemKey: string): boolean {
+  return findStatusByKey(facts.statuses, systemKey) !== undefined;
+}
+
+/** Una respuesta fija cuyo estado no está activo no se ofrece; «Ocultar» necesita un Backlog activo. */
+function statusChoices(facts: EntryFacts): readonly ReviewChoice[] {
+  const keys = facts.endless ? ENDLESS_STATUS_ANSWER_KEYS : STATUS_ANSWER_KEYS;
+  const answers = activeByKeys(facts.statuses, keys).map(statusChoice);
+  const hide: readonly ReviewChoice[] = hasActive(facts, BACKLOG_KEY) ? [{ kind: "hide" }] : [];
+  return [...answers, OTHER_STATUS, ...hide, EXCLUDE];
+}
+
+function endlessChoices(facts: EntryFacts): readonly ReviewChoice[] {
+  const endless: readonly ReviewChoice[] = hasActive(facts, PLAYED_KEY) ? [{ kind: "endless" }] : [];
+  return [...endless, { kind: "completed" }, EXCLUDE];
 }
 
 const NOT_FOUND_CHOICES: readonly ReviewChoice[] = [{ kind: "search" }, { kind: "manual" }, EXCLUDE];
-const ENDLESS_CHOICES: readonly ReviewChoice[] = [{ kind: "endless" }, { kind: "completed" }, EXCLUDE];
-const PLAY_CHOICES: readonly ReviewChoice[] = [{ kind: "keep" }, { kind: "not_interested" }, EXCLUDE];
+// Solo pregunta un juego que entraría en un Backlog activo, así que las cuatro se ofrecen siempre.
+const PLAY_CHOICES: readonly ReviewChoice[] = [{ kind: "keep" }, { kind: "played" }, { kind: "hidden" }, EXCLUDE];
 
 /** Las respuestas de cada grupo, ninguna marcada (design.md §9). */
-function choicesOf(group: ReviewGroup, facts: EntryFacts, context: ReviewContext): readonly ReviewChoice[] {
+function choicesOf(group: ReviewGroup, facts: EntryFacts): readonly ReviewChoice[] {
   switch (group) {
     case "which":
       return whichChoices(facts.entry);
@@ -357,11 +456,11 @@ function choicesOf(group: ReviewGroup, facts: EntryFacts, context: ReviewContext
     case "family":
       return familyChoices(facts.copies);
     case "endless":
-      return ENDLESS_CHOICES;
+      return endlessChoices(facts);
     case "play":
       return PLAY_CHOICES;
     case "status":
-      return statusChoices(context);
+      return statusChoices(facts);
     case "ready":
       return [];
   }
@@ -393,7 +492,20 @@ function factsOf(entry: ImportEntry, library: readonly LibraryMatch[], context: 
     library: match,
   });
 
-  return { entry, library: match, ignItems, copies, ignStatusKeys: ignStatusKeys(ignItems, copies), decided: isDecided(entry, copies) };
+  const keys = ignStatusKeys(ignItems);
+  const ignStatuses = activeByKeys(context.statuses, keys);
+
+  return {
+    entry,
+    library: match,
+    ignItems,
+    copies,
+    ignStatuses,
+    ignInactive: ignStatuses.length < keys.length,
+    endless: entry.multiplayerOnly || entry.answers.endlessAnswer === true,
+    statuses: context.statuses,
+    decided: isDecided(entry, copies),
+  };
 }
 
 /**
@@ -420,8 +532,9 @@ export function reviewGame(entry: ImportEntry, library: readonly LibraryMatch[],
     estimatedHours: entry.catalog?.estimatedHours ?? suggestion.hltbHours,
     origins: entry.items.filter((item) => item.matchState !== "absorbed").map(originOf),
     group,
-    choices: excluded ? [] : choicesOf(group, facts, context),
+    choices: excluded ? [] : choicesOf(group, facts),
     isThisQuestion: group === "which" && isThisQuestion(entry),
+    endless: facts.endless,
     manual: entry.answers.manualTitle !== null,
     itemIds: entry.items.map((item) => item.id),
     suggestion,

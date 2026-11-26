@@ -6,10 +6,12 @@ import { buildReview } from "@/model/import/review";
 import { createImportRepository, type ImportRepository } from "@/persistence/repository/import/import-repository";
 import { importEntry } from "@/persistence/sql/import/import-entry";
 import { importItem } from "@/persistence/sql/import/import-item";
+import { status } from "@/persistence/sql/status/status";
 
 import { createTestDatabase, type TestDatabase } from "../../pglite";
 import { createRepositories, entry, igdbData, seedStatuses, steamOf } from "../game/game-fixtures";
 import { USER_A, USER_B } from "../users";
+import { STATUSES } from "../../../model/import/import-fixtures";
 import { matchedGame, newItem } from "./import-fixtures";
 
 function candidate(igdbId: number, title: string, year: number): ImportCandidate {
@@ -69,14 +71,14 @@ describe("createImportRepository", () => {
       await imports.upsertItems(USER_A, [newItem("1")]);
       await matchAll(USER_A, { "1": 10 });
       const [entry] = (await imports.listOpenReview(USER_A)).entries;
-      await imports.saveDecision(USER_A, [entry.id], { answers: { playAnswer: "not_interested" } });
+      await imports.saveDecision(USER_A, [entry.id], { answers: { playAnswer: "hidden" } });
 
       const result = await imports.upsertItems(USER_A, [newItem("1", { title: "Hades II", ignScore: 9 })]);
 
       const [reviewed] = (await imports.listOpenReview(USER_A)).entries;
       expect(result).toEqual({ inserted: 0, updated: 1 });
       expect(reviewed.items[0]).toMatchObject({ title: "Hades II", ignScore: 9, matchState: "matched" });
-      expect(reviewed.answers.playAnswer).toBe("not_interested");
+      expect(reviewed.answers.playAnswer).toBe("hidden");
     });
 
     it("una fila confirmada no cambia", async () => {
@@ -230,11 +232,11 @@ describe("createImportRepository", () => {
     it("una decisión en lote toca solo los ids pedidos", async () => {
       const [first, second, third] = await threeEntries();
 
-      await imports.saveDecision(USER_A, [first, third], { answers: { playAnswer: "not_interested" } });
+      await imports.saveDecision(USER_A, [first, third], { answers: { playAnswer: "hidden" } });
 
       const { entries } = await imports.listOpenReview(USER_A);
       const answers = new Map(entries.map((entry) => [entry.id, entry.answers.playAnswer]));
-      expect([answers.get(first), answers.get(second), answers.get(third)]).toEqual(["not_interested", null, "not_interested"]);
+      expect([answers.get(first), answers.get(second), answers.get(third)]).toEqual(["hidden", null, "hidden"]);
     });
 
     it("el tipo de copia cambia solo las filas de esa tienda en los juegos pedidos", async () => {
@@ -248,18 +250,41 @@ describe("createImportRepository", () => {
       expect([kinds.get(first), kinds.get(second)]).toEqual([null, "family"]);
     });
 
+    it("una respuesta con un estado que se borra queda vacía", async () => {
+      const [first] = await threeEntries();
+      const [chosen] = await seedStatuses(createRepositories(database), USER_A);
+      await imports.saveDecision(USER_A, [first], { answers: { statusId: chosen.id } });
+
+      await database.db.delete(status).where(eq(status.id, chosen.id));
+
+      const entry = (await imports.listOpenReview(USER_A)).entries.find(({ id }) => id === first);
+      expect(entry?.answers.statusId).toBeNull();
+    });
+
+    it("una respuesta con un estado no cambia los juegos de otro usuario", async () => {
+      const [first] = await threeEntries();
+      const [chosen] = await seedStatuses(createRepositories(database), USER_A);
+
+      await imports.saveDecision(USER_B, [first], { answers: { statusId: chosen.id } });
+
+      const entry = (await imports.listOpenReview(USER_A)).entries.find(({ id }) => id === first);
+      expect(entry?.answers.statusId).toBeNull();
+    });
+
     it("«Volver a revisar» borra las respuestas del juego y de sus copias", async () => {
       const [first] = await threeEntries();
-      const steam = await steamOf(createRepositories(database), USER_A);
+      const repositories = createRepositories(database);
+      const steam = await steamOf(repositories, USER_A);
+      const [status] = await seedStatuses(repositories, USER_A);
       await imports.saveDecision(USER_A, [first], {
-        answers: { statusKey: "completed", endlessAnswer: true, excluded: true },
+        answers: { statusId: status.id, endlessAnswer: true, excluded: true },
         copies: { storeId: steam.id, copyKind: "purchased", excluded: true },
       });
 
       await imports.clearDecision(USER_A, [first]);
 
       const entry = (await imports.listOpenReview(USER_A)).entries.find(({ id }) => id === first);
-      expect(entry?.answers).toEqual({ statusKey: null, endlessAnswer: null, playAnswer: null, excluded: false, manualTitle: null });
+      expect(entry?.answers).toEqual({ statusId: null, endlessAnswer: null, playAnswer: null, excluded: false, manualTitle: null });
       expect(entry?.items[0]).toMatchObject({ copyKind: null, excluded: false });
     });
   });
@@ -277,7 +302,7 @@ describe("createImportRepository", () => {
     }
 
     function groupOfOnlyGame(review: OpenReview): string | undefined {
-      return buildReview(review, { steamConnected: false }).groups.find((view) => view.games.length > 0)?.group;
+      return buildReview(review, { steamConnected: false, statuses: STATUSES }).groups.find((view) => view.games.length > 0)?.group;
     }
 
     it("elegir un candidato guarda la elección sin pisar el cruce", async () => {
@@ -370,7 +395,7 @@ describe("createImportRepository", () => {
       const { entries } = await imports.listOpenReview(USER_A);
       expect(entries).toHaveLength(1);
       expect(entries[0].items.map((value) => value.sourceKey).toSorted()).toEqual(["epic:Fortnite", "fortnite-ign"]);
-      const [game] = buildReview(await imports.listOpenReview(USER_A), { steamConnected: false }).groups[0].games;
+      const [game] = buildReview(await imports.listOpenReview(USER_A), { steamConnected: false, statuses: STATUSES }).groups[0].games;
       expect(game.origins).toHaveLength(2);
     });
 
@@ -395,7 +420,7 @@ describe("createImportRepository", () => {
 
       await imports.saveDecision(USER_A, [waiting.id], { answers: { excluded: true } });
 
-      const review = buildReview(await imports.listOpenReview(USER_A), { steamConnected: false });
+      const review = buildReview(await imports.listOpenReview(USER_A), { steamConnected: false, statuses: STATUSES });
       expect(review.excluded).toBe(1);
       const games = review.groups.flatMap((group) => group.games);
       expect(games).toHaveLength(1);

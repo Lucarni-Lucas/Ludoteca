@@ -31,7 +31,7 @@ export type GameRepository = Readonly<{
   updateCorrections(userId: string, gameId: string, corrections: GameCorrections): Promise<void>;
   updateScore(userId: string, gameId: string, score: number | null): Promise<void>;
   updatePlayedMinutes(userId: string, gameId: string, minutes: number | null): Promise<void>;
-  setNotInterested(userId: string, gameIds: readonly string[], notInterested: boolean): Promise<void>;
+  setHidden(userId: string, gameIds: readonly string[], hidden: boolean): Promise<void>;
   linkToIgdb(userId: string, game: Pick<LibraryGame, "id" | "catalogGameId">, data: IgdbGameData): Promise<void>;
   updateCatalogFromIgdb(catalogGameId: string, data: IgdbGameData): Promise<void>;
   removeFromLibrary(userId: string, plan: GameRemovalPlan): Promise<void>;
@@ -232,10 +232,10 @@ export function createGameRepository(db: Database): GameRepository {
       return updateOwnGame(db, userId, gameId, { playedMinutesManual: minutes });
     },
 
-    async setNotInterested(userId, gameIds, notInterested) {
+    async setHidden(userId, gameIds, hidden) {
       await db
         .update(libraryGame)
-        .set({ notInterested })
+        .set({ hidden })
         .where(and(eq(libraryGame.userId, userId), inArray(libraryGame.id, [...gameIds])));
     },
 

@@ -13,6 +13,7 @@ La motivación está en `proposal.md` (Why) y los comportamientos en `specs/impo
 - **Entradas que no son juegos en ese archivo:** «Barony (Beta)», «Chivalry 2 - Public Testing», «KillingFloor2Beta», «Mortal Shell Tech Beta», «Nightingale - Legacy Mode», «Q.U.B.E. 2 Soundtrack» (todas de Epic y con su juego base en el mismo archivo) y «Ubisoft Connect Services» (Epic, sin juego base). De Steam llega «Homicipher: Demo», sin su juego. «[REDACTED]» no es un nombre tapado: es un juego de 2024 que se llama así.
 - **Lo que vio Lucas al importar sus datos reales:** Fortnite aparece dos veces en «¿Cuál de estos es?» (uno de IGN y otro de Epic) y Snakebird Complete dos veces en «No lo encontré»; quien lo ve puede creer que es un duplicado, no importar uno y perder el puntaje o las horas. «Styx: Shards of Darkness - Deluxe Edition» no cruza porque IGDB no tiene la edición con ese nombre. Y las sugerencias marcadas de los grupos de lote se aceptaban sin leerlas.
 - **El export de IGN** no está en el repo. Se diseña con la muestra de `tests/adapter/ign/ign-export-sample.json` (7 juegos inventados con el formato real): `records[]` con `ignId`, `name`, `alt`, `year`, `status`, `flags`, `score` entero, `steamId` y `hltb` (`[principal, extras, completo]` en horas). Lucas revisó el export real: `status` usa `playing`, `paused`, `backlog`, `beat` y `quit`; `flags` usa `playing`, `paused`, `backlog`, `completed` y `archived`. No hay ningún `wishlist` en sus datos.
+- **Los estados cambian con la tercera prueba de datos reales** (`specs/estados`, `biblioteca`, `catalogo`, `copias` y `navegacion` de este cambio): sale el estado «Sin fin» (queda la marca del juego), «Pendiente» pasa a «Backlog», «Quiero jugarlo» deja de ser la wishlist, «Sin interés» pasa a «Oculto» y comprar algo ya no cambia el estado. Lucas ya tiene datos en producción, así que hace falta una migración de datos (§21). Cada estado de fábrica ya tiene su `system_key` (`02` §8), y todo lo nuevo se apoya en eso y no en los nombres. Los estados desactivados son de la `07`: hasta entonces, todos los estados del usuario son activos.
 
 ## Goals / Non-Goals
 
@@ -42,6 +43,11 @@ La motivación está en `proposal.md` (Why) y los comportamientos en `specs/impo
 | Biblioteca vacía | `design/Escritorio-Importar.dc.html` (el ejemplo del final; `Main.dc.html` no la muestra) | El aviso «Todavía no cargaste ningún juego.» ofrece «Agregá tu primer juego» (principal, como hoy) e «Importar tu biblioteca»: son dos acciones distintas. |
 | Ficha | `design/Escritorio-Juego.dc.html`, `design/Movil-Juego.dc.html` | Una duración que vino de HowLongToBeat se ve «unas 2.3 h · HowLongToBeat», como hoy «· IGDB» y «· tuya» (§11). |
 | Guías «¿Cómo lo saco?» | Los ejemplos del final de `design/Escritorio-Importar.dc.html` (IGN) y de `design/Movil-Importar.dc.html` (Playnite) | Páginas propias con el estilo de Ajustes (§17). |
+| Cambiar el estado | `design/Escritorio-Estado.dc.html`, `design/Movil-Estado.dc.html` (cambian en este cambio) | Sin «Sin fin» y con «Backlog»; cada estado de fábrica con su línea de qué significa; la lista según el juego sea sin fin o no (§19). |
+| Biblioteca y filtros | `design/Main.dc.html`, `design/Movil-Biblioteca.dc.html`, `design/Movil-Filtros.dc.html` (cambian) | Los estados nuevos; «Sin comprar» en cualquier juego sin copias; «Mostrar ocultos» y la marca «OCULTO» (§20), que el lienzo no muestra y la app ya tiene desde `02`. |
+| Agregar juego | `design/Escritorio-Agregar.dc.html`, `design/Movil-AgregarManual.dc.html` (cambian) | El estado arranca en «Backlog», sin «Según las copias», con la línea del estado elegido debajo (§19). |
+| Ficha: ocultar y copias | `design/Escritorio-Juego.dc.html`, `design/Movil-Juego.dc.html` | «Ocultar» y «Volver a mostrar» donde hoy dice «Marcar sin interés» (§20). Agregar una copia ya no avisa un cambio de estado. |
+| Ajustes › Estados | `design/Escritorio-Estados.dc.html`, `design/Movil-Estados.dc.html` (cambian) | Solo los estados por defecto: sin «Sin fin» y con «Backlog». Renombrar, desactivar y crear estados son de la `07`. |
 
 ### 2. Rutas
 
@@ -77,8 +83,8 @@ Todas las tablas con id uuid, `created_at`, `updated_at`, `user_id` y RLS sin po
 |---|---|---|
 | `store_connection` | `store_id`, `account_id` (SteamID64, texto), `last_synced_at` (vacío hasta `05`) | Única `(user_id, store_id)` |
 | `import_item` | `source` (`ign` · `playnite` · `steam`), `source_key`, `title`, `alt_titles` (text[]), `year`, `store_id`, `store_game_id`, `playtime_minutes`, `ign_statuses` (text[]), `ign_score`, `hltb_main_hours`, `steam_app_id` (el de IGN, para cruzar), `match_state` (`pending` · `matched` · `candidates` · `not_found` · `absorbed`), `candidates` (jsonb), `chosen_igdb_id` (el juego que eligió el usuario, vacío si no eligió), `entry_id`, `copy_kind` (vacío = el sugerido), `excluded`, `confirmed_at` | Única `(user_id, source, source_key)`; `entry_id` con `on delete set null` |
-| `import_entry` | `igdb_id`, `catalog_game_id`, `multiplayer_only`, `manual_title`, `status_key`, `endless_answer`, `play_answer` (`keep` · `not_interested`), `excluded`, `library_game_id`, `confirmed_at` | Única `(user_id, igdb_id)`; `library_game_id` con `on delete set null` |
-| `library_game` (cambia) | suma `hltb_hours` (`numeric(6,1)`, vacío si no vino de IGN) | — |
+| `import_entry` | `igdb_id`, `catalog_game_id`, `multiplayer_only`, `manual_title`, `status_id` (el estado elegido; reemplaza a `status_key`, §9), `endless_answer`, `play_answer` (`keep` · `played` · `hidden`), `excluded`, `library_game_id`, `confirmed_at` | Única `(user_id, igdb_id)`; `library_game_id` y `status_id` con `on delete set null` |
+| `library_game` (cambia) | suma `hltb_hours` (`numeric(6,1)`, vacío si no vino de IGN); `not_interested` pasa a llamarse `hidden` (§20) | — |
 | `copy` (cambia) | suma `store_game_id` (texto) y `origin` (`manual` · `import` · `sync`, por defecto `manual`) | Única `(user_id, store_id, store_game_id)`: Postgres no compara los vacíos, así que las copias a mano no chocan |
 
 - **Una fila por cada fila de cada fuente (`import_item`) y un juego a revisar por cada juego de IGDB (`import_entry`).** Es lo que permite juntar fuentes en cualquier orden: Hollow Knight de IGN y de Steam son dos `import_item` que apuntan al mismo `import_entry`. Mientras no cruza, un juego a revisar junta las filas con el mismo nombre (§10): Fortnite de IGN y de Epic son un solo `import_entry` sin `igdb_id`.
@@ -86,11 +92,13 @@ Todas las tablas con id uuid, `created_at`, `updated_at`, `user_id` y RLS sin po
 - **`source_key`**: el `ignId` en IGN, `<slug de la tienda>:<providerGameId>` en Playnite y el appid en Steam.
 - **`candidates`** guarda hasta 5 candidatos de IGDB (id, nombre, año, portada) para mostrarlos sin volver a consultar.
 - **El cruce ya escribe el catálogo.** Al cruzar un juego se hace el upsert de `catalog_game` con lo de IGDB (`upsertIgdbCatalog` de `02`), y `import_entry` apunta ahí. El catálogo es compartido: un juego que al final no se importa deja una fila de catálogo, igual que una búsqueda que agrega y después quita.
-- **Las decisiones son las columnas de respuesta** (`status_key`, `endless_answer`, `play_answer`, `manual_title`, `excluded`, el `copy_kind` de cada fila y el `chosen_igdb_id` de cada fila). Cada columna contesta una sola pregunta: con valor, esa pregunta ya no se hace y el juego pasa a la siguiente que le toque, o a «Listos para importar» si no le queda ninguna (§9). No hace falta otra marca de «revisado».
+- **Las decisiones son las columnas de respuesta** (`status_id`, `endless_answer`, `play_answer`, `manual_title`, `excluded`, el `copy_kind` de cada fila y el `chosen_igdb_id` de cada fila). Cada columna contesta una sola pregunta: con valor, esa pregunta ya no se hace y el juego pasa a la siguiente que le toque, o a «Listos para importar» si no le queda ninguna (§9). No hace falta otra marca de «revisado».
 - **Elegir un juego no pisa el cruce.** Al elegir un candidato o un juego de «Buscar con otro nombre», la fila guarda `chosen_igdb_id` y se muda al juego a revisar de ese juego de IGDB (o lo toma, si no hay otro), pero su `match_state` y sus `candidates` quedan como estaban. «Volver a revisar» borra `chosen_igdb_id` y devuelve las filas a un juego a revisar nuevo, sin juego de IGDB: vuelve a «¿Cuál de estos es?» con sus candidatos, o a «No lo encontré». Las filas que habían elegido el mismo juego vuelven juntas a uno solo, así Fortnite de IGN y de Epic sigue siendo una sola pregunta (§10). Así lo pide «Volver a revisar» de la spec; antes la elección se guardaba como `match_state = matched` con los candidatos de marca, y «Volver a revisar» no podía deshacerla. La columna nueva va en una migración nueva, generada por drizzle-kit.
 - **`hltb_hours`** va aparte de `estimated_hours`: la duración de HowLongToBeat no es una corrección del usuario (§16).
 - **`multiplayer_only`** va en `import_entry` y no en el catálogo: solo sirve para sugerir «sin fin» en la revisión.
-- **Enumerados con `pgEnum`**: `import_source`, `import_match_state`, `import_play_answer` y `copy_origin`. Las migraciones las genera drizzle-kit; ninguna usa SQL crudo.
+- **Enumerados con `pgEnum`**: `import_source`, `import_match_state`, `import_play_answer` y `copy_origin`. Las migraciones las genera drizzle-kit; la única con SQL a mano es la del paso a los estados nuevos (§21), aprobada por Lucas.
+- **`status_id` y no `status_key`**: la respuesta guarda el estado del usuario por id, porque «Otro estado» también ofrece los estados creados por el usuario (spec «Los estados del usuario»), que no tienen `system_key`. Si el estado se borra, la respuesta se vacía y el juego vuelve a preguntar.
+- **`play_answer`**: `keep` es «Sí, algún día», `played` es «Ya lo jugué» (el juego pasa a «Elegí un estado») y `hidden` es «No» u «Ocultar» (entra oculto, en Backlog).
 
 ### 5. Lectura de los archivos
 
@@ -201,7 +209,7 @@ Un soundtrack cuyo juego tenés solo en otra tienda no cuelga: tener el soundtra
 
 **Cómo entraría cada juego** (lo que dice «Entra como…» en «Listos para importar»; no es una opción marcada en ningún grupo):
 
-- **Estado:** el de IGN según la tabla de la spec (Backlog es Pendiente si queda alguna copia sin excluir, y si no, Quiero jugarlo). Sin IGN: Pendiente. Con `status_key` elegido, ese.
+- **Estado:** el de IGN según la tabla de la spec (Backlog es Backlog, tenga copias o no), pasado al estado activo del usuario con ese `system_key` (ver «Los estados del usuario», abajo). Sin IGN: Backlog. Con `status_id` elegido, ese. «Sí, no se termina» es Jugado.
 - **Puntaje:** el de IGN con un decimal. IGN ya es entero, así que es el mismo número.
 - **Copias:** una por tienda (§8). Steam de la cuenta y Epic → Comprado y Gratis; Steam de Playnite que la cuenta tiene → se junta con la de la cuenta; Steam de Playnite que la cuenta no tiene → se pregunta en «¿Es de tu familia?»; el resto → Comprado. `copy_kind` pisa lo de la tienda.
 - **Horas de cada copia:** las de su tienda, sumando las filas colgadas de ella. En Steam manda la cuenta.
@@ -215,13 +223,23 @@ Un soundtrack cuyo juego tenés solo en otra tienda no cuelga: tener el soundtra
 | # | Grupo | Le toca si… | Respuestas |
 |---|---|---|---|
 | 1 | ¿Cuál de estos es? | Alguna fila está en `candidates` sin `chosen_igdb_id`, y no hay `manual_title` | Una tarjeta por candidato (portada, nombre completo y año), «Ninguno, lo busco yo» y «No importar». Con un solo candidato de otro nombre la pregunta es **«¿Es este juego?»**, con «Sí», «No, lo busco yo» y «No importar» |
-| 2 | ¿Cómo lo dejaste? | IGN trae dos estados y no hay `status_key` | Un botón por estado, dicho en palabras («Lo terminaste», «Lo abandonaste», «Lo estás jugando», «Lo pausaste», «Lo tenés pendiente», «Lo querés jugar»), «Otro estado» y «No importar». Arriba, «IGN lo tiene como terminado y como abandonado». «Otro estado» muestra los demás estados como botones, sin ninguno marcado |
+| 2 | ¿Cómo lo dejaste? | IGN trae dos estados activos y no hay `status_id` | Un botón por estado, dicho en palabras («Lo terminaste», «Lo abandonaste», «Lo estás jugando», «Lo pausaste», «Lo tenés en Backlog», «Lo querés jugar pronto»), «Otro estado» y «No importar». Arriba, «IGN lo tiene como terminado y como abandonado». «Otro estado» muestra los demás estados como botones, sin ninguno marcado |
 | 3 | No lo encontré | Alguna fila está en `not_found` sin `chosen_igdb_id`, no hay `manual_title`, y no es algo que no es juego excluido por el cruce (§8) | «Buscar con otro nombre», «Cargar a mano» y «No importar». A una entrada que no es juego, traída con «Volver a revisar», se le suma la línea «No parece un juego: es una demo, una beta, un soundtrack o algo parecido.» |
 | 4 | ¿Es de tu familia? | Tiene una copia de Steam de Playnite que la cuenta no tiene, sin `copy_kind` elegido, o una fila de Steam de Playnite con la cuenta sin conectar | «Sí, es de mi familia» (copia Steam · Familia), «No, es mío» (Steam · Comprado) y «No importar» |
-| 5 | ¿Es sin fin? | Entraría como Completado, `multiplayer_only` y sin `endless_answer` | «Sí, no se termina» (Jugado con la marca sin fin), «No, lo terminé» (Completado) y «No importar» |
-| 6 | ¿Lo vas a jugar alguna vez? | Entraría como Pendiente, sin `play_answer`, y vino de IGN sin puntaje, o todas sus copias con horas conocidas (al menos una) dicen 0 | «Sí, algún día» (Pendiente), «No» (Sin interés) y «No importar» |
-| 7 | Elegí un estado | No vino de IGN, alguna copia tiene horas y no hay `status_key` | Como «¿Cómo lo dejaste?»: «Lo estoy jugando» (Jugando), «Lo terminé» (Completado), «Lo abandoné» (Abandonado), «Lo probé» (Lo probé), «Otro estado» y «No importar». «Otro estado» abre la lista con todos los estados del usuario, sin ninguno marcado. Las cuatro respuestas van por `system_key`, así un estado renombrado sigue andando; si el usuario borró alguno de esos estados, esa respuesta no aparece. El modelo valida el estado con los del usuario (`DecisionContext.statusKeys`), como ahora |
+| 5 | ¿Es sin fin? | Entraría como Completado, `multiplayer_only` y sin `endless_answer` | «Sí, no se termina» (Jugado con la marca sin fin), «No, lo terminé» (Completado) y «No importar». La respuesta cuyo estado está desactivado no aparece |
+| 6 | ¿Lo vas a jugar alguna vez? | Entraría como Backlog, sin puntaje, sin `play_answer` ni `status_id`, con al menos una copia con horas conocidas y menos de `MIN_PLAYED_MINUTES` = 60 en total entre las copias con horas | «Sí, algún día» (`keep`: Backlog), «Ya lo jugué» (`played`: pasa a 7), «No» (`hidden`: Backlog, oculto) y «No importar» |
+| 7 | Elegí un estado | No hay `status_id` y: respondió «Ya lo jugué»; o no tiene un estado de IGN que sirva (no vino de IGN o IGN lo tiene en Backlog) y tiene `MIN_PLAYED_MINUTES` o más; o IGN lo trae en un estado desactivado, tenga las horas que tenga | Si el juego tiene final: «Lo estoy jugando» (Jugando), «Lo terminé» (Completado), «Lo abandoné» (Abandonado) y «Lo probé». Si es sin fin (`multiplayer_only`): «Lo sigo jugando» (Jugando), «Ya no lo juego» (Jugado) y «Lo probé». En los dos, «Otro estado», «Ocultar» (Backlog, oculto: guarda el Backlog en `status_id` y `hidden` en `play_answer`) y «No importar». «Otro estado» abre la lista de los estados activos según «Estados según el juego» (§19), sin ninguno marcado |
 | 8 | Listos para importar | No le queda ninguna pregunta de las anteriores, o quedó afuera con «No importar» (del usuario o del cruce) | Cómo va a entrar, o «No se importa», y «Volver a revisar» en los que tienen alguna respuesta del usuario o del cruce |
+
+**Las horas de 6 y 7** son la suma de las copias que se importarían (sin las excluidas) con horas conocidas. Una copia de Steam que llega solo por Playnite no tiene horas conocidas (§5). Un juego sin ninguna copia con horas conocidas no está en 6: «No» lo dejaría oculto, y «Oculto» es algo tuyo que no pensás jugar; tampoco está en 7 salvo por «Ya lo jugué» o un estado de IGN desactivado. Portal 2 y Watch Dogs, de Steam por Playnite, pasan de «¿Es de tu familia?» a «Listos para importar» como Backlog.
+
+**Los estados del usuario** (spec «Los estados del usuario»). Nada de la importación depende del nombre de un estado:
+
+- **La revisión recibe los estados activos del usuario** (`ReviewContext.statuses`, que reemplaza a `statusKeys`), y la decisión los mismos (`DecisionContext.statuses`). Hasta la `07` todos los estados son activos; cuando la `07` sume «Desactivar», el servicio pasa solo los activos y el modelo no cambia. Antes de armar la revisión, el servicio crea los estados de fábrica si el usuario todavía no tiene, como al agregar un juego, así siempre hay un id para guardar.
+- **Un estado de IGN se pasa a `system_key` y de ahí al estado activo con esa clave**, aunque esté renombrado: Beat entra como «Terminado» si así le puso el usuario a Completado. Si no hay un estado activo con esa clave, ese estado de IGN no cuenta: con dos estados de IGN y uno desactivado queda uno solo, y si no queda ninguno el juego va a «Elegí un estado».
+- **Cada respuesta que elige un estado lleva su id** (`ReviewChoice` `status` con `statusId`), resuelto por `system_key` en las respuestas fijas (`STATUS_ANSWER_KEYS` y `ENDLESS_STATUS_ANSWER_KEYS`) y tal cual en «Otro estado». Una respuesta fija cuyo estado no está activo no se ofrece; lo mismo «Sí, algún día», «No» y «Ocultar» sin un Backlog activo, y «Sí, no se termina» sin un Jugado activo. El texto de la respuesta sale de su `system_key` y de si el juego es sin fin, nunca del nombre.
+- **«Entra como…», el aviso y «Otro estado» muestran el nombre del usuario** con `statusName` (`02` §8): el renombrado tal cual, el de fábrica en el idioma elegido.
+- El modelo valida que el `statusId` elegido esté entre los estados recibidos; si no, `InvalidImportDecisionError`. Al confirmar, `planImportConfirmation` usa ese id sin buscar por clave.
 
 **Después de decir qué juego es** (spec «Después de decir qué juego es»). Elegir un candidato, «Sí» en «¿Es este juego?», un juego de «Buscar con otro nombre» o «Cargar a mano» contesta solo las preguntas 1 y 3. Hasta ahora contaba como «decidido» y el juego iba directo a «Listos para importar», salteando las demás: LOVE, con 0 h y sin puntaje, nunca preguntaba si lo ibas a jugar. Ahora:
 
@@ -233,17 +251,17 @@ Un soundtrack cuyo juego tenés solo en otra tienda no cuelga: tener el soundtra
 
 **«No importar» deja afuera el juego entero en todos los grupos**, también en «¿Es de tu familia?»: antes ahí era «No importar esa copia», y dos botones con el mismo nombre que hacen cosas distintas confunden. Para cambiar el tipo de una copia sin responder la pregunta está «¿Cómo lo conseguiste?». «Otro tipo» sale de «¿Es de tu familia?» por lo mismo.
 
-**Las explicaciones de los grupos** (la línea de arriba de la lista) dicen qué hace cada respuesta cuando no es obvio. La de «¿Lo vas a jugar alguna vez?»: «Los tenés en alguna tienda, pero no tienen puntaje o nunca los abriste. «No» los suma a tu biblioteca como «Sin interés»: no los ves en la lista, pero «¿Lo tengo?» sabe que son tuyos. «No importar» los deja afuera.». La regla general que estaba arriba de cada grupo («Cada juego ya tiene marcada nuestra sugerencia…») pasa a «Tocá una respuesta y el juego sigue a la próxima pregunta que le toque, o a «Listos para importar» si no le queda ninguna. Para responder lo mismo en varios, seleccionalos.».
+**Las explicaciones de los grupos** (la línea de arriba de la lista) dicen qué hace cada respuesta cuando no es obvio. La de «¿Lo vas a jugar alguna vez?»: «Los tenés en Backlog, sin puntaje y con menos de 1 h jugada. «Ya lo jugué» te pregunta cómo lo dejaste. «No» los suma a tu biblioteca ocultos: no los ves en la lista, pero «¿Lo tengo?» sabe que son tuyos. «No importar» los deja afuera.». La de «Elegí un estado»: «Los jugaste, pero no sabemos cómo los dejaste. «Ocultar» los suma ocultos, en Backlog.». La regla general que estaba arriba de cada grupo («Cada juego ya tiene marcada nuestra sugerencia…») pasa a «Tocá una respuesta y el juego sigue a la próxima pregunta que le toque, o a «Listos para importar» si no le queda ninguna. Para responder lo mismo en varios, seleccionalos.».
 
-«Sin puntaje» cuenta solo para lo que vino de IGN: lo que no vino de IGN nunca tiene puntaje, y si contara, ningún juego llegaría a «Elegí un estado». Un juego sin ninguna copia con horas conocidas (Steam desde Playnite) no cumple «0 h».
+«Sin puntaje» y las horas van juntos en 6: lo que no vino de IGN nunca tiene puntaje, así que con menos de 1 h pregunta si lo vas a jugar y con 1 h o más va a «Elegí un estado».
 
 **Cómo llegó cada juego.** En los grupos 1 a 3 cada fila dice con qué nombre y año llegó, una línea por fila de cada fuente: «En IGN: Crash Bandicoot · 1996», «En Epic: Castlevania Anniversary Collection · 2019», «En Steam: Hades». Sin año, va solo el nombre. Un juego que junta el mismo nombre de varias fuentes (§10) muestra todas: «En IGN: Fortnite · 2017» y «En Epic: Fortnite · 2020». En los grupos de lote siguen los chips de origen («IGN · Beat · 9», «Steam · 48 h»).
 
 **Los candidatos de un juego con varias filas** son los de todas sus filas en `candidates`, sin repetir el mismo juego base y hasta 5, en el orden de la primera fila. «¿Es este juego?» se pregunta si queda uno solo y ninguno de los nombres con que llegó es el suyo.
 
-**Cómo va a entrar.** En «Listos para importar» cada juego dice qué va a quedar en la biblioteca, en una línea: «Entra como Pendiente · Epic Games · Gratis». Se suman «· Sin interés» y «· sin fin» si corresponden, y una copia por tienda separada con « · ». Un juego que ya está en la biblioteca dice «Ya está en tu biblioteca · suma Epic Games · Gratis». Un juego cargado a mano dice «Entra a mano como Completado». Lo que no es un juego dice «No se importa · no es un juego» (§8), y un juego que el usuario dejó afuera con «No importar», «No se importa». Los dos van sin portada (el círculo tachado), con el título en gris, y no cuentan en «En «Listos para importar»: N juegos y M copias».
+**Cómo va a entrar.** En «Listos para importar» cada juego dice qué va a quedar en la biblioteca, en una línea: «Entra como Backlog · Epic Games · Gratis». Se suman «· oculto» y «· sin fin» si corresponden, y una copia por tienda separada con « · ». Un juego que ya está en la biblioteca dice «Ya está en tu biblioteca · suma Epic Games · Gratis». Un juego cargado a mano dice «Entra a mano como Completado». Lo que no es un juego dice «No se importa · no es un juego» (§8), y un juego que el usuario dejó afuera con «No importar», «No se importa». Los dos van sin portada (el círculo tachado), con el título en gris, y no cuentan en «En «Listos para importar»: N juegos y M copias».
 
-**El aviso dice adónde fue el juego** (§15). Si fue a otro grupo, lo nombra: «LOVE pasó a «¿Lo vas a jugar alguna vez?».». Si fue a «Listos para importar», nombra cómo va a entrar, no el texto del botón: «Beholder pasó a «Listos para importar» con «Sin interés».» después de «No»; «con «Pendiente»» después de «Sí, algún día»; «con «Jugado · sin fin»» y «con «Completado»» en «¿Es sin fin?»; «con «Steam · Familia»» y «con «Steam · Comprado»» en «¿Es de tu familia?»; el nombre del estado o del candidato en los demás. En lote, si todos fueron al mismo grupo lo dice así («3 juegos pasaron a «Listos para importar».»); si no, cuenta cuántos fueron a cada uno: «3 juegos cambiaron de grupo: 2 a «¿Lo vas a jugar alguna vez?» y 1 a «Listos para importar».». Adónde fue cada juego sale de la revisión que devuelve la acción, buscándolo por sus filas, como ya hace «Volver a revisar». El foco pasa a la fila siguiente, para que la lista no salte bajo el dedo. La tarjeta de confirmar dice que «Confirmar importación» suma todo lo que está en «Listos para importar».
+**El aviso dice adónde fue el juego** (§15). Si fue a otro grupo, lo nombra: «LOVE pasó a «¿Lo vas a jugar alguna vez?».». Si fue a «Listos para importar», nombra cómo va a entrar, no el texto del botón: «Beholder pasó a «Listos para importar», oculto.» después de «No» o de «Ocultar»; «con «Backlog»» después de «Sí, algún día»; «Celeste pasó a «Elegí un estado».» después de «Ya lo jugué», como cualquier cambio de grupo; «con «Jugado · sin fin»» y «con «Completado»» en «¿Es sin fin?»; «con «Steam · Familia»» y «con «Steam · Comprado»» en «¿Es de tu familia?»; el nombre del estado o del candidato en los demás. En lote, si todos fueron al mismo grupo lo dice así («3 juegos pasaron a «Listos para importar».»); si no, cuenta cuántos fueron a cada uno: «3 juegos cambiaron de grupo: 2 a «¿Lo vas a jugar alguna vez?» y 1 a «Listos para importar».». Adónde fue cada juego sale de la revisión que devuelve la acción, buscándolo por sus filas, como ya hace «Volver a revisar». El foco pasa a la fila siguiente, para que la lista no salte bajo el dedo. La tarjeta de confirmar dice que «Confirmar importación» suma todo lo que está en «Listos para importar».
 
 **«Volver a revisar»** borra todas las respuestas de ese juego, también un juego elegido (`chosen_igdb_id`, §4) y uno cargado a mano, y lo devuelve a su primera pregunta sin ninguna. El aviso dice adónde volvió: «Crash Bandicoot volvió a «¿Cuál de estos es?».». **Aparece en cualquier grupo** en un juego que tiene alguna respuesta (`ReviewGame.decided`): en «Listos para importar», como hasta ahora, y también en LOVE cuando pasó a «¿Lo vas a jugar alguna vez?» después de elegirlo. En «¿Cuál de estos es?» y «No lo encontré» nunca aparece, porque un juego ahí todavía no tiene respuesta.
 
@@ -276,12 +294,12 @@ Un soundtrack cuyo juego tenés solo en otra tienda no cuelga: tener el soundtra
 `confirmImportAction` confirma todo lo que está en «Listos para importar» en ese momento; los demás grupos siguen esperando. Es el único botón que confirma.
 
 1. El servicio pide la revisión al repositorio, `planImportConfirmation` (`model/import/confirm.ts`) arma la lista de juegos nuevos, copias nuevas y marcas, y el repositorio la aplica en **una transacción**, con inserts en lote.
-2. **Juego nuevo:** `library_game` con el estado sugerido o elegido, `status_since` = `clock.today()`, el puntaje, `not_interested` si se eligió «Sin interés», `endless = true` y el estado Jugado si se aceptó «sin fin», y la duración principal de HowLongToBeat en `hltb_hours` cuando la fila de IGN la trae (§16). Sin entrada del diario: el estado inicial no es un cambio (`02` §8). Si el usuario todavía no tiene estados, se crean los por defecto antes, como al agregar.
+2. **Juego nuevo:** `library_game` con el estado sugerido o elegido (por id, «Los estados del usuario» en §9), `status_since` = `clock.today()`, el puntaje, `hidden` si se respondió «No» u «Ocultar», `endless = true` y el estado Jugado si se aceptó «sin fin», y la duración principal de HowLongToBeat en `hltb_hours` cuando la fila de IGN la trae (§16). Sin entrada del diario: el estado inicial no es un cambio (`02` §8). Si el usuario todavía no tiene estados, se crean los por defecto antes, como al agregar.
 3. **Juego cargado a mano** desde «No lo encontré»: `catalog_game` manual con el título y el año de la fila, como «Agregar a mano».
 4. **Copias:** con `origin = import`, `store_game_id`, el tipo y las horas; sin fecha.
 5. **Marcas:** `confirmed_at` en las filas y los juegos, y `library_game_id` en cada `import_entry`.
 6. **Limpieza:** en la misma transacción, lo que solo servía para revisar se borra de lo confirmado (§18). La fila queda con `source`, `source_key`, `confirmed_at` y en qué quedó (`match_state`, `excluded` y `entry_id`); el juego, con `igdb_id`, `catalog_game_id`, `library_game_id`, `excluded` y `confirmed_at`. Es lo que necesita «Reimportar sin duplicar».
-7. **Resumen:** «Entraron 480 juegos y 520 copias · 60 marcados «Sin interés» · 4 sin importar», con plurales ICU. «Sin importar» cuenta los juegos y las copias excluidos en esta confirmación, también lo que no es un juego (§8). Si no había nada en «Listos para importar», el botón está deshabilitado y lo dice.
+7. **Resumen:** «Entraron 480 juegos y 520 copias · 60 ocultos · 4 sin importar», con plurales ICU. `ImportSummary.notInterested` pasa a `hidden`. «Sin importar» cuenta los juegos y las copias excluidos en esta confirmación, también lo que no es un juego (§8). Si no había nada en «Listos para importar», el botón está deshabilitado y lo dice.
 
 Son unas 1000 filas en el peor caso (480 juegos y 520 copias): en lote, muy por debajo de los 8 s por consulta. Si el plan pasara de `MAX_CONFIRM_ENTRIES` = 600 juegos, se confirma en tandas de ese tamaño, cada una en su transacción y con el resumen sumado.
 
@@ -303,6 +321,7 @@ Todo texto nuevo va en `import` (pantalla) y `errors` (errores) de `es.json` y `
 - **Repositorios:** contra PGlite con las migraciones, con el test de «el usuario A no ve ni cambia nada del B» en `import_item`, `import_entry` y `store_connection`, el upsert sin duplicar y la transacción de confirmar entera o nada.
 - **Servicio:** con repositorios y adapters falsos: la tanda de cruce, la reimportación y confirmar.
 - **Componentes y hooks:** grupos, acciones de a uno y en lote, el aviso flotante, progreso y resumen, con `renderWithIntl`.
+- **Estados nuevos y «Oculto»** (§19 a §21): los escenarios de `specs/estados`, `biblioteca`, `catalogo` y `navegacion` en el modelo, los componentes y los e2e de biblioteca y ayuda; «Paso a los estados nuevos» contra PGlite con la migración real (§21). Los tests de `02` que esperaban «Pendiente», «Sin interés», el estado «Sin fin» o el paso de «Quiero jugarlo» a «Pendiente» se ajustan con el «sí» de Lucas, en la lista de `tasks.md` §12.
 - **E2e** en `tests/e2e/import.spec.ts`, a 390 y 1440 px y en inglés (`@i18n`): subir los dos archivos de muestra, conectar Steam contra `tests/e2e/support/steam-server.mts`, resolver un juego de cada grupo, confirmar, ver el resumen y verificar la biblioteca; «Retomar la revisión» cerrando la página a la mitad; «Volver a revisar» después de elegir un candidato; «Empezar de nuevo»; las dos guías; y, desde los ajustes de datos reales, un mismo nombre de IGN y de Epic que se responde una vez, un título con la edición, lo que no es un juego en «Listos para importar», una respuesta en lote y, desde la tercera prueba, un juego elegido que pasa a «¿Lo vas a jugar alguna vez?» y vuelve con «Volver a revisar». Esos casos van en archivos propios de los e2e (`tests/e2e/support/`), para no cambiar las muestras de los adapters. El vencimiento se prueba en el servicio con un `clock` falso y contra PGlite, no en e2e: no se puede esperar 8 días. El servidor falso de IGDB suma `external_games` y `multiquery`.
 
 ### 15. Diseño de la pantalla
@@ -319,7 +338,7 @@ Todo texto nuevo va en `import` (pantalla) y `errors` (errores) de `es.json` y `
 - **«Empezar de nuevo»** va en el encabezado de «Revisión», a la derecha, como botón secundario, y pide confirmación (§18). Si la revisión venció, arriba de las fuentes queda el aviso de que se descartó.
 - **Abajo,** «En «Listos para importar»: 237 juegos y 252 copias», la explicación de que se confirma todo lo que está ahí y «Confirmar importación», al final del contenido y no fijo, como «Guardar juego» en `02` §1: en el celu abajo está la barra de secciones. Después de confirmar, esa zona muestra el resumen.
 - **En el grupo elegido del archivo de PC** («¿Cuál de estos es?»), Fortnite con sus dos orígenes, Crash Bandicoot con cinco candidatos y Castlevania con «¿Es este juego?».
-- **Al final del archivo de PC,** como ejemplos aparte: «¿Cómo lo dejaste?»; «¿Lo vas a jugar alguna vez?» con su explicación, una fila con «Sí, algún día», «No» y «No importar», otra (LOVE, elegido en «¿Cuál de estos es?») con «Volver a revisar» a la derecha y su aviso «LOVE pasó a «¿Lo vas a jugar alguna vez?».», y la barra de selección con esas mismas respuestas; una fila de «¿Es de tu familia?» y una de «¿Es sin fin?»; «Listos para importar» con un juego, uno que ya estaba, uno que el usuario dejó afuera («No se importa») y lo que no es un juego («No se importa · no es un juego»); la confirmación de «Empezar de nuevo», el aviso de revisión vencida, la biblioteca vacía con «Agregá tu primer juego» e «Importar tu biblioteca», y la guía de IGN. Al final del archivo del celu, una fila de «Elegí un estado» con sus seis respuestas y la lista que abre «Otro estado», un juego de «Listos para importar», lo que no es un juego y la guía de Playnite.
+- **Al final del archivo de PC,** como ejemplos aparte: «¿Cómo lo dejaste?»; «¿Lo vas a jugar alguna vez?» con su explicación, una fila con «Sí, algún día», «Ya lo jugué», «No» y «No importar», otra (LOVE, elegido en «¿Cuál de estos es?») con «Volver a revisar» a la derecha y su aviso «LOVE pasó a «¿Lo vas a jugar alguna vez?».», y la barra de selección con esas mismas respuestas; una fila de «¿Es de tu familia?» y una de «¿Es sin fin?»; «Listos para importar» con un juego, uno que ya estaba, uno que el usuario dejó afuera («No se importa») y lo que no es un juego («No se importa · no es un juego»); la confirmación de «Empezar de nuevo», el aviso de revisión vencida, la biblioteca vacía con «Agregá tu primer juego» e «Importar tu biblioteca», y la guía de IGN. Al final del archivo del celu, una fila de «Elegí un estado» con sus siete respuestas («Ocultar» incluida) y la lista que abre «Otro estado», otra de un juego sin fin («Lo sigo jugando», «Ya no lo juego», «Lo probé», «Otro estado», «Ocultar», «No importar»), un juego de «Listos para importar», lo que no es un juego y la guía de Playnite.
 
 ### 16. Duración de HowLongToBeat
 
@@ -390,6 +409,103 @@ Después, el aviso flotante dice «Empezaste de nuevo: la revisión quedó vací
 
 **Limpieza al confirmar** (§11, paso 6). En lo confirmado se vacían `title` (queda `''`, la columna no admite vacío), `alt_titles`, `year`, `store_id`, `store_game_id`, `playtime_minutes`, `ign_statuses`, `ign_score`, `hltb_main_hours`, `steam_app_id`, `candidates`, `chosen_igdb_id` y `copy_kind` de las filas, y las respuestas y `multiplayer_only` de los juegos. Así lo confirmado no guarda datos que ya no se usan, y la revisión solo pesa mientras está abierta. «Confirmado que no vuelve» sale de lo que queda: la fila de IGN de Hollow Knight sigue con su `ignId` como `source_key` y `confirmed_at`, así que reimportar la reconoce aunque el juego ya no esté en la biblioteca.
 
+### 19. Estados nuevos
+
+Lo piden `specs/estados`, `specs/catalogo` y `specs/copias` de este cambio.
+
+**El modelo** (`model/status/status.ts`):
+
+- `DEFAULT_STATUSES` queda: En curso: Jugando (`playing`), En pausa (`paused`). Sin empezar: Quiero jugarlo (`wishlist`, ámbar), Backlog (`backlog`, gris). Terminado: Completado (`completed`), 100% (`hundred_percent`), Jugado (`played`). Dejado: Abandonado (`abandoned`), Lo probé (`tried`). Sale `endless`. El nombre de fábrica de `backlog` pasa a «Backlog» (es lo que `hasDefaultName` compara) y `status.defaults.backlog` dice «Backlog» en los dos catálogos; `status.defaults.endless` sale.
+- **El `system_key` `wishlist` no cambia**, aunque «Quiero jugarlo» ya no sea la wishlist: es un nombre interno, cambiarlo pediría otro paso en la migración y no cambia nada de lo que se ve. Un comentario lo explica junto a `WISHLIST_KEY`.
+- Las claves que hoy se repiten en `model/import/review.ts` y `components/import/import-text.ts` (`completed`, `played` y las demás) pasan a constantes con nombre en `model/status/status.ts`.
+- **`offeredStatuses(statuses, { endless, currentId })`**, puro: sin `completed` ni `hundred_percent` si el juego es sin fin, sin `played` si no lo es. Los demás estados de fábrica y los creados por el usuario (`systemKey` vacío) siempre. El estado actual siempre está, aunque no se le ofrecería: así un juego que ya lo tiene lo conserva (escenarios de «Estados según el juego»). Que un juego es sin fin sale de su corrección y, si no hay, del catálogo, como la duración (`02` §7).
+- **Qué significa cada estado**: `status.meanings.<system_key>` en los dos catálogos, con los textos de la spec. Lo tiene todo estado con `system_key`, también uno renombrado: la función no cambia con el nombre. Un estado creado por el usuario no tiene línea. Los textos en inglés se definen al implementar.
+
+**En pantalla:**
+
+- **Cambiar el estado** (`components/status/StatusDialog.tsx`): la lista es `groupStatuses(offeredStatuses(…))` y cada opción muestra debajo de su nombre la línea de qué significa, unida con `aria-describedby`.
+- **Agregar un juego** (`StatusSelect` en `IgdbAddDialog` y `ManualGameForm`): sale la opción «Según las copias» (`status.fromCopies`) y el campo arranca en el Backlog del usuario. Ofrece los estados de un juego con final: un juego nuevo todavía no es sin fin (el catálogo de IGDB entra con `endless = false` y el formulario a mano no tiene la marca; se pone después, en la ficha). **Debajo del campo va la línea del estado elegido, no la de cada opción:** un `<select>` nativo no puede mostrar una línea debajo de cada opción, y cambiarlo por otro control es más de lo que pide la spec.
+- **El estado inicial** (`model/game/initial-status.ts`): `resolveInitialStatus(statuses, chosenStatusId)` devuelve Backlog si no se eligió otro; sale `hasCopy`, y con él `findByCopies`.
+
+**Comprar ya no cambia el estado** (`specs/copias`, requisito sacado): salen `planStatusAfterNewCopy` de `model/copy/new-copy.ts`, el `movedTo` de `AddCopyResult`, el plan de estado que recibe `copyRepo.addCopy` (y su paso por el diario en la misma transacción) y el aviso «pasó a «Pendiente»» de `copies-section.tsx`, con su texto `movedTo` en los dos catálogos. La respuesta visible de agregar una copia es la copia nueva en la lista, como al agregar cualquier otra.
+
+**«Sin comprar»** (`components/game/GameCard.tsx`): se ve en cualquier juego sin copias, esté en el estado que esté. El juego sigue sin horas en la tarjeta y con la portada de borde punteado.
+
+**La ayuda «?» de «Sin fin»** (`specs/navegacion`): suma que, cuando lo dejás, queda «Jugado».
+
+### 20. «Oculto»
+
+«Sin interés» pasa a «Oculto» en toda la app (`specs/biblioteca` y `specs/navegacion`), también en el código, para que la columna, el modelo y la interfaz digan lo mismo:
+
+| Antes | Ahora |
+|---|---|
+| `library_game.not_interested` | `library_game.hidden` (§21) |
+| `LibraryGame.notInterested`, `filters.showNotInterested` | `LibraryGame.hidden`, `filters.showHidden`. El parámetro de la URL ya es `hidden=si`: los links guardados siguen andando |
+| `setNotInterested` (repositorio y servicio), `setNotInterestedAction`, `setGameNotInterestedAction` | `setHidden`, `setHiddenAction`, `setGameHiddenAction` |
+| `HELP.notInterested` y las claves `notInterested` de los catálogos | `HELP.hidden` y claves `hidden` |
+| `ImportSummary.notInterested`, `ReviewSuggestion.notInterested`, la respuesta `not_interested` | `hidden` (§9, §11) |
+
+Textos: en la ficha, «Ocultar» y «Volver a mostrar»; en la barra de selección de la biblioteca, «Ocultar», y «Volver a mostrar» si todos los elegidos están ocultos; el filtro, «Mostrar ocultos»; la marca de la tarjeta, «OCULTO»; la ayuda «?», junto a «Ocultar», a «Mostrar ocultos» y a la marca, con el texto de la spec. Cualquier otro texto de la interfaz que diga «Sin interés» pasa a hablar de ocultar. En la importación: «· oculto» en «Entra como…», «…, oculto.» en el aviso y «60 ocultos» en el resumen. En inglés se definen al implementar.
+
+### 21. La migración: paso a los estados nuevos
+
+Spec «Paso a los estados nuevos» y la columna `hidden`. Son tres migraciones, en este orden. El migrador de drizzle aplica las pendientes en una sola transacción (se confirma en su código al implementar; el test contra PGlite de abajo lo cubre igual), y Postgres no deja usar en esa transacción un valor de enumerado recién agregado con `ADD VALUE`: por eso `hidden` sale de renombrar el valor viejo y no de agregar uno nuevo.
+
+1. **`0011`, generada por drizzle-kit.** En el esquema: `not_interested` pasa a `hidden` en `library_game`, `import_entry` suma `status_id` (uuid, referencia a `status` con `on delete set null`) y conserva `status_key`, y el enumerado de `import_play_answer` suma `played` y conserva `not_interested`. drizzle-kit pregunta si `hidden` es `not_interested` renombrada: la pregunta es interactiva, así que la genera Lucas en su terminal y elige «rename». Se revisa que el SQL sea un `RENAME COLUMN` y no un `DROP` más un `ADD`.
+2. **`0012`, con SQL a mano** (`drizzle-kit generate --custom`, como `0003_seed_known_stores.sql`). Aprobado por Lucas, como pide `CLAUDE.md` §VI, porque drizzle-kit no migra datos:
+
+   ```sql
+   -- «Pendiente» pasa a «Backlog». Si el usuario lo renombró, conserva su nombre.
+   update "status" set "name" = 'Backlog'
+   where "system_key" = 'backlog' and "name" = 'Pendiente';
+
+   -- Los juegos en el estado «Sin fin» pasan a «Jugado» con la marca sin fin. status_since no cambia.
+   update "library_game" as "lg" set "status_id" = "played"."id", "endless" = true
+   from "status" as "endless_status"
+   join "status" as "played"
+     on "played"."user_id" = "endless_status"."user_id" and "played"."system_key" = 'played'
+   where "endless_status"."system_key" = 'endless' and "lg"."status_id" = "endless_status"."id";
+
+   -- El diario deja de nombrar «Sin fin»: sus registros pasan a nombrar «Jugado».
+   update "journal_entry" as "je" set "from_status_id" = "played"."id"
+   from "status" as "endless_status"
+   join "status" as "played"
+     on "played"."user_id" = "endless_status"."user_id" and "played"."system_key" = 'played'
+   where "endless_status"."system_key" = 'endless' and "je"."from_status_id" = "endless_status"."id";
+
+   update "journal_entry" as "je" set "to_status_id" = "played"."id"
+   from "status" as "endless_status"
+   join "status" as "played"
+     on "played"."user_id" = "endless_status"."user_id" and "played"."system_key" = 'played'
+   where "endless_status"."system_key" = 'endless' and "je"."to_status_id" = "endless_status"."id";
+
+   -- Un registro entre «Sin fin» y «Jugado» quedó de «Jugado» a «Jugado»: no es un cambio.
+   delete from "journal_entry" where "from_status_id" = "to_status_id";
+
+   -- Las respuestas de las revisiones abiertas: del system_key al id del estado del usuario.
+   update "import_entry" as "ie" set "status_id" = "s"."id"
+   from "status" as "s"
+   where "s"."user_id" = "ie"."user_id" and "s"."system_key" = "ie"."status_key"
+     and "ie"."status_key" <> 'endless';
+
+   update "import_entry" as "ie" set "status_id" = "played"."id", "endless_answer" = true
+   from "status" as "played"
+   where "played"."user_id" = "ie"."user_id" and "played"."system_key" = 'played'
+     and "ie"."status_key" = 'endless';
+
+   alter type "public"."import_play_answer" rename value 'not_interested' to 'hidden';
+
+   -- Sin juegos, registros ni respuestas que lo nombren, el estado «Sin fin» deja de existir.
+   delete from "status" where "system_key" = 'endless';
+   ```
+
+   - **El diario tiene que pasar antes del `delete`:** `journal_entry` apunta a `status` sin `on delete`, así que un registro que nombrara «Sin fin» frenaría el borrado. Pasarlos a «Jugado» no suma registros (spec: «MUST NOT quedar en el registro»). Un registro de un estado al mismo estado no lo escribe nunca la app (`planStatusChange` devuelve `null`), así que el `delete` solo alcanza a los que dejó el paso.
+   - **La fecha de fin no cambia** porque `status_since` no cambia; como Jugado es del grupo Terminado, la ficha muestra esa fecha como «lo terminaste el…» (`finishedOn`, `02` §8).
+   - **Una revisión abierta conserva sus respuestas**, ya con el estado por id. Una respuesta con un `status_key` que el usuario no tiene queda vacía, y el juego vuelve a preguntar.
+3. **`0013`, generada por drizzle-kit.** En el esquema: sale `status_key` de `import_entry` y el enumerado queda `keep`, `hidden` y `played` (el orden en que quedan en la base después de renombrar), como en `PLAY_ANSWERS`. Se revisa que lo generado no pierda datos: para entonces el valor ya se llama `hidden` en la base. Si drizzle-kit genera algo que falla con esos datos, se frena y se consulta antes de escribir SQL.
+
+**El test** («Juego en «Sin fin»» y «Juego en «Pendiente»») corre contra PGlite en `tests/persistence/repository/status/status-migration.test.ts`, sin carpeta nueva: aplica las migraciones hasta la `0010` (una copia de `drizzle/` con el `_journal.json` cortado ahí, en una carpeta temporal), carga los datos de antes (estados de fábrica con «Pendiente» y «Sin fin», juegos en los dos, un registro del diario hacia «Sin fin», un estado renombrado, un juego `not_interested` y una revisión abierta con `status_key` y `not_interested`) y aplica el resto. Verifica cada punto de arriba, que el diario no suma registros, y que los datos de otro usuario quedan con sus propios estados.
+
 ## Risks / Trade-offs
 
 - **[El `uid` de Epic en IGDB no es el app name de Playnite]** → Los 209 juegos de Epic cruzan por título. Se verifica contra IGDB real en la primera tarea del adapter; el diseño no cambia, solo crecen «¿Cuál de estos es?» y «No lo encontré».
@@ -407,9 +523,16 @@ Después, el aviso flotante dice «Empezaste de nuevo: la revisión quedó vací
 - **[Se borra una revisión a medias sin querer]** → «Empezar de nuevo» pide confirmación y dice qué se borra; el vencimiento solo actúa después de 7 días sin tocarla y lo avisa en la próxima visita. Lo confirmado nunca se borra.
 - **[El marcador de IGN deja de andar]** (IGN cambia su página o su API interna) → La guía lo avisa y la importación de archivos sigue igual; se arregla el marcador. El marcador solo lee lo que la página de IGN ya muestra y no guarda nada fuera del navegador.
 
+- **[Un juego que estaba en «Sin fin» muestra una fecha de fin]** → Es su `status_since` de siempre, el día en que pasó a «Sin fin»: la spec pide no cambiar la fecha, y Jugado es del grupo Terminado. Se corrige cambiándole el estado, como cualquier otro.
+- **[El diario de un juego que estuvo en «Sin fin» cambia]** → Sus registros pasan a nombrar «Jugado», porque el estado deja de existir y la base no deja un registro sin estado. No se suma ninguno; solo se borra el que quedaría de «Jugado» a «Jugado».
+- **[Un «Pendiente» renombrado]** → Si el usuario le cambió el nombre, lo conserva: la migración solo cambia el nombre de fábrica.
+- **[Ningún juego llega a «¿Lo vas a jugar alguna vez?» sin horas conocidas]** → Los de Steam que llegan solo por Playnite entran en Backlog sin preguntar. Se pueden ocultar después desde la biblioteca, de a varios.
+- **[Una respuesta que se ofrecía ya no aparece]** (un estado desactivado en la `07`) → El juego no se queda sin salida: «Otro estado», «Ocultar» si hay Backlog y «No importar» siguen.
+
 ## Migration Plan
 
 1. Migraciones nuevas generadas por drizzle-kit: `store_connection`, `import_item`, `import_entry`, sus enumerados, `store_game_id`, `origin` y la única de `copy`, `hltb_hours` de `library_game`, y una más para `chosen_igdb_id` de `import_item` (§4). Ninguna edita una ya aplicada.
-2. Paso del usuario: `STEAM_API_KEY` en `.env.local` y en las variables de Vercel (`docs/configuracion-externa.md`, etapa 04, se actualiza con el nombre).
-3. Vuelta atrás: la app de `03` ignora las tablas nuevas y las columnas nuevas de `copy` y `library_game` son opcionales, así que un deploy anterior sigue andando con la base migrada.
+2. Paso a los estados nuevos (§21): `0011` y `0013` generadas por drizzle-kit (la `0011` la genera Lucas en su terminal, eligiendo «rename») y `0012` con el SQL a mano aprobado.
+3. Paso del usuario: `STEAM_API_KEY` en `.env.local` y en las variables de Vercel (`docs/configuracion-externa.md`, etapa 04, se actualiza con el nombre).
+4. Vuelta atrás: hasta la `0010`, la app de `03` ignora las tablas nuevas y las columnas nuevas de `copy` y `library_game` son opcionales. **Desde la `0011` ya no**: un deploy anterior lee `not_interested` y espera el estado «Sin fin», así que no anda con la base migrada. El código y las tres migraciones van juntos en el mismo deploy; si hubiera que volver, es con una migración nueva que deshaga el renombre, no editando las aplicadas.
 

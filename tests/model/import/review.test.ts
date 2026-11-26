@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { buildReview, countReady, gamesInGroup, type ReviewGame, reviewGame } from "@/model/import/review";
 
-import { entry, EPIC, ignItem, item, openReview, playniteItem, STEAM, steamItem } from "./import-fixtures";
+import { entry, EPIC, ignItem, item, openReview, playniteItem, STATUSES, STEAM, statusRef, steamItem } from "./import-fixtures";
 
-const CONNECTED = { steamConnected: true };
-const NOT_CONNECTED = { steamConnected: false };
+const CONNECTED = { steamConnected: true, statuses: STATUSES };
+const NOT_CONNECTED = { steamConnected: false, statuses: STATUSES };
 
 function review(value: ReturnType<typeof entry>, context = CONNECTED, library: Parameters<typeof reviewGame>[1] = []) {
   return reviewGame(value, library, context) as ReviewGame;
@@ -108,12 +108,12 @@ describe("reviewGame", () => {
 
       const game = review(hollowKnight);
 
-      expect(game.suggestion).toMatchObject({ statusKey: "completed", score: 9 });
+      expect(game.suggestion).toMatchObject({ status: { systemKey: "completed" }, score: 9 });
       expect(game.suggestion.copies).toEqual([expect.objectContaining({ store: STEAM, playtimeMinutes: 2880 })]);
       expect(game.group).toBe("ready");
     });
 
-    it("Backlog de IGN pasa a Pendiente con una copia, y a Quiero jugarlo si se excluye la única", () => {
+    it("Backlog de IGN queda en Backlog, tenga copias o no", () => {
       const withCopy = entry("8BitMMO", [ignItem("8BitMMO", { ignStatuses: ["backlog"], ignScore: 7 }), steamItem("8BitMMO", "250420", 0)]);
       const withoutCopy = entry("8BitMMO", [
         ignItem("8BitMMO", { ignStatuses: ["backlog"], ignScore: 7 }),
@@ -122,7 +122,7 @@ describe("reviewGame", () => {
 
       const games = [review(withCopy), review(withoutCopy)];
 
-      expect(games.map((game) => game.suggestion.statusKey)).toEqual(["backlog", "wishlist"]);
+      expect(games.map((game) => game.suggestion.status?.systemKey)).toEqual(["backlog", "backlog"]);
     });
 
     describe("mismo nombre desde varias fuentes", () => {
@@ -251,8 +251,8 @@ describe("reviewGame", () => {
 
       expect(game).toMatchObject({ group: "how_left" });
       expect(game.choices).toEqual([
-        { kind: "status", statusKey: "completed" },
-        { kind: "status", statusKey: "abandoned" },
+        { kind: "status", status: statusRef("completed") },
+        { kind: "status", status: statusRef("abandoned") },
         { kind: "other_status" },
         { kind: "exclude" },
       ]);
@@ -313,15 +313,15 @@ describe("reviewGame", () => {
       const game = review(operator);
 
       expect(game.group).toBe("play");
-      expect(game.choices).toEqual([{ kind: "keep" }, { kind: "not_interested" }, { kind: "exclude" }]);
+      expect(game.choices).toEqual([{ kind: "keep" }, { kind: "played" }, { kind: "hidden" }, { kind: "exclude" }]);
     });
 
-    it("un Pendiente de IGN sin puntaje va a «¿Lo vas a jugar alguna vez?» aunque tenga horas", () => {
+    it("un Backlog de IGN sin puntaje con 1 h o más va a «Elegí un estado»", () => {
       const beholder = entry("Beholder", [ignItem("Beholder", { ignStatuses: ["backlog"] }), steamItem("Beholder", "475550", 90)]);
 
       const game = review(beholder);
 
-      expect(game.group).toBe("play");
+      expect(game.group).toBe("status");
     });
 
     it("Juego jugado que no estaba en IGN", () => {
@@ -331,26 +331,28 @@ describe("reviewGame", () => {
 
       expect(group).toBe("status");
       expect(choices).toEqual([
-        { kind: "status", statusKey: "playing" },
-        { kind: "status", statusKey: "completed" },
-        { kind: "status", statusKey: "abandoned" },
-        { kind: "status", statusKey: "tried" },
+        { kind: "status", status: statusRef("playing") },
+        { kind: "status", status: statusRef("completed") },
+        { kind: "status", status: statusRef("abandoned") },
+        { kind: "status", status: statusRef("tried") },
         { kind: "other_status" },
+        { kind: "hide" },
         { kind: "exclude" },
       ]);
     });
 
     it("una respuesta de «Elegí un estado» cuyo estado el usuario borró no se ofrece", () => {
       const terraria = entry("Terraria", [steamItem("Terraria", "105600", 12 * 60)]);
-      const context = { ...CONNECTED, statusKeys: ["playing", "completed", "abandoned", "backlog"] };
+      const context = { ...CONNECTED, statuses: STATUSES.filter(({ systemKey }) => systemKey !== "tried") };
 
       const game = review(terraria, context);
 
-      expect(game.choices.map((choice) => (choice.kind === "status" ? choice.statusKey : choice.kind))).toEqual([
+      expect(game.choices.map((choice) => (choice.kind === "status" ? choice.status.systemKey : choice.kind))).toEqual([
         "playing",
         "completed",
         "abandoned",
         "other_status",
+        "hide",
         "exclude",
       ]);
     });
@@ -450,7 +452,7 @@ describe("reviewGame", () => {
 
         const game = review(chosen);
 
-        expect(game).toMatchObject({ group: "ready", suggestion: { statusKey: "completed", score: 8 } });
+        expect(game).toMatchObject({ group: "ready", suggestion: { status: { systemKey: "completed" }, score: 8 } });
       });
 
       it("un juego elegido que es solo multijugador y llegó como Completado va a «¿Es sin fin?»", () => {
@@ -504,7 +506,7 @@ describe("reviewGame", () => {
 
       const game = review(amongUs);
 
-      expect(game).toMatchObject({ group: "ready", decided: true, suggestion: { statusKey: "played", endless: true } });
+      expect(game).toMatchObject({ group: "ready", decided: true, suggestion: { status: { systemKey: "played" }, endless: true } });
     });
 
     it("Cómo va a entrar", () => {
@@ -518,7 +520,7 @@ describe("reviewGame", () => {
         group: "ready",
         manual: false,
         libraryGameId: null,
-        suggestion: { statusKey: "backlog", notInterested: false, endless: false },
+        suggestion: { status: { systemKey: "backlog" }, hidden: false, endless: false },
       });
       expect(game.suggestion.copies).toEqual([expect.objectContaining({ store: EPIC, kind: "free", excluded: false })]);
     });
@@ -532,7 +534,7 @@ describe("reviewGame", () => {
 
       const game = review(crash);
 
-      expect(game).toMatchObject({ group: "ready", manual: true, title: "Crash Bandicoot", suggestion: { statusKey: "completed" } });
+      expect(game).toMatchObject({ group: "ready", manual: true, title: "Crash Bandicoot", suggestion: { status: { systemKey: "completed" } } });
     });
 
     it("un candidato elegido es una decisión", () => {
@@ -622,5 +624,145 @@ describe("buildReview", () => {
 
     expect(gamesInGroup(result, "ready").map((game) => game.title)).toEqual(["112 Operator", "Cuphead Demo"]);
     expect(countReady(result)).toEqual({ games: 1, copies: 1 });
+  });
+});
+
+describe("estados nuevos en la revisión", () => {
+  const WITHOUT = (systemKey: string) => ({ ...CONNECTED, statuses: STATUSES.filter((value) => value.systemKey !== systemKey) });
+
+  it("Backlog sin copia", () => {
+    const hades = entry("Hades", [ignItem("Hades", { ignStatuses: ["backlog"], ignScore: 8 })]);
+
+    const game = review(hades);
+
+    expect(game).toMatchObject({ group: "ready", suggestion: { status: { systemKey: "backlog" } } });
+  });
+
+  it("Ya lo jugó", () => {
+    const celeste = entry("Celeste", [ignItem("Celeste", { ignStatuses: ["backlog"] }), steamItem("Celeste", "504230", 0)], {
+      answers: { playAnswer: "played" },
+    });
+
+    const game = review(celeste);
+
+    expect(game.group).toBe("status");
+  });
+
+  it("Backlog con horas", () => {
+    const inscryption = entry("Inscryption", [
+      ignItem("Inscryption", { ignStatuses: ["backlog"] }),
+      playniteItem("Inscryption", EPIC, "inscryption", { playtimeMinutes: 330 }),
+    ]);
+
+    const game = review(inscryption);
+
+    expect(game.group).toBe("status");
+  });
+
+  it("Apenas abierto", () => {
+    const days = entry("7 Days to Die", [ignItem("7 Days to Die", { ignStatuses: ["backlog"] }), steamItem("7 Days to Die", "251570", 6)]);
+
+    const game = review(days);
+
+    expect(game.group).toBe("play");
+  });
+
+  it.each([
+    { minutes: 59, expected: "play" },
+    { minutes: 60, expected: "status" },
+  ])("con $minutes minutos va a «$expected»", ({ minutes, expected }) => {
+    const game = entry("Juego", [steamItem("Juego", "1", minutes)]);
+
+    const { group } = review(game);
+
+    expect(group).toBe(expected);
+  });
+
+  it("un juego sin copias con horas conocidas no pregunta si lo vas a jugar", () => {
+    const portal = entry("Portal 2", [ignItem("Portal 2", { ignStatuses: ["backlog"] })]);
+
+    const game = review(portal);
+
+    expect(game.group).toBe("ready");
+  });
+
+  it("Juego sin fin jugado", () => {
+    const hunt = entry("Hunt: Showdown", [playniteItem("Hunt: Showdown", EPIC, "hunt", { playtimeMinutes: 25 * 60 })], {
+      multiplayerOnly: true,
+    });
+
+    const game = review(hunt);
+
+    expect(game.group).toBe("status");
+    expect(game.choices).toEqual([
+      { kind: "status", status: statusRef("playing") },
+      { kind: "status", status: statusRef("played") },
+      { kind: "status", status: statusRef("tried") },
+      { kind: "other_status" },
+      { kind: "hide" },
+      { kind: "exclude" },
+    ]);
+  });
+
+  it("«Ya no lo juego» entra en Jugado con la marca sin fin", () => {
+    const hunt = entry("Hunt: Showdown", [playniteItem("Hunt: Showdown", EPIC, "hunt", { playtimeMinutes: 25 * 60 })], {
+      multiplayerOnly: true,
+      answers: { statusId: "played" },
+    });
+
+    const game = review(hunt);
+
+    expect(game).toMatchObject({ group: "ready", suggestion: { status: { systemKey: "played" }, endless: true } });
+  });
+
+  it("«Ocultar» entra oculto, en Backlog", () => {
+    const terraria = entry("Terraria", [steamItem("Terraria", "105600", 12 * 60)], { answers: { statusId: "backlog", playAnswer: "hidden" } });
+
+    const game = review(terraria);
+
+    expect(game).toMatchObject({ group: "ready", suggestion: { status: { systemKey: "backlog" }, hidden: true } });
+  });
+
+  it("Estado renombrado", () => {
+    const renamed = STATUSES.map((value) => (value.systemKey === "completed" ? { ...value, name: "Terminado" } : value));
+    const outerWilds = entry("Outer Wilds", [ignItem("Outer Wilds", { ignStatuses: ["beat"], ignScore: 10 })]);
+
+    const game = review(outerWilds, { ...CONNECTED, statuses: renamed });
+
+    expect(game).toMatchObject({ group: "ready", suggestion: { status: { name: "Terminado", systemKey: "completed" } } });
+  });
+
+  it("Estado desactivado", () => {
+    const sekiro = entry("Sekiro", [ignItem("Sekiro", { ignStatuses: ["quit"], ignScore: 7 })]);
+
+    const game = review(sekiro, WITHOUT("abandoned"));
+
+    expect(game.group).toBe("status");
+    expect(game.choices.some((choice) => choice.kind === "status" && choice.status.systemKey === "abandoned")).toBe(false);
+  });
+
+  it("dos estados de IGN con uno desactivado quedan en uno", () => {
+    const overwatch = entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["beat", "quit"], ignScore: 6 })]);
+
+    const game = review(overwatch, WITHOUT("abandoned"));
+
+    expect(game).toMatchObject({ group: "ready", suggestion: { status: { systemKey: "completed" } } });
+  });
+
+  it("«Ocultar» no se ofrece sin un Backlog activo", () => {
+    const terraria = entry("Terraria", [steamItem("Terraria", "105600", 12 * 60)]);
+
+    const game = review(terraria, WITHOUT("backlog"));
+
+    expect(game.group).toBe("status");
+    expect(game.choices.map((choice) => choice.kind)).not.toContain("hide");
+  });
+
+  it("«Sí, no se termina» no se ofrece sin un Jugado activo", () => {
+    const amongUs = entry("Among Us", [ignItem("Among Us", { ignStatuses: ["beat"], ignScore: 6 })], { multiplayerOnly: true });
+
+    const game = review(amongUs, WITHOUT("played"));
+
+    expect(game.choices).toEqual([{ kind: "completed" }, { kind: "exclude" }]);
   });
 });

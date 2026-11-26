@@ -51,7 +51,7 @@ export function useLibraryFilters(initialSearch: string) {
 
   // Limpiar no toca el orden ni «Mostrar sin interés»: no son filtros de resultados.
   const clearFilters = useCallback(() => {
-    writeView({ ...view, filters: { ...NO_FILTERS, showNotInterested: view.filters.showNotInterested } });
+    writeView({ ...view, filters: { ...NO_FILTERS, showHidden: view.filters.showHidden } });
   }, [view]);
 
   return { filters: view.filters, sort: view.sort, setFilters, setSort, clearFilters };

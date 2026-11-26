@@ -26,7 +26,7 @@ export type LibraryGame = Readonly<{
   status: Status;
   statusSince: string;
   score: number | null;
-  notInterested: boolean;
+  hidden: boolean;
   addedAt: string;
   copies: readonly Copy[];
   /** El total que cargó el usuario; `null` si no cargó ninguno (design.md §20). */

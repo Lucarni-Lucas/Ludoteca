@@ -25,7 +25,7 @@ import { sortLibrary } from "@/model/game/sort";
 import { countLibraryOptions, listStoreOptions, summarizeLibrary } from "@/model/game/summary";
 import type { StatusGroupView } from "@/model/status/status";
 
-import { setNotInterestedAction } from "./actions";
+import { setHiddenAction } from "./actions";
 import styles from "./page.module.css";
 
 const FILTER_ICON_SIZE = 20;
@@ -67,12 +67,12 @@ export function LibraryScreen({ games, statusGroups, avatarInitial, initialSearc
   const { filters, sort, setFilters, setSort, clearFilters } = useLibraryFilters(initialSearch);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const selection = useSelection();
-  const notInterested = useServerAction(setNotInterestedAction);
+  const hidden = useServerAction(setHiddenAction);
 
   const results = useMemo(() => sortLibrary(filterLibrary(games, filters), sort), [games, filters, sort]);
   const counts = useMemo(
-    () => countLibraryOptions(games, filters.showNotInterested),
-    [games, filters.showNotInterested],
+    () => countLibraryOptions(games, filters.showHidden),
+    [games, filters.showHidden],
   );
   const stores = useMemo(() => listStoreOptions(games), [games]);
   const summary = useMemo(() => summarizeLibrary(games), [games]);
@@ -89,10 +89,10 @@ export function LibraryScreen({ games, statusGroups, avatarInitial, initialSearc
   const panel = { filters, counts, stores, onChange: setFilters };
   const selectedGames = results.filter((game) => selection.selectedIds.has(game.id));
   // Si todo lo elegido ya está oculto, la acción útil es volver a mostrarlo.
-  const unmark = selectedGames.length > 0 && selectedGames.every((game) => game.notInterested);
+  const unmark = selectedGames.length > 0 && selectedGames.every((game) => game.hidden);
 
   async function applyMark(): Promise<void> {
-    const result = await notInterested.run([...selection.selectedIds], !unmark);
+    const result = await hidden.run([...selection.selectedIds], !unmark);
 
     if (result.ok) {
       selection.stop();
@@ -122,8 +122,8 @@ export function LibraryScreen({ games, statusGroups, avatarInitial, initialSearc
         <SelectionBar
           count={selection.selectedIds.size}
           markLabel={unmark ? t("selection.unmark") : t("selection.mark")}
-          pending={notInterested.pending}
-          errorMessage={notInterested.errorMessage}
+          pending={hidden.pending}
+          errorMessage={hidden.errorMessage}
           onMark={() => void applyMark()}
           onCancel={selection.stop}
         />

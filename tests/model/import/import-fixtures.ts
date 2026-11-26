@@ -1,9 +1,24 @@
 import { type EntryAnswers, type ImportEntry, type ImportItem, NO_ANSWERS, type OpenReview } from "@/model/import/import-entry";
+import type { StatusRef } from "@/model/import/review";
+import { DEFAULT_STATUSES, type Status } from "@/model/status/status";
 import type { Store } from "@/model/store/store";
 
 export const STEAM: Store = { id: "store-steam", name: "Steam", slug: "steam" };
 export const EPIC: Store = { id: "store-epic", name: "Epic Games", slug: "epic-games" };
 export const GOG: Store = { id: "store-gog", name: "GOG", slug: "gog" };
+
+/** Los estados de fábrica con el `system_key` como id, para nombrarlos en los tests. */
+export const STATUSES: readonly Status[] = DEFAULT_STATUSES.map((value) => ({ ...value, id: value.systemKey ?? value.name }));
+
+export function statusRef(systemKey: string): StatusRef {
+  const status = STATUSES.find((value) => value.systemKey === systemKey);
+
+  if (!status) {
+    throw new Error(`Estado de prueba desconocido: ${systemKey}`);
+  }
+
+  return { id: status.id, name: status.name, systemKey: status.systemKey };
+}
 
 let sequence = 0;
 

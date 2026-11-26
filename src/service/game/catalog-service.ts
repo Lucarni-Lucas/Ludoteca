@@ -97,7 +97,7 @@ export function createCatalogService({
   async function resolveEntry(userId: string, entry: ValidEntry, today: string): Promise<NewLibraryEntry> {
     const statuses = await statusService.listStatuses(userId);
     // El estado va antes que las tiendas: uno ajeno frena el alta sin crear nada.
-    const status = resolveInitialStatus(statuses, { chosenStatusId: entry.statusId, hasCopy: entry.rows.length > 0 });
+    const status = resolveInitialStatus(statuses, { chosenStatusId: entry.statusId });
     const copies = await resolveCopies(userId, entry.rows);
 
     const played = entry.playedMinutes === null ? {} : { playedMinutes: entry.playedMinutes };

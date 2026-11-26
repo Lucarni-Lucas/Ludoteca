@@ -144,15 +144,14 @@ input::placeholder{color:#7D8696}
             <input type="number" inputmode="decimal" min="0" placeholder="opcional" style="height: 46px; box-sizing: border-box; padding: 0 12px; border-radius: 10px; background: #0E1014; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace">
           </label>
           <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Estado
-            <select defaultValue="completado" style="height: 46px; padding: 0 10px; border-radius: 10px; background: #0E1014; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 Inter, system-ui, sans-serif">
+            <select defaultValue="backlog" aria-describedby="estado-significa" style="height: 46px; padding: 0 10px; border-radius: 10px; background: #0E1014; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 Inter, system-ui, sans-serif">
               <optgroup label="En curso">
                 <option value="jugando">Jugando</option>
                 <option value="pausa">En pausa</option>
-                <option value="sinfin">Sin fin</option>
               </optgroup>
               <optgroup label="Sin empezar">
                 <option value="quiero">Quiero jugarlo</option>
-                <option value="pendiente">Pendiente</option>
+                <option value="backlog">Backlog</option>
               </optgroup>
               <optgroup label="Terminado">
                 <option value="completado">Completado</option>
@@ -163,6 +162,7 @@ input::placeholder{color:#7D8696}
                 <option value="loprobe">Lo probé</option>
               </optgroup>
             </select>
+            <span id="estado-significa" style="font-size: 12.5px; line-height: 1.35; color: #9AA3B2">Lo vas a jugar en algún momento, sin apuro</span>
           </label>
         </div>
 

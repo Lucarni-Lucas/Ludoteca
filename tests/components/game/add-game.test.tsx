@@ -182,7 +182,7 @@ describe("ManualGameForm", () => {
     expect(screen.getByText("Todavía no lo tenés")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Agregar una copia" })).toBeInTheDocument();
     expect(screen.getByRole("spinbutton", { name: "Año de lanzamiento" })).toHaveValue(null);
-    expect(screen.getByRole("combobox", { name: "Estado" })).toHaveDisplayValue("Según las copias");
+    expect(screen.getByRole("combobox", { name: "Estado" })).toHaveDisplayValue("Backlog");
     expect(screen.getByText("Sin puntaje", { selector: "output" })).toBeInTheDocument();
   });
 
@@ -419,13 +419,13 @@ describe("AddGameScreen con el formulario de IGDB", () => {
     return { user, dialog: screen.getByRole("dialog", { name: "Agregar «Hades»" }) };
   }
 
-  it("arranca sin copias, en «Según las copias» y sin puntaje", async () => {
+  it("arranca sin copias, en «Backlog» y sin puntaje", async () => {
     const { dialog } = await openDialog();
 
     const view = within(dialog);
 
     expect(view.getByText("Todavía no lo tenés")).toBeInTheDocument();
-    expect(view.getByRole("combobox", { name: "Estado" })).toHaveDisplayValue("Según las copias");
+    expect(view.getByRole("combobox", { name: "Estado" })).toHaveDisplayValue("Backlog");
     expect(view.getByText("Sin puntaje", { selector: "output" })).toBeInTheDocument();
     expect(view.queryByRole("textbox", { name: "Título" })).not.toBeInTheDocument();
   });

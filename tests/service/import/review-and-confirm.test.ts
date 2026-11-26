@@ -43,9 +43,9 @@ describe("decide", () => {
     const beholder = entry("Beholder", [ignItem("Beholder", { ignStatuses: ["backlog"] }), steamItem("Beholder", "2", 0)]);
     const { service, importRepo } = setup({ importRepo: withReview([beholder]) });
 
-    await service.decide(USER_ID, [beholder.id], { kind: "choose", choice: { kind: "not_interested" } });
+    await service.decide(USER_ID, [beholder.id], { kind: "choose", choice: { kind: "hidden" } });
 
-    expect(importRepo.saveDecision).toHaveBeenCalledWith(USER_ID, [beholder.id], { answers: { playAnswer: "not_interested" } });
+    expect(importRepo.saveDecision).toHaveBeenCalledWith(USER_ID, [beholder.id], { answers: { playAnswer: "hidden" } });
     expect(importRepo.applyConfirmation).not.toHaveBeenCalled();
   });
 
@@ -193,7 +193,7 @@ describe("confirm", () => {
     const entries = [
       entry("Celeste", [ignItem("Celeste", { ignStatuses: ["playing"] }), steamItem("Celeste", "1", 60)]),
       entry("8BitMMO", [ignItem("8BitMMO", { ignStatuses: ["backlog"] }), steamItem("8BitMMO", "2", 0)], {
-        answers: { playAnswer: "not_interested" },
+        answers: { playAnswer: "hidden" },
       }),
       entry("Excluido", [ignItem("Excluido")], { answers: { excluded: true } }),
     ];
@@ -201,7 +201,7 @@ describe("confirm", () => {
 
     const summary = await service.confirm(USER_ID);
 
-    expect(summary).toEqual({ games: 2, copies: 2, notInterested: 1, excluded: 1 });
+    expect(summary).toEqual({ games: 2, copies: 2, hidden: 1, excluded: 1 });
   });
 
   it("confirma de a 600 juegos, cada tanda por separado", async () => {
@@ -235,10 +235,55 @@ describe("respuestas de «Elegí un estado»", () => {
     const overview = await service.getOverview(USER_ID);
 
     const [game] = gamesInGroup(overview.review, "status");
-    expect(game.choices.flatMap((choice) => (choice.kind === "status" ? [choice.statusKey] : []))).toEqual([
+    expect(game.choices.flatMap((choice) => (choice.kind === "status" ? [choice.status.systemKey] : []))).toEqual([
       "playing",
       "completed",
       "abandoned",
     ]);
+  });
+});
+
+describe("los estados del usuario", () => {
+  it("Estado renombrado", async () => {
+    const renamed = STATUSES.map((value) => (value.systemKey === "completed" ? { ...value, name: "Terminado" } : value));
+    const outerWilds = entry("Outer Wilds", [ignItem("Outer Wilds", { ignStatuses: ["beat"], ignScore: 10 })]);
+    const { service, importRepo } = setup({ importRepo: withReview([outerWilds]), statuses: renamed });
+
+    await service.confirm(USER_ID);
+
+    const [plan] = importRepo.state.confirmations;
+    const completed = renamed.find((value) => value.systemKey === "completed");
+    expect(plan.games[0].target).toMatchObject({ kind: "igdb", values: { statusId: completed?.id } });
+  });
+
+  it("Estado propio", async () => {
+    const replaying = { id: "status-rejugando", group: "in_progress" as const, name: "Rejugando", color: "lime" as const, position: 3, systemKey: null };
+    const frostpunk = entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)]);
+    const { service, importRepo } = setup({ importRepo: withReview([frostpunk]), statuses: [...STATUSES, replaying] });
+
+    await service.decide(USER_ID, [frostpunk.id], {
+      kind: "choose",
+      choice: { kind: "status", status: { id: replaying.id, name: replaying.name, systemKey: null } },
+    });
+
+    expect(importRepo.saveDecision).toHaveBeenCalledWith(USER_ID, [frostpunk.id], { answers: { statusId: replaying.id } });
+  });
+
+  it("confirma con el estado propio elegido", async () => {
+    const replaying = { id: "status-rejugando", group: "in_progress" as const, name: "Rejugando", color: "lime" as const, position: 3, systemKey: null };
+    const frostpunk = entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)], { answers: { statusId: replaying.id } });
+    const { service, importRepo } = setup({ importRepo: withReview([frostpunk]), statuses: [...STATUSES, replaying] });
+
+    await service.confirm(USER_ID);
+
+    expect(importRepo.state.confirmations[0].games[0].target).toMatchObject({ values: { statusId: replaying.id } });
+  });
+
+  it("arma la revisión con los estados del usuario, que se crean si todavía no tiene", async () => {
+    const { service, statusService } = setup({ importRepo: withReview([]) });
+
+    await service.getOverview(USER_ID);
+
+    expect(statusService.listStatuses).toHaveBeenCalledWith(USER_ID);
   });
 });

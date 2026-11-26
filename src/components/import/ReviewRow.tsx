@@ -7,12 +7,18 @@ import { GameCover } from "@/components/game/GameCover";
 import controls from "@/components/ui/controls.module.css";
 import { keptCopies } from "@/model/import/copies";
 import type { ImportCandidate } from "@/model/import/import-entry";
-import { canGoBack, isQuestionGroup, type ReviewChoice, type ReviewGame } from "@/model/import/review";
+import { canGoBack, isQuestionGroup, type ReviewChoice, type ReviewGame, type StatusRef } from "@/model/import/review";
+import { offeredStatuses } from "@/model/status/status";
 
 import { useImportText } from "./import-text";
 import styles from "./ReviewRow.module.css";
 
-export type StatusOption = Readonly<{ statusKey: string; name: string }>;
+/** Un estado activo del usuario, con el nombre que se ve en el idioma elegido. */
+export type StatusOption = StatusRef & Readonly<{ label: string }>;
+
+export function statusChoiceOf({ id, name, systemKey }: StatusOption): ReviewChoice {
+  return { kind: "status", status: { id, name, systemKey } };
+}
 
 /** Las respuestas que solo abren algo para elegir: no deciden nada todavía. */
 type Opening = "search" | "other_status" | null;
@@ -56,19 +62,19 @@ type StatusListProps = Readonly<{
   label: string;
   statuses: readonly StatusOption[];
   disabled: boolean;
-  onPick: (statusKey: string) => void;
+  onPick: (status: StatusOption) => void;
 }>;
 
-/** Lo que abre «Otro estado»: todos los estados del usuario, ninguno marcado (design.md §9). */
+/** Lo que abre «Otro estado»: los estados que se le ofrecen al juego, ninguno marcado (design.md §9). */
 export function StatusList({ label, statuses, disabled, onPick }: StatusListProps) {
   const t = useTranslations("import.review");
 
   return (
     <div role="group" aria-label={label} className={styles.statusList}>
       <p className={styles.statusListTitle}>{t("allStatuses")}</p>
-      {statuses.map(({ statusKey, name }) => (
-        <button key={statusKey} type="button" className={styles.statusOption} disabled={disabled} onClick={() => onPick(statusKey)}>
-          {name}
+      {statuses.map((status) => (
+        <button key={status.id} type="button" className={styles.statusOption} disabled={disabled} onClick={() => onPick(status)}>
+          {status.label}
         </button>
       ))}
     </div>
@@ -118,7 +124,7 @@ function Answers({ game, disabled, onChoose, opening, onOpen }: RowProps) {
       {game.choices.map((choice) => (
         <OptionButton
           key={JSON.stringify(choice)}
-          label={text.choice(choice)}
+          label={text.choice(choice, game)}
           discard={choice.kind === "exclude"}
           expanded={choice.kind === "other_status" ? statusesOpen : undefined}
           disabled={disabled}
@@ -135,9 +141,9 @@ function OtherStatuses({ game, statuses, disabled, opening, onChoose }: RowProps
   return opening === "other_status" ? (
     <StatusList
       label={t("otherStatus", { title: game.title })}
-      statuses={statuses}
+      statuses={offeredStatuses(statuses, { endless: game.endless })}
       disabled={disabled}
-      onPick={(statusKey) => onChoose({ kind: "status", statusKey })}
+      onPick={(status) => onChoose(statusChoiceOf(status))}
     />
   ) : null;
 }
@@ -275,14 +281,15 @@ function WhichOptions({ game, disabled, onChoose, onOpen }: RowProps) {
 function HowLeftOptions({ game, disabled, onChoose, opening, onOpen }: RowProps) {
   const t = useTranslations("import");
   const text = useImportText();
-  const statusKeys = game.choices.flatMap((choice) => (choice.kind === "status" ? [choice.statusKey] : []));
+  const answers = game.choices.filter((choice) => choice.kind === "status");
+  const statusKeys = answers.flatMap(({ status }) => status.systemKey ?? []);
 
   return (
     <>
       <p className={styles.note}>{text.ignHas(statusKeys)}</p>
       <div role="group" aria-label={t("review.howLeftFor", { title: game.title })} className={styles.actions}>
-        {statusKeys.map((statusKey) => (
-          <OptionButton key={statusKey} label={text.howLeft(statusKey)} disabled={disabled} onClick={() => onChoose({ kind: "status", statusKey })} />
+        {answers.map((choice) => (
+          <OptionButton key={choice.status.id} label={text.choice(choice, game)} disabled={disabled} onClick={() => onChoose(choice)} />
         ))}
         <OptionButton
           label={t("choices.otherStatus")}

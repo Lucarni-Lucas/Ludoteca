@@ -6,7 +6,7 @@ import styles from "./SelectionBar.module.css";
 
 type SelectionBarProps = Readonly<{
   count: number;
-  /** Con los «Sin interés» a la vista, la misma barra permite volver a mostrarlos. */
+  /** Con los ocultos a la vista, la misma barra permite volver a mostrarlos. */
   markLabel: string;
   pending: boolean;
   errorMessage: string | null;

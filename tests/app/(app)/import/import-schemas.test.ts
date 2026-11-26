@@ -7,8 +7,8 @@ const ENTRY_ID = "00000000-0000-4000-8000-00000000000a";
 describe("decideSchema", () => {
   it.each([
     { kind: "reset" },
-    { kind: "choose", choice: { kind: "not_interested" } },
-    { kind: "choose", choice: { kind: "status", statusKey: "completed" } },
+    { kind: "choose", choice: { kind: "hidden" } },
+    { kind: "choose", choice: { kind: "status", status: { id: "4f9d3c1e-8a2b-4c5d-9e6f-1a2b3c4d5e6f", name: "Completado", systemKey: "completed" } } },
     { kind: "choose", choice: { kind: "copy_kind", copyKind: "family" } },
     { kind: "copy_kind", storeId: ENTRY_ID, copyKind: "purchased" },
   ])("acepta la decisión %j", (decision) => {

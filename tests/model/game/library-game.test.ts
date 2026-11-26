@@ -72,19 +72,16 @@ describe("datos efectivos", () => {
 });
 
 describe("resolveInitialStatus", () => {
-  it.each([
-    { hasCopy: false, expected: "Quiero jugarlo" },
-    { hasCopy: true, expected: "Pendiente" },
-  ])("con copia: $hasCopy, queda en «$expected»", ({ hasCopy, expected }) => {
-    const choice = { chosenStatusId: null, hasCopy };
+  it("sin elegir un estado queda en «Backlog», tenga copias o no", () => {
+    const choice = { chosenStatusId: null };
 
     const status = resolveInitialStatus(statuses, choice);
 
-    expect(status.name).toBe(expected);
+    expect(status.name).toBe("Backlog");
   });
 
   it("respeta el estado elegido a mano", () => {
-    const choice = { chosenStatusId: "playing", hasCopy: false };
+    const choice = { chosenStatusId: "playing" };
 
     const status = resolveInitialStatus(statuses, choice);
 
@@ -92,7 +89,7 @@ describe("resolveInitialStatus", () => {
   });
 
   it("rechaza un estado que no es del usuario", () => {
-    const choice = { chosenStatusId: "estado-ajeno", hasCopy: false };
+    const choice = { chosenStatusId: "estado-ajeno" };
 
     const resolve = () => resolveInitialStatus(statuses, choice);
 

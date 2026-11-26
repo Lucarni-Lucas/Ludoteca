@@ -89,15 +89,11 @@ Si la búsqueda por título dejaría el juego en «No lo encontré» (IGDB no ti
 - **THEN** queda en «¿Cuál de estos es?» con la pregunta «¿Es este juego?» y «Styx: Shards of Darkness» como candidato
 
 ### Requirement: Estados desde IGN
-Los estados de IGN SHALL pasar así: Playing a Jugando, Paused a En pausa, Beat a Completado, Quit a Abandonado, Wishlist a Quiero jugarlo, y Backlog a Pendiente si el juego tiene alguna copia o a Quiero jugarlo si no. Un juego con dos estados de IGN MUST quedar en «¿Cómo lo dejaste?».
-
-#### Scenario: Backlog con copia
-- **WHEN** un juego en Backlog en IGN también llega con una copia de Steam
-- **THEN** se sugiere «Pendiente»
+Los estados de IGN SHALL pasar así: Playing a Jugando, Paused a En pausa, Beat a Completado, Quit a Abandonado, Wishlist a Quiero jugarlo y Backlog a Backlog, tenga copias o no. Un juego con dos estados de IGN MUST quedar en «¿Cómo lo dejaste?».
 
 #### Scenario: Backlog sin copia
 - **WHEN** un juego en Backlog en IGN no tiene copias en ninguna fuente
-- **THEN** se sugiere «Quiero jugarlo»
+- **THEN** se sugiere «Backlog»
 
 #### Scenario: Wishlist de IGN
 - **WHEN** un juego llega de IGN como Wishlist
@@ -184,22 +180,53 @@ El sistema SHALL agrupar los juegos que llegan como Completado y que en IGDB son
 - **THEN** aparece en «¿Es sin fin?» con «Sí, no se termina», «No, lo terminé» y «No importar», sin ninguna marcada
 
 ### Requirement: Grupo «¿Lo vas a jugar alguna vez?»
-El sistema SHALL agrupar los juegos que llegan como Pendiente sin puntaje o con 0 h en sus tiendas. Las respuestas SHALL ser «Sí, algún día» (entra como Pendiente), «No» (entra marcado «Sin interés»: no se ve en la biblioteca, pero «¿Lo tengo?» sabe que es suyo) y «No importar», de a uno o en lote. La explicación del grupo MUST decir la diferencia entre «No» y «No importar».
+El sistema SHALL agrupar los juegos que llegan como Backlog, sin puntaje, con al menos una copia con horas conocidas y menos de 1 h en total. Las respuestas SHALL ser «Sí, algún día» (entra en Backlog), «Ya lo jugué» (pasa a «Elegí un estado»), «No» (entra oculto: no se ve en la biblioteca, pero «¿Lo tengo?» sabe que es suyo) y «No importar», de a uno o en lote. La explicación del grupo MUST decir la diferencia entre «No» y «No importar».
 
 #### Scenario: Juego que nunca se va a jugar
 - **WHEN** el usuario responde «No» para 8BitMMO en este grupo y confirma la importación
-- **THEN** 8BitMMO entra a la biblioteca marcado «Sin interés» y con su copia de Steam
+- **THEN** 8BitMMO entra a la biblioteca oculto y con su copia de Steam
+
+#### Scenario: Ya lo jugó
+- **WHEN** el usuario responde «Ya lo jugué» para Celeste, que IGN tiene en Backlog y no tiene horas en ninguna tienda
+- **THEN** Celeste pasa a «Elegí un estado»
+
+#### Scenario: Backlog con horas
+- **WHEN** IGN tiene Inscryption en Backlog, sin puntaje, y Epic trae 5.5 h
+- **THEN** Inscryption no aparece en «¿Lo vas a jugar alguna vez?»: va a «Elegí un estado»
+
+#### Scenario: Apenas abierto
+- **WHEN** 7 Days to Die llega de Steam con 0.1 h y en Backlog en IGN
+- **THEN** aparece en «¿Lo vas a jugar alguna vez?»
 
 ### Requirement: Grupo «Elegí un estado»
-El sistema SHALL agrupar los juegos que el usuario tiene, con horas jugadas, pero que no vinieron de IGN. Las respuestas SHALL ser «Lo estoy jugando» (Jugando), «Lo terminé» (Completado), «Lo abandoné» (Abandonado), «Lo probé» (Lo probé), «Otro estado», que abre la lista con todos los estados, y «No importar», sin ninguna marcada, de a uno o en lote.
+El sistema SHALL agrupar los juegos con 1 h o más en sus tiendas que no tienen un estado de IGN que sirva: los que no vinieron de IGN, los que IGN tiene en Backlog y los que respondieron «Ya lo jugué». Las respuestas SHALL depender de si el juego es sin fin (escenarios), más «Otro estado», que abre la lista de estados, «Ocultar» (entra oculto, en Backlog) y «No importar». Ninguna viene marcada, y se responde de a uno o en lote.
 
 #### Scenario: Juego jugado que no estaba en IGN
 - **WHEN** un juego de Steam con 12 h no está en el archivo de IGN
-- **THEN** aparece en «Elegí un estado» con «Lo estoy jugando», «Lo terminé», «Lo abandoné», «Lo probé», «Otro estado» y «No importar», sin ninguna marcada
+- **THEN** aparece en «Elegí un estado» con «Lo estoy jugando» (Jugando), «Lo terminé» (Completado), «Lo abandoné» (Abandonado), «Lo probé», «Otro estado», «Ocultar» y «No importar», sin ninguna marcada
+
+#### Scenario: Juego sin fin jugado
+- **WHEN** Hunt: Showdown, que en IGDB es solo multijugador, llega de Xbox con 25 h y no está en IGN
+- **THEN** aparece en «Elegí un estado» con «Lo sigo jugando» (Jugando), «Ya no lo juego» (Jugado), «Lo probé», «Otro estado», «Ocultar» y «No importar»
 
 #### Scenario: Otro estado
 - **WHEN** el usuario toca «Otro estado» en Frostpunk, de «Elegí un estado», y elige «En pausa» en la lista
 - **THEN** Frostpunk pasa a «Listos para importar» con «En pausa»
+
+### Requirement: Los estados del usuario
+La importación SHALL usar los estados del usuario. Un estado por defecto se reconoce por su función aunque el usuario lo haya renombrado, y «Otro estado» MUST ofrecer todos los estados activos, también los creados por el usuario. Si el usuario desactivó un estado por defecto, la respuesta que lo usa no se ofrece, y un juego que IGN trae en ese estado pasa a «Elegí un estado».
+
+#### Scenario: Estado renombrado
+- **WHEN** el usuario renombró «Completado» a «Terminado» y IGN trae Outer Wilds como Beat
+- **THEN** Outer Wilds entra como «Terminado»
+
+#### Scenario: Estado desactivado
+- **WHEN** el usuario desactivó «Abandonado» y IGN trae Sekiro como Quit
+- **THEN** Sekiro pasa a «Elegí un estado» y ninguna respuesta ofrece «Abandonado»
+
+#### Scenario: Estado propio
+- **WHEN** el usuario creó «Rejugando» y toca «Otro estado» en un juego de «Elegí un estado»
+- **THEN** la lista ofrece «Rejugando»
 
 ### Requirement: Grupo «¿Cuál de estos es?»
 Los juegos con varios candidatos en IGDB SHALL agruparse en «¿Cuál de estos es?». Cada uno muestra cómo llegó (fuente, nombre y año) y los candidatos con portada, nombre completo y año, más «Ninguno, lo busco yo» y «No importar». Ninguna opción viene marcada: elegir una dice qué juego es, y el juego sigue como pide «Después de decir qué juego es».
@@ -250,7 +277,7 @@ En todos los grupos, las opciones de un juego SHALL ser respuestas a la pregunta
 
 #### Scenario: Nada marcado
 - **WHEN** el usuario abre «¿Lo vas a jugar alguna vez?» y 112 Operator llega de Epic con 0 h
-- **THEN** 112 Operator muestra «Sí, algún día», «No» y «No importar», sin ninguna marcada
+- **THEN** 112 Operator muestra «Sí, algún día», «Ya lo jugué», «No» y «No importar», sin ninguna marcada
 
 #### Scenario: Responder en lote
 - **WHEN** el usuario selecciona Portal 2 y Watch Dogs en «¿Es de tu familia?» y toca «Sí, es de mi familia»
@@ -261,15 +288,15 @@ Los juegos sin nada dudoso y los que el usuario ya decidió en cualquier otro gr
 
 #### Scenario: Decidir pasa a «Listos para importar»
 - **WHEN** el usuario responde «No» para Beholder en «¿Lo vas a jugar alguna vez?»
-- **THEN** Beholder pasa a «Listos para importar» y la pantalla dice «Beholder pasó a «Listos para importar» con «Sin interés».»
+- **THEN** Beholder pasa a «Listos para importar» y la pantalla dice «Beholder pasó a «Listos para importar», oculto.»
 
 #### Scenario: Confirmar lo que está listo
 - **WHEN** el usuario confirma la importación con juegos en «Listos para importar» y otros en «¿Cuál de estos es?»
 - **THEN** los de «Listos para importar» entran a la biblioteca con lo respondido y los de «¿Cuál de estos es?» siguen esperando
 
 #### Scenario: Cómo va a entrar
-- **WHEN** el usuario abre «Listos para importar» y 112 Operator está decidido como Pendiente
-- **THEN** 112 Operator dice «Entra como Pendiente · Epic Games · Gratis»
+- **WHEN** el usuario abre «Listos para importar» y 112 Operator está decidido como Backlog
+- **THEN** 112 Operator dice «Entra como Backlog · Epic Games · Gratis»
 
 ### Requirement: Volver a revisar
 Un juego de «Listos para importar» (también uno que el usuario dejó afuera con «No importar», que se ve ahí como «No se importa»), o uno que pasó a otro grupo después de decir qué juego es, SHALL poder volver con «Volver a revisar» a su primera pregunta, sin ninguna de las respuestas que se habían dado.
@@ -326,8 +353,8 @@ Volver a importar MUST NOT duplicar juegos ni copias. Las copias se reconocen po
 - **THEN** solo entran esos 2 juegos y el resto queda igual
 
 ### Requirement: Resumen al confirmar
-Al confirmar, el sistema SHALL mostrar cuántos juegos y copias entraron, cuántos quedaron marcados «Sin interés» y cuántos no se importaron.
+Al confirmar, el sistema SHALL mostrar cuántos juegos y copias entraron, cuántos quedaron ocultos y cuántos no se importaron.
 
 #### Scenario: Resumen final
 - **WHEN** el usuario confirma la importación
-- **THEN** ve un resumen como «Entraron 480 juegos y 520 copias · 60 marcados «Sin interés» · 4 sin importar»
+- **THEN** ve un resumen como «Entraron 480 juegos y 520 copias · 60 ocultos · 4 sin importar»

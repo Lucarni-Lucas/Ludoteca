@@ -27,7 +27,7 @@ function currentCopies(game: LibraryGame) {
   return game.copies.filter((copy) => !isLost(copy));
 }
 
-/** Nunca cuenta los «Sin interés»: aunque se muestren, no son parte de la biblioteca. */
+/** Nunca cuenta los ocultos: aunque se muestren, no son parte de la biblioteca. */
 export function summarizeLibrary(games: readonly LibraryGame[]): LibrarySummary {
   const interesting = visibleGames(games, false);
   const owned = interesting.filter((game) => currentCopies(game).length > 0);
@@ -64,8 +64,8 @@ function withEveryKind(counts: Tally): Readonly<Record<CopyKindFilter, number>> 
 }
 
 /** Las cantidades son sobre toda la biblioteca visible, no sobre el resultado de los otros filtros. */
-export function countLibraryOptions(games: readonly LibraryGame[], showNotInterested: boolean): LibraryCounts {
-  const visible = visibleGames(games, showNotInterested);
+export function countLibraryOptions(games: readonly LibraryGame[], showHidden: boolean): LibraryCounts {
+  const visible = visibleGames(games, showHidden);
 
   return {
     total: visible.length,

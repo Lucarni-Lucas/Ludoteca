@@ -51,7 +51,6 @@ describe("createGameRepository", () => {
       userId,
       gameId,
       { storeId: steam.id, kind: "purchased", acquiredOn: null, familyOwner: null },
-      null,
     );
   }
 
@@ -76,10 +75,10 @@ describe("createGameRepository", () => {
         source: "igdb",
         statusSince: TODAY,
         score: null,
-        notInterested: false,
+        hidden: false,
         catalog: { estimatedHours: 22, endless: false },
         corrections: { estimatedHours: null, endless: null, coverUrl: null },
-        status: { name: "Pendiente" },
+        status: { name: "Backlog" },
       });
       expect(game.copies.map(({ storeName, kind }) => ({ storeName, kind }))).toEqual([
         { storeName: "Steam", kind: "purchased" },
@@ -199,7 +198,7 @@ describe("createGameRepository", () => {
 
       const game = await repositories.games.findById(USER_A, gameId);
 
-      expect(game?.status.name).toBe("Pendiente");
+      expect(game?.status.name).toBe("Backlog");
       expect(game?.statusSince).toBe(TODAY);
     });
   });
@@ -207,7 +206,7 @@ describe("createGameRepository", () => {
   describe("applyStatusChange", () => {
     it("Cambio registrado", async () => {
       const gameId = await addIgdb(USER_A, 1, "Elden Ring");
-      const from = statusNamed(statusesA, "Pendiente");
+      const from = statusNamed(statusesA, "Backlog");
       const to = statusNamed(statusesA, "Lo probé");
       const plan = {
         statusId: to.id,
@@ -233,7 +232,7 @@ describe("createGameRepository", () => {
 
     it("Cambio sobre datos ajenos", async () => {
       const gameOfB = await addIgdb(USER_B, 1, "Elden Ring", statusesB);
-      const from = statusNamed(statusesB, "Pendiente");
+      const from = statusNamed(statusesB, "Backlog");
       const to = statusNamed(statusesB, "Lo probé");
       const plan = {
         statusId: to.id,
@@ -244,12 +243,12 @@ describe("createGameRepository", () => {
       const change = repositories.games.applyStatusChange(USER_A, gameOfB, plan);
 
       await expect(change).rejects.toBeInstanceOf(GameNotFoundError);
-      expect((await repositories.games.findById(USER_B, gameOfB))?.status.name).toBe("Pendiente");
+      expect((await repositories.games.findById(USER_B, gameOfB))?.status.name).toBe("Backlog");
       expect(await countRows(journalEntry)).toBe(0);
     });
   });
 
-  describe("correcciones, puntaje y sin interés", () => {
+  describe("correcciones, puntaje y ocultos", () => {
     it("Corregir la duración", async () => {
       const gameOfA = await addIgdb(USER_A, 1, "Disco Elysium");
       const gameOfB = await addIgdb(USER_B, 1, "Disco Elysium", statusesB);
@@ -284,19 +283,19 @@ describe("createGameRepository", () => {
         Array.from({ length: 20 }, (_, index) => addIgdb(USER_A, index + 1, `Juego ${index + 1}`)),
       );
 
-      await repositories.games.setNotInterested(USER_A, ids, true);
+      await repositories.games.setHidden(USER_A, ids, true);
 
       const library = await repositories.games.listLibrary(USER_A);
       expect(library).toHaveLength(20);
-      expect(library.every(({ notInterested }) => notInterested)).toBe(true);
+      expect(library.every(({ hidden }) => hidden)).toBe(true);
     });
 
-    it("marcar «Sin interés» no alcanza los juegos de otro usuario", async () => {
+    it("ocultar no alcanza los juegos de otro usuario", async () => {
       const gameOfB = await addIgdb(USER_B, 1, "Hades", statusesB);
 
-      await repositories.games.setNotInterested(USER_A, [gameOfB], true);
+      await repositories.games.setHidden(USER_A, [gameOfB], true);
 
-      expect((await repositories.games.findById(USER_B, gameOfB))?.notInterested).toBe(false);
+      expect((await repositories.games.findById(USER_B, gameOfB))?.hidden).toBe(false);
     });
   });
 
@@ -320,7 +319,7 @@ describe("createGameRepository", () => {
         source: "igdb",
         igdbId: 5,
         score: 8,
-        status: { name: "Pendiente" },
+        status: { name: "Backlog" },
       });
       expect(after?.copies).toHaveLength(1);
       expect(await database.db.select().from(catalogGame).where(eq(catalogGame.source, "manual"))).toEqual([]);
@@ -371,7 +370,7 @@ describe("createGameRepository", () => {
     it("Quitar un juego agregado por error", async () => {
       const gameId = await addIgdb(USER_A, 1, "Outer Wilds");
       await addCopyTo(USER_A, gameId);
-      const from = statusNamed(statusesA, "Pendiente");
+      const from = statusNamed(statusesA, "Backlog");
       const to = statusNamed(statusesA, "Jugando");
       await repositories.games.applyStatusChange(USER_A, gameId, {
         statusId: to.id,
@@ -442,7 +441,7 @@ describe("createGameRepository", () => {
       await database.db.insert(libraryGame).values({
         userId: USER_B,
         catalogGameId: game?.catalogGameId ?? "",
-        statusId: statusNamed(statusesB, "Pendiente").id,
+        statusId: statusNamed(statusesB, "Backlog").id,
         statusSince: TODAY,
       });
 
@@ -486,7 +485,7 @@ describe("createGameRepository al agregar con varias copias y puntaje", () => {
     });
 
     const game = await repositories.games.findById(USER_A, gameId);
-    expect(game?.status.name).toBe("Pendiente");
+    expect(game?.status.name).toBe("Backlog");
     expect(game?.copies.map(({ storeName, kind }) => `${storeName} ${kind}`).toSorted()).toEqual([
       "Epic Games free",
       "Steam purchased",

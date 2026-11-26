@@ -36,13 +36,17 @@ input::placeholder,textarea::placeholder{color:#7D8696}
       <sc-for list="{{groups}}" as="gr" hint-placeholder-count="4">
         <div style="display: flex; flex-direction: column; gap: 6px">
           <span style="font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">{{gr.label}}</span>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <div style="display: flex; flex-direction: column; gap: 8px">
             <sc-for list="{{gr.statuses}}" as="t" hint-placeholder-count="2">
-              <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.active}}" style="{{t.style}}">{{t.label}}</button>
+              <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.active}}" style="{{t.style}}">
+                <span>{{t.label}}</span>
+                <span style="font: 400 13px/1.35 Inter, system-ui, sans-serif; color: #9AA3B2; overflow-wrap: anywhere">{{t.meaning}}</span>
+              </button>
             </sc-for>
           </div>
         </div>
       </sc-for>
+      <p style="margin: 0; font-size: 12px; color: #9AA3B2">Disco Elysium tiene final: no se ofrece «Jugado». A un juego sin fin se le ofrece «Jugado» en lugar de «Completado» y «100%».</p>
       <a href="Movil-Estados.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 14px; font-weight: 600; text-decoration: none">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path></svg>
         Editar o crear estados
@@ -94,31 +98,33 @@ input::placeholder,textarea::placeholder{color:#7D8696}
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1300}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1560}}'>
 class Component extends DCLogic {
   renderVals() {
     const st = this.state || {};
     const status = st.status || 'abandonado';
     const picked = st.reasons || ['Me falta tiempo'];
     const GROUPS = [
-      ['En curso', [['jugando', 'Jugando'], ['pausa', 'En pausa'], ['sinfin', 'Sin fin']]],
-      ['Sin empezar', [['quiero', 'Quiero jugarlo'], ['pendiente', 'Pendiente']]],
-      ['Terminado', [['completado', 'Completado'], ['cien', '100%']]],
-      ['Dejado', [['abandonado', 'Abandonado'], ['loprobe', 'Lo probé']]]
+      ['En curso', [['jugando', 'Jugando', 'Lo estás jugando ahora'], ['pausa', 'En pausa', 'Lo empezaste y pensás volver']]],
+      ['Sin empezar', [['quiero', 'Quiero jugarlo', 'Lo querés jugar pronto, lo tengas o no'], ['backlog', 'Backlog', 'Lo vas a jugar en algún momento, sin apuro']]],
+      ['Terminado', [['completado', 'Completado', 'Terminaste la historia principal'], ['cien', '100%', 'Lo terminaste todo']]],
+      ['Dejado', [['abandonado', 'Abandonado', 'Lo jugaste en serio y lo dejaste sin terminar'], ['loprobe', 'Lo probé', 'Lo jugaste un rato y no te enganchó']]]
     ];
     const LABEL = {};
     GROUPS.forEach(([, list]) => list.forEach(([id, l]) => { LABEL[id] = l; }));
+    // Con la línea de qué significa, cada estado es una fila de dos renglones en lugar de una píldora.
     const pill = (active) => active
-      ? 'display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #C8F25A; background: #C8F25A; color: #0E1014; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer'
-      : 'display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #2A303B; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer';
+      ? 'display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: 100%; min-height: 44px; box-sizing: border-box; padding: 10px 14px; border-radius: 12px; border: 1px solid #C8F25A; background: #1E232C; color: #ECEEF2; font: 600 15px/1.2 Inter, system-ui, sans-serif; text-align: left; cursor: pointer'
+      : 'display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: 100%; min-height: 44px; box-sizing: border-box; padding: 10px 14px; border-radius: 12px; border: 1px solid #2A303B; background: transparent; color: #C5CCD8; font: 500 15px/1.2 Inter, system-ui, sans-serif; text-align: left; cursor: pointer';
     const soft = (active) => active
       ? 'display: inline-flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #FF9C8A; background: rgba(255,156,138,0.12); color: #FFC2B7; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer'
       : 'display: inline-flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #2A303B; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer';
 
     const groups = GROUPS.map(([label, list]) => ({
       label,
-      statuses: list.map(([id, l]) => ({
+      statuses: list.map(([id, l, meaning]) => ({
         label: l,
+        meaning,
         active: status === id,
         style: pill(status === id),
         pick: () => this.setState({ status: id })

@@ -1,6 +1,13 @@
 import { MAX_SCORE, MIN_SCORE, normalizeScore } from "@/model/game/score";
 import type { IgnStatus } from "@/model/import/import-row";
-import { BACKLOG_KEY, WISHLIST_KEY } from "@/model/status/status";
+import {
+  ABANDONED_KEY,
+  BACKLOG_KEY,
+  COMPLETED_KEY,
+  PAUSED_KEY,
+  PLAYING_KEY,
+  WISHLIST_KEY,
+} from "@/model/status/status";
 
 /** `status` usa los nombres de siempre; `flags` dice `completed` por Beat y `archived` por Quit (design.md §5). */
 const STATUS_NAMES: ReadonlyMap<string, IgnStatus> = new Map([
@@ -21,12 +28,13 @@ const FLAG_NAMES: ReadonlyMap<string, IgnStatus> = new Map([
   ["wishlist", "wishlist"],
 ]);
 
-/** El `system_key` del estado de Ludoteca para cada uno de IGN, salvo Backlog, que depende de las copias. */
-const STATUS_KEYS: Readonly<Record<Exclude<IgnStatus, "backlog">, string>> = {
-  playing: "playing",
-  paused: "paused",
-  beat: "completed",
-  quit: "abandoned",
+/** El `system_key` del estado de Ludoteca para cada uno de IGN: Backlog es Backlog, tenga copias o no. */
+const STATUS_KEYS: Readonly<Record<IgnStatus, string>> = {
+  playing: PLAYING_KEY,
+  paused: PAUSED_KEY,
+  backlog: BACKLOG_KEY,
+  beat: COMPLETED_KEY,
+  quit: ABANDONED_KEY,
   wishlist: WISHLIST_KEY,
 };
 
@@ -50,23 +58,19 @@ export function readIgnStatuses(status: string | null, flags: readonly string[])
   };
 }
 
-export function statusKeyOfIgn(status: IgnStatus, hasCopy: boolean): string {
-  if (status === "backlog") {
-    return hasCopy ? BACKLOG_KEY : WISHLIST_KEY;
-  }
-
+export function statusKeyOfIgn(status: IgnStatus): string {
   return STATUS_KEYS[status];
 }
 
 export type IgnStatusSuggestion =
   | Readonly<{ kind: "none" }>
   | Readonly<{ kind: "single"; statusKey: string }>
-  /** Dos estados de IGN: el juego queda para revisar con los dos, el primero marcado. */
+  /** Dos estados de IGN: el juego pregunta «¿Cómo lo dejaste?». */
   | Readonly<{ kind: "conflict"; statusKeys: readonly string[] }>;
 
-/** Backlog es Pendiente si queda alguna copia, y si no, Quiero jugarlo. */
-export function suggestIgnStatus(statuses: readonly IgnStatus[], hasCopy: boolean): IgnStatusSuggestion {
-  const keys = [...new Set(statuses.map((status) => statusKeyOfIgn(status, hasCopy)))];
+/** Los estados de Ludoteca que corresponden a los de IGN, sin repetir. */
+export function suggestIgnStatus(statuses: readonly IgnStatus[]): IgnStatusSuggestion {
+  const keys = [...new Set(statuses.map(statusKeyOfIgn))];
 
   if (keys.length === 0) {
     return { kind: "none" };

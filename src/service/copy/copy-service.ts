@@ -1,39 +1,28 @@
 import { type LostMark, type LostReason, markCopyLost } from "@/model/copy/copy";
-import {
-  buildNewCopy,
-  type NewCopy,
-  type NewCopyDetails,
-  planStatusAfterNewCopy,
-  validateCopyDetails,
-} from "@/model/copy/new-copy";
+import { buildNewCopy, type NewCopy, type NewCopyDetails, validateCopyDetails } from "@/model/copy/new-copy";
 import { GameNotFoundError } from "@/model/game/errors";
 import type { LibraryGame } from "@/model/game/library-game";
-import { BACKLOG_KEY, findStatusByKey, type Status, type StatusChangePlan } from "@/model/status/status";
 import type { Store } from "@/model/store/store";
 import type { StoreChoice, StoreResolver } from "@/service/copy/store-resolver";
 
 export type AddCopyInput = NewCopyDetails & Readonly<{ store: StoreChoice }>;
 
-/** Si la copia nueva sacó al juego de «Quiero jugarlo», a qué estado pasó: la pantalla lo avisa. */
-export type AddCopyResult = Readonly<{ movedTo: Status | null }>;
-
 type CopyServiceDependencies = Readonly<{
   gameRepo: Readonly<{ findById(userId: string, gameId: string): Promise<LibraryGame | null> }>;
   copyRepo: Readonly<{
-    addCopy(userId: string, gameId: string, value: NewCopy, statusPlan: StatusChangePlan | null): Promise<void>;
+    addCopy(userId: string, gameId: string, value: NewCopy): Promise<void>;
     markLost(userId: string, copyId: string, mark: LostMark): Promise<void>;
     recover(userId: string, copyId: string): Promise<void>;
     remove(userId: string, copyId: string): Promise<void>;
   }>;
   storeRepo: Readonly<{ listAvailable(userId: string): Promise<readonly Store[]> }>;
-  statusService: Readonly<{ listStatuses(userId: string): Promise<readonly Status[]> }>;
   storeResolver: StoreResolver;
   clock: Readonly<{ today(): string }>;
 }>;
 
 export type CopyService = Readonly<{
   listStores(userId: string): Promise<readonly Store[]>;
-  addCopy(userId: string, gameId: string, input: AddCopyInput): Promise<AddCopyResult>;
+  addCopy(userId: string, gameId: string, input: AddCopyInput): Promise<void>;
   markLost(userId: string, copyId: string, reason: LostReason, lostAt: string | null): Promise<void>;
   recover(userId: string, copyId: string): Promise<void>;
   remove(userId: string, copyId: string): Promise<void>;
@@ -43,7 +32,6 @@ export function createCopyService({
   gameRepo,
   copyRepo,
   storeRepo,
-  statusService,
   storeResolver,
   clock,
 }: CopyServiceDependencies): CopyService {
@@ -59,17 +47,11 @@ export function createCopyService({
         throw new GameNotFoundError();
       }
 
+      // Agregar una copia no cambia el estado: «Quiero jugarlo» ya no es la wishlist (`04` design.md §19).
       const details = validateCopyDetails(input);
-      const [store, statuses] = await Promise.all([
-        storeResolver.resolve(userId, input.store),
-        statusService.listStatuses(userId),
-      ]);
-      const plan = planStatusAfterNewCopy(game, details.kind, statuses, clock.today());
+      const store = await storeResolver.resolve(userId, input.store);
 
-      await copyRepo.addCopy(userId, gameId, buildNewCopy(store.id, details), plan);
-
-      const backlog = findStatusByKey(statuses, BACKLOG_KEY);
-      return { movedTo: plan && backlog ? backlog : null };
+      await copyRepo.addCopy(userId, gameId, buildNewCopy(store.id, details));
     },
 
     markLost(userId, copyId, reason, lostAt) {

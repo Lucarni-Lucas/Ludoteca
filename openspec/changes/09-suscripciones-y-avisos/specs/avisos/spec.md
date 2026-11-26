@@ -33,18 +33,26 @@ Los avisos SHALL revisarse una vez por día: llegan el día que corresponde, per
 - **THEN** el aviso llega en algún momento de ese día
 
 ### Requirement: Interruptores de avisos
-El sistema SHALL ofrecer interruptores para «Antes de comprar algo que ya tenés» y «Juegos de «Quiero jugarlo» que estén gratis», los dos prendidos por defecto. «Bajadas de precio» MUST verse deshabilitado, con la etiqueta «Próximamente».
+El sistema SHALL ofrecer interruptores para «Antes de comprar algo que ya tenés» y «Juegos que querés y están gratis», los dos prendidos por defecto. «Bajadas de precio» MUST verse deshabilitado, con la etiqueta «Próximamente».
 
 #### Scenario: Apagar un aviso
 - **WHEN** el usuario apaga «Antes de comprar algo que ya tenés»
 - **THEN** al agregar una copia de un juego que ya tiene no se le pide confirmación
 
 ### Requirement: Juegos deseados gratis en Epic
-Una vez por día, el sistema SHALL revisar los juegos gratis de Epic Games y avisar si alguno está en «Quiero jugarlo», una sola vez por cada promoción.
+Una vez por día, el sistema SHALL revisar los juegos gratis de Epic Games y avisar si alguno está en «Quiero jugarlo» o en «Backlog» y el usuario no tiene una copia propia vigente (Comprado, Gratis, Físico u Otro), una sola vez por cada promoción. Una copia Familia o Suscripción no cuenta como propia.
 
 #### Scenario: Juego deseado gratis
-- **WHEN** Frostpunk está en «Quiero jugarlo» y aparece entre los gratis de la semana de Epic
+- **WHEN** Frostpunk está en «Backlog» sin copias y aparece entre los gratis de la semana de Epic
 - **THEN** llega «Frostpunk está gratis en Epic Games» una sola vez
+
+#### Scenario: Ya lo tiene
+- **WHEN** Hades está en «Quiero jugarlo» con una copia Comprado en Steam y aparece entre los gratis de Epic
+- **THEN** no llega ningún aviso
+
+#### Scenario: Lo juega por suscripción
+- **WHEN** Forza Horizon 5 está en «Backlog» con una copia Suscripción de Game Pass y aparece entre los gratis de Epic
+- **THEN** llega «Forza Horizon 5 está gratis en Epic Games»
 
 ### Requirement: Permiso de notificaciones
 Para avisar por notificación, el sistema SHALL pedir permiso en el dispositivo. Si el permiso se niega o el dispositivo no lo permite, MUST explicarlo y sugerir el mail.

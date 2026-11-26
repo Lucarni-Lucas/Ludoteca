@@ -124,9 +124,9 @@
   },
   "help": {
     "label": "Qué es «{term}»",
-    "notInterested": {
-      "term": "Sin interés",
-      "text": "Lo tenés pero no pensás jugarlo: no aparece en la biblioteca ni en los conteos. Lo ves con «Mostrar sin interés»."
+    "hidden": {
+      "term": "Oculto",
+      "text": "Lo tenés pero no pensás jugarlo: no aparece en la biblioteca ni en los conteos, pero «¿Lo tengo?» sabe que es tuyo. Lo ves con «Mostrar ocultos»."
     },
     "releaseYear": {
       "term": "Año de lanzamiento",
@@ -154,7 +154,7 @@
     },
     "endless": {
       "term": "Sin fin",
-      "text": "Un juego que no se termina, como un multijugador: no tiene duración estimada."
+      "text": "Un juego que no se termina, como un multijugador: no tiene duración estimada y, cuando lo dejás, queda «Jugado»."
     }
   },
   "dates": {
@@ -185,7 +185,7 @@
     "store": "Tienda",
     "kind": "Cómo lo tenés",
     "lost": "Ya no lo tengo",
-    "showNotInterested": "Mostrar sin interés",
+    "showHidden": "Mostrar ocultos",
     "from": "Desde",
     "to": "Hasta",
     "withUnit": "{label} ({unit})",
@@ -214,20 +214,29 @@
     "defaults": {
       "playing": "Jugando",
       "paused": "En pausa",
-      "endless": "Sin fin",
       "wishlist": "Quiero jugarlo",
-      "backlog": "Pendiente",
+      "backlog": "Backlog",
       "completed": "Completado",
       "hundred_percent": "100%",
       "played": "Jugado",
       "abandoned": "Abandonado",
       "tried": "Lo probé"
     },
+    "meanings": {
+      "playing": "Lo estás jugando ahora",
+      "paused": "Lo empezaste y pensás volver",
+      "wishlist": "Lo querés jugar pronto, lo tengas o no",
+      "backlog": "Lo vas a jugar en algún momento, sin apuro",
+      "completed": "Terminaste la historia principal",
+      "hundred_percent": "Lo terminaste todo",
+      "played": "Un juego sin fin que jugaste y ya no",
+      "abandoned": "Lo jugaste en serio y lo dejaste sin terminar",
+      "tried": "Lo jugaste un rato y no te enganchó"
+    },
     "since": "desde el {date}",
     "finishedOn": "lo terminaste el {date}",
     "title": "Estado",
     "change": "Cambiar estado",
-    "fromCopies": "Según las copias",
     "dialog": {
       "current": "{title} · ahora: {status}",
       "saveAs": "Guardar como «{status}»",
@@ -241,7 +250,7 @@
       "hours": "{hours} h",
       "notStarted": "Sin empezar",
       "manual": "A MANO",
-      "notInterested": "SIN INTERÉS",
+      "hidden": "OCULTO",
       "select": "Seleccionar {title}",
       "open": "Ver la ficha de {title}"
     },
@@ -264,8 +273,8 @@
     "selection": {
       "label": "Selección",
       "count": "{count, plural, one {# seleccionado} other {# seleccionados}}",
-      "mark": "Marcar sin interés",
-      "unmark": "Quitar «Sin interés»"
+      "mark": "Ocultar",
+      "unmark": "Volver a mostrar"
     },
     "empty": "Todavía no cargaste ningún juego.",
     "emptyAction": "Agregá tu primer juego",
@@ -277,7 +286,6 @@
     "back": "Biblioteca",
     "backLabel": "Volver a la biblioteca",
     "manual": "A MANO",
-    "movedTo": "{title} pasó a «{status}»",
     "notFound": "No encontramos este juego",
     "facts": {
       "title": "Datos",
@@ -347,8 +355,8 @@
       "edit": "Editar",
       "link": "Vincular con IGDB",
       "refresh": "Actualizar datos",
-      "markNotInterested": "Marcar sin interés",
-      "unmarkNotInterested": "Quitar «Sin interés»",
+      "hide": "Ocultar",
+      "unhide": "Volver a mostrar",
       "remove": "Quitar de la biblioteca",
       "removeDescription": "Se borra {title} con sus copias, su puntaje y su historial. No se puede deshacer.",
       "removeConfirm": "Quitar"
@@ -542,17 +550,17 @@
         "abandoned": "como abandonado",
         "playing": "como jugando",
         "paused": "en pausa",
-        "backlog": "como pendiente",
+        "backlog": "en Backlog",
         "wishlist": "como «quiero jugarlo»"
       },
       "notGame": "No parece un juego: es una demo, una beta, un soundtrack o algo parecido.",
       "enters": "Entra como {status}",
       "entersManual": "Entra a mano como {status}",
-      "entersNotInterested": "Sin interés",
+      "entersHidden": "oculto",
       "entersEndless": "sin fin",
       "inLibraryAdds": "Ya está en tu biblioteca · suma {copies}",
       "notImported": "No se importa · no es un juego",
-      "allStatuses": "Todos los estados",
+      "allStatuses": "Estados para este juego",
       "apply": "Aplicar",
       "answersFor": "Respuestas para {title}",
       "otherStatusMany": "Estado de {count, plural, one {# juego} other {# juegos}}",
@@ -561,7 +569,8 @@
       "movedManySplit": "{count} juegos cambiaron de grupo: {list}.",
       "movedPart": "{count} a «{group}»",
       "stayed": "«{title}» sigue en «{group}».",
-      "excludedEntry": "No se importa"
+      "excludedEntry": "No se importa",
+      "movedToHidden": "«{title}» pasó a «Listos para importar», oculto."
     },
     "groups": {
       "which": {
@@ -591,13 +600,13 @@
       },
       "play": {
         "name": "¿Lo vas a jugar alguna vez?",
-        "hint": "Pendientes sin puntaje o con 0 h",
-        "explanation": "Los tenés en alguna tienda, pero no tienen puntaje o nunca los abriste. «No» los suma a tu biblioteca como «Sin interés»: no los ves en la lista, pero «¿Lo tengo?» sabe que son tuyos. «No importar» los deja afuera."
+        "hint": "En Backlog, sin puntaje y con menos de 1 h",
+        "explanation": "Los tenés en Backlog, sin puntaje y con menos de 1 h jugada. «Ya lo jugué» te pregunta cómo lo dejaste. «No» los suma a tu biblioteca ocultos: no los ves en la lista, pero «¿Lo tengo?» sabe que son tuyos. «No importar» los deja afuera."
       },
       "status": {
         "name": "Elegí un estado",
-        "hint": "Los jugaste y no estaban en IGN",
-        "explanation": "Tienen horas jugadas pero no vinieron de IGN, así que no sabemos en qué estado están."
+        "hint": "Los jugaste y no sabemos cómo los dejaste",
+        "explanation": "Los jugaste, pero no sabemos cómo los dejaste. «Ocultar» los suma ocultos, en Backlog."
       },
       "ready": {
         "name": "Listos para importar",
@@ -613,7 +622,7 @@
       "endless": "Sí, no se termina",
       "completed": "No, lo terminé",
       "keep": "Sí, algún día",
-      "notInterested": "No",
+      "hidden": "No",
       "searchNo": "No, lo busco yo",
       "yes": "Sí",
       "howLeft": {
@@ -621,8 +630,8 @@
         "abandoned": "Lo abandonaste",
         "playing": "Lo estás jugando",
         "paused": "Lo pausaste",
-        "backlog": "Lo tenés pendiente",
-        "wishlist": "Lo querés jugar"
+        "backlog": "Lo tenés en Backlog",
+        "wishlist": "Lo querés jugar pronto"
       },
       "familyYes": "Sí, es de mi familia",
       "familyNo": "No, es mío",
@@ -630,8 +639,12 @@
         "playing": "Lo estoy jugando",
         "completed": "Lo terminé",
         "abandoned": "Lo abandoné",
-        "tried": "Lo probé"
-      }
+        "tried": "Lo probé",
+        "stillPlaying": "Lo sigo jugando",
+        "notAnymore": "Ya no lo juego"
+      },
+      "played": "Ya lo jugué",
+      "hide": "Ocultar"
     },
     "confirm": {
       "ready": "En «Listos para importar»: {games, plural, one {<n>#</n> juego} other {<n>#</n> juegos}} y {copies, plural, one {<n>#</n> copia} other {<n>#</n> copias}}",
@@ -639,7 +652,7 @@
       "action": "Confirmar importación",
       "confirming": "Confirmando…",
       "nothingReady": "Todavía no hay nada en «Listos para importar» para confirmar.",
-      "summary": "Entraron {games, plural, one {# juego} other {# juegos}} y {copies, plural, one {# copia} other {# copias}} · {notInterested, plural, one {# marcado «Sin interés»} other {# marcados «Sin interés»}} · {excluded} sin importar"
+      "summary": "Entraron {games, plural, one {# juego} other {# juegos}} y {copies, plural, one {# copia} other {# copias}} · {hidden, plural, one {# oculto} other {# ocultos}} · {excluded} sin importar"
     },
     "restart": {
       "action": "Empezar de nuevo",

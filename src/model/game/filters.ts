@@ -20,7 +20,7 @@ export type LibraryFilters = Readonly<{
   played: NumberRange;
   score: NumberRange;
   title: string;
-  showNotInterested: boolean;
+  showHidden: boolean;
 }>;
 
 export const NO_FILTERS: LibraryFilters = {
@@ -32,7 +32,7 @@ export const NO_FILTERS: LibraryFilters = {
   played: NO_RANGE,
   score: NO_RANGE,
   title: "",
-  showNotInterested: false,
+  showHidden: false,
 };
 
 export const DURATION_PRESET_IDS = ["under5", "from5to15", "from15to40", "over40"] as const;
@@ -104,13 +104,13 @@ function playedValue(game: LibraryGame): number | null {
   return hasPlayedHours(game) ? playedHours(game) : null;
 }
 
-export function visibleGames(games: readonly LibraryGame[], showNotInterested: boolean): readonly LibraryGame[] {
-  return showNotInterested ? games : games.filter((game) => !game.notInterested);
+export function visibleGames(games: readonly LibraryGame[], showHidden: boolean): readonly LibraryGame[] {
+  return showHidden ? games : games.filter((game) => !game.hidden);
 }
 
 /** Cada filtro se evalúa por separado: Civilization VI (Epic gratis, Steam comprado) aparece con Steam + Gratis. */
 export function filterLibrary(games: readonly LibraryGame[], filters: LibraryFilters): readonly LibraryGame[] {
-  return visibleGames(games, filters.showNotInterested).filter(
+  return visibleGames(games, filters.showHidden).filter(
     (game) =>
       matchesStatus(game, filters) &&
       matchesStore(game, filters.storeIds) &&

@@ -4,7 +4,6 @@ import { createGameRepository } from "@/persistence/repository/game/game-reposit
 import { createStoreRepository } from "@/persistence/repository/store/store-repository";
 import { type CopyService, createCopyService } from "@/service/copy/copy-service";
 import { createStoreResolver } from "@/service/copy/store-resolver";
-import { getStatusService } from "@/service/status/instance";
 import { clock } from "@/shared/clock";
 
 let copyService: CopyService | undefined;
@@ -17,7 +16,6 @@ export function getCopyService(): CopyService {
       gameRepo: createGameRepository(getDatabase()),
       copyRepo: createCopyRepository(getDatabase()),
       storeRepo,
-      statusService: getStatusService(),
       storeResolver: createStoreResolver(storeRepo),
       clock,
     });

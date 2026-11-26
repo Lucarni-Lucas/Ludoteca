@@ -26,7 +26,7 @@ const actions = vi.hoisted(() => ({
   updateCorrectionsAction: vi.fn(),
   refreshFromIgdbAction: vi.fn(),
   linkToIgdbAction: vi.fn(),
-  setGameNotInterestedAction: vi.fn(),
+  setGameHiddenAction: vi.fn(),
   removeFromLibraryAction: vi.fn(),
   setPlayedHoursAction: vi.fn(),
 }));
@@ -190,9 +190,9 @@ describe("GameScreen", () => {
     expect(screen.getByRole("dialog", { name: "Agregar copia" })).toBeInTheDocument();
   });
 
-  it("agrega una copia y avisa el cambio de estado", async () => {
+  it("agrega una copia", async () => {
     const user = userEvent.setup();
-    actions.addCopyAction.mockResolvedValue({ ok: true, data: { movedTo: statusByKey("backlog") } });
+    actions.addCopyAction.mockResolvedValue({ ok: true, data: undefined });
     renderScreen(game);
 
     await user.click(screen.getByRole("button", { name: "Agregar otra copia" }));
@@ -203,7 +203,8 @@ describe("GameScreen", () => {
       "juego",
       expect.objectContaining({ storeId: "steam", kind: "purchased", acquiredOn: "" }),
     );
-    expect(await screen.findByText("Disco Elysium pasó a «Pendiente»")).toHaveAttribute("role", "status");
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Agregar copia" })).not.toBeInTheDocument());
+    expect(screen.queryByText(/pasó a/)).not.toBeInTheDocument();
   });
 
   it("marca una copia como perdida con su motivo", async () => {
@@ -356,22 +357,22 @@ describe("GameScreen", () => {
     });
   });
 
-  it("marca el juego como «Sin interés»", async () => {
+  it("oculta el juego", async () => {
     const user = userEvent.setup();
     renderScreen(game);
 
-    await user.click(screen.getByRole("button", { name: "Marcar sin interés" }));
+    await user.click(screen.getByRole("button", { name: "Ocultar" }));
 
-    expect(actions.setGameNotInterestedAction).toHaveBeenCalledWith("juego", true);
+    expect(actions.setGameHiddenAction).toHaveBeenCalledWith("juego", true);
   });
 
-  it("desmarca un juego «Sin interés»", async () => {
+  it("vuelve a mostrar un juego oculto", async () => {
     const user = userEvent.setup();
-    renderScreen(buildGame({ id: "juego", notInterested: true }));
+    renderScreen(buildGame({ id: "juego", hidden: true }));
 
-    await user.click(screen.getByRole("button", { name: "Quitar «Sin interés»" }));
+    await user.click(screen.getByRole("button", { name: "Volver a mostrar" }));
 
-    expect(actions.setGameNotInterestedAction).toHaveBeenCalledWith("juego", false);
+    expect(actions.setGameHiddenAction).toHaveBeenCalledWith("juego", false);
   });
 });
 

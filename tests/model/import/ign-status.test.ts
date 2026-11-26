@@ -60,26 +60,18 @@ describe("readIgnStatuses", () => {
 });
 
 describe("suggestIgnStatus", () => {
-  it("Backlog con copia", () => {
-    const statuses = ["backlog"] as const;
-
-    const suggestion = suggestIgnStatus(statuses, true);
-
-    expect(suggestion).toEqual({ kind: "single", statusKey: "backlog" });
-  });
-
   it("Backlog sin copia", () => {
     const statuses = ["backlog"] as const;
 
-    const suggestion = suggestIgnStatus(statuses, false);
+    const suggestion = suggestIgnStatus(statuses);
 
-    expect(suggestion).toEqual({ kind: "single", statusKey: "wishlist" });
+    expect(suggestion).toEqual({ kind: "single", statusKey: "backlog" });
   });
 
   it("Wishlist de IGN", () => {
     const statuses = ["wishlist"] as const;
 
-    const suggestion = suggestIgnStatus(statuses, true);
+    const suggestion = suggestIgnStatus(statuses);
 
     expect(suggestion).toEqual({ kind: "single", statusKey: "wishlist" });
   });
@@ -87,7 +79,7 @@ describe("suggestIgnStatus", () => {
   it("Dos estados a la vez", () => {
     const { statuses } = readIgnStatuses("beat", ["completed", "archived"]);
 
-    const suggestion = suggestIgnStatus(statuses, true);
+    const suggestion = suggestIgnStatus(statuses);
 
     expect(suggestion).toEqual({ kind: "conflict", statusKeys: ["completed", "abandoned"] });
   });
@@ -100,7 +92,7 @@ describe("suggestIgnStatus", () => {
   ] as const)("%s pasa al estado %s", (status, expected) => {
     const statuses = [status];
 
-    const suggestion = suggestIgnStatus(statuses, false);
+    const suggestion = suggestIgnStatus(statuses);
 
     expect(suggestion).toEqual({ kind: "single", statusKey: expected });
   });
@@ -108,7 +100,7 @@ describe("suggestIgnStatus", () => {
   it("sin estados de IGN no sugiere nada", () => {
     const statuses: readonly [] = [];
 
-    const suggestion = suggestIgnStatus(statuses, true);
+    const suggestion = suggestIgnStatus(statuses);
 
     expect(suggestion).toEqual({ kind: "none" });
   });

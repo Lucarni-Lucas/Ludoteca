@@ -45,7 +45,7 @@ El sistema SHALL permitir marcar o desmarcar cualquier copia como duplicado inte
 - **THEN** Stardew Valley pasa a ser un duplicado y aparece su aviso
 
 ### Requirement: Aviso antes de agregar algo que ya tenés
-Mientras el aviso «Antes de comprar algo que ya tenés» esté prendido (lo está por defecto), al agregar una copia propia de un juego que ya es propio, o al agregar a «Quiero jugarlo» un juego propio, el sistema SHALL avisar dónde lo tiene y pedir confirmación.
+Mientras el aviso «Antes de comprar algo que ya tenés» esté prendido (lo está por defecto), al agregar una copia propia de un juego que ya es propio, el sistema SHALL avisar dónde lo tiene y pedir confirmación.
 
 #### Scenario: Agregar algo que ya tiene
 - **WHEN** el usuario agrega una copia de Epic a Hades, que ya tiene comprado en Steam

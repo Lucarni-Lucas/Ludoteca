@@ -8,11 +8,12 @@ import controls from "@/components/ui/controls.module.css";
 import { COPY_KINDS } from "@/model/copy/copy";
 import type { ImportDecision } from "@/model/import/decision";
 import { canGoBack, type ImportReview, isQuestionGroup, type ReviewChoice, type ReviewGame, type ReviewGroup } from "@/model/import/review";
+import { offeredStatuses } from "@/model/status/status";
 import type { Store } from "@/model/store/store";
 
 import { useImportText } from "./import-text";
 import styles from "./ReviewPanel.module.css";
-import { ReviewRow, SelectToggle, type StatusOption, StatusList } from "./ReviewRow";
+import { ReviewRow, SelectToggle, statusChoiceOf, type StatusOption, StatusList } from "./ReviewRow";
 
 const PAGE_SIZE = 20;
 // Elegir un candidato o buscar es de a un juego: no va en la barra de selección.
@@ -34,14 +35,28 @@ export type ReviewPanelProps = Readonly<{
 }>;
 
 /** La barra ofrece las respuestas del grupo; en las preguntas de a un juego, solo «No importar» (design.md §9). */
+/**
+ * Las respuestas que valen para todos los elegidos: un juego sin fin y uno con final no comparten «Lo terminé»
+ * ni «Ya no lo juego» (design.md §9).
+ */
 function batchChoices(group: ReviewGroup, games: readonly ReviewGame[]): readonly ReviewChoice[] {
-  const [first] = games;
+  const [first, ...rest] = games;
 
   if (!first) {
     return [];
   }
 
-  return isQuestionGroup(group) ? [EXCLUDE] : first.choices.filter((choice) => !ROW_ONLY.has(choice.kind));
+  if (isQuestionGroup(group)) {
+    return [EXCLUDE];
+  }
+
+  const shared = (choice: ReviewChoice) => rest.every((game) => game.choices.some((other) => JSON.stringify(other) === JSON.stringify(choice)));
+  return first.choices.filter((choice) => !ROW_ONLY.has(choice.kind) && shared(choice));
+}
+
+/** Los estados de «Otro estado» que se le ofrecen a todos los elegidos. */
+function batchStatuses(statuses: readonly StatusOption[], games: readonly ReviewGame[]): readonly StatusOption[] {
+  return games.reduce((offered, game) => offeredStatuses(offered, { endless: game.endless }), statuses);
 }
 
 function storesOf(games: readonly ReviewGame[]): readonly Store[] {
@@ -138,7 +153,7 @@ function SelectionBar({ group, selected, statuses, disabled, onDecide, onCancel 
             disabled={disabled}
             onClick={() => onAnswer(choice)}
           >
-            {text.choice(choice)}
+            {text.choice(choice, selected[0])}
           </button>
         ))}
         {stores.length > 0 ? (
@@ -153,9 +168,9 @@ function SelectionBar({ group, selected, statuses, disabled, onDecide, onCancel 
       {statusesOpen ? (
         <StatusList
           label={t("otherStatusMany", { count: selected.length })}
-          statuses={statuses}
+          statuses={batchStatuses(statuses, selected)}
           disabled={disabled}
-          onPick={(statusKey) => onDecide({ kind: "choose", choice: { kind: "status", statusKey } })}
+          onPick={(status) => onDecide({ kind: "choose", choice: statusChoiceOf(status) })}
         />
       ) : null}
       {copyKindOpen ? (
@@ -198,7 +213,11 @@ function singleMessage(game: ReviewGame, choice: ReviewChoice | null, destinatio
     return text.t("movedTo", { title: game.title, group: text.groupName(destination) });
   }
 
-  // Dice cómo va a entrar, no el texto del botón: después de «No», «Sin interés» (design.md §9).
+  if (choice?.kind === "hidden" || choice?.kind === "hide") {
+    return text.t("movedToHidden", { title: game.title });
+  }
+
+  // Dice cómo va a entrar, no el texto del botón (design.md §9).
   return choice
     ? text.t("movedToReady", { title: game.title, choice: text.result(choice, game) })
     : text.t("movedManyToReady", { count: 1 });

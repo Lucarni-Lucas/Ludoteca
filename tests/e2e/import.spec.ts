@@ -129,25 +129,28 @@ test.describe("importación", () => {
     await choose(page, "Overwatch", "Sí, no se termina");
     await openGroup(page, "¿Lo vas a jugar alguna vez?");
     await choose(page, "8BitMMO", "No");
-    await expect(toast(page, "«8BitMMO» pasó a «Listos para importar» con «Sin interés».")).toBeVisible();
+    await expect(toast(page, "«8BitMMO» pasó a «Listos para importar», oculto.")).toBeVisible();
     await openGroup(page, "Elegí un estado");
     await expect(gameRow(page, "20XX")).toBeVisible();
     await gameRow(page, "Hollow Knight").getByRole("button", { name: "Otro estado" }).click();
     await page.getByRole("group", { name: "Estado de Hollow Knight" }).getByRole("button", { name: "En pausa" }).click();
     await expect(toast(page, "«Hollow Knight» pasó a «Listos para importar» con «En pausa».")).toBeVisible();
+    // Rocket League es solo multijugador: sus respuestas son las de un juego sin fin (design.md §9).
+    await expect(gameRow(page, "Rocket League").getByRole("button", { name: "Lo terminé", exact: true })).toHaveCount(0);
+    await choose(page, "Rocket League", "Ya no lo juego");
+    await expect(toast(page, "«Rocket League» pasó a «Listos para importar» con «Jugado».")).toBeVisible();
     await page.getByRole("checkbox", { name: /^Seleccionar los \d+$/ }).click();
     const bar = page.getByRole("group", { name: "Selección" });
     await expect(bar.getByRole("button", { name: "Pasar a Listos" })).toHaveCount(0);
     await bar.getByRole("button", { name: "Lo terminé", exact: true }).click();
-    // Cada uno pasa al grupo que le toca: Rocket League, solo multijugador, sigue a «¿Es sin fin?» (tasks.md 10.2).
-    await expect(toast(page, "cambiaron de grupo:")).toContainText("a «¿Es sin fin?»");
+    await expect(toast(page, "pasaron a «Listos para importar».")).toBeVisible();
     await openGroup(page, "Listos para importar");
     await expect(gameRow(page, "Grand Theft Auto V")).toContainText("Entra como Completado · Epic Games · Gratis");
     await expect(gameRow(page, "Q.U.B.E. 2 Soundtrack")).toContainText(NOT_A_GAME);
 
     await page.getByRole("button", { name: "Confirmar importación" }).click();
 
-    await expect(page.getByRole("status").filter({ hasText: "Entraron" })).toContainText("1 marcado «Sin interés»");
+    await expect(page.getByRole("status").filter({ hasText: "Entraron" })).toContainText("1 oculto");
     await page.goto("/library");
     for (const title of ["Hollow Knight", "Celeste", "Portal 2", "Overwatch", "Crash Bandicoot", "20XX", "Cartas del Faro", "60 Seconds!"]) {
       await expect(gameCard(page, title)).toBeVisible();
@@ -204,6 +207,40 @@ test.describe("importación", () => {
     await expect(toast(page, "«Homicipher: Demo» volvió a «No lo encontré».")).toBeVisible();
     await openGroup(page, "No lo encontré");
     await expect(gameRow(page, "Homicipher: Demo")).toContainText("No parece un juego: es una demo, una beta, un soundtrack o algo parecido.");
+  });
+
+  test("Ya lo jugó: «Ya lo jugué» lleva a «Elegí un estado», donde se puede ocultar", async ({ page }) => {
+    await signInAsNewAccount(page);
+    await page.goto("/import");
+    await upload(page, "Playnite", PLAYNITE_SAMPLE);
+    await waitForMatching(page);
+    await openGroup(page, "¿Lo vas a jugar alguna vez?");
+
+    await choose(page, "112 Operator", "Ya lo jugué");
+
+    await expect(toast(page, "«112 Operator» pasó a «Elegí un estado».")).toBeVisible();
+    await openGroup(page, "Elegí un estado");
+    await choose(page, "112 Operator", "Ocultar");
+    await expect(toast(page, "«112 Operator» pasó a «Listos para importar», oculto.")).toBeVisible();
+    await openGroup(page, "Listos para importar");
+    await expect(gameRow(page, "112 Operator")).toContainText("Entra como Backlog · oculto");
+  });
+
+  test("Ver los juegos sin interés: lo importado oculto se ve con «Mostrar ocultos»", { tag: "@desktop" }, async ({ page }) => {
+    await signInAsNewAccount(page);
+    await page.goto("/import");
+    await upload(page, "Playnite", PLAYNITE_SAMPLE);
+    await waitForMatching(page);
+    await openGroup(page, "¿Lo vas a jugar alguna vez?");
+    await choose(page, "112 Operator", "No");
+
+    await page.getByRole("button", { name: "Confirmar importación" }).click();
+
+    await expect(page.getByRole("status").filter({ hasText: "Entraron" })).toContainText("1 oculto");
+    await page.goto("/library");
+    await expect(gameCard(page, "112 Operator")).toHaveCount(0);
+    await page.getByRole("switch", { name: "Mostrar ocultos" }).click();
+    await expect(gameCard(page, "112 Operator").getByText("OCULTO")).toBeVisible();
   });
 
   test("Elegido sin jugar", async ({ page }) => {
@@ -318,7 +355,7 @@ test.describe("importación", () => {
 
     await gameRow(page, "8BitMMO").getByRole("button", { name: "No", exact: true }).click();
 
-    await expect(toast(page, "«8BitMMO» pasó a «Listos para importar» con «Sin interés».")).toBeInViewport();
+    await expect(toast(page, "«8BitMMO» pasó a «Listos para importar», oculto.")).toBeInViewport();
   });
 
   test("Abrir la guía de Playnite", async ({ page }) => {
@@ -426,6 +463,22 @@ test.describe("importación en inglés", { tag: "@i18n" }, () => {
     await expect(page.getByRole("heading", { level: 2, name: en("import.groups.which.name") })).toBeVisible();
     await expect(page.getByRole("button", { name: en("import.choices.search") })).toBeVisible();
     await expectNoSpanish(page, "«¿Cuál de estos es?» en inglés");
+  });
+
+  test("«Ya lo jugué» y «Ocultar» en inglés", async ({ page }) => {
+    await signInAsNewAccount(page);
+    await switchToEnglish(page);
+    await page.goto("/import");
+    await page.getByLabel(`${en("import.sources.upload")} · Playnite`).setInputFiles(PLAYNITE_SAMPLE);
+    await waitForMatching(page);
+    await groupButton(page, en("import.groups.play.name"), en("import.review.nav")).click();
+
+    await gameRow(page, "112 Operator").getByRole("button", { name: en("import.choices.played"), exact: true }).click();
+
+    await expect(toast(page, en("import.review.movedTo", { title: "112 Operator", group: en("import.groups.status.name") }))).toBeVisible();
+    await groupButton(page, en("import.groups.status.name"), en("import.review.nav")).click();
+    await expect(gameRow(page, "112 Operator").getByRole("button", { name: en("import.choices.hide"), exact: true })).toBeVisible();
+    await expectNoSpanish(page, "«Elegí un estado» en inglés");
   });
 
   test("las guías en inglés", async ({ page }) => {

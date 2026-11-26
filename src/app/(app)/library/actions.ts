@@ -8,18 +8,18 @@ import { getLibraryService } from "@/service/game/instance";
 import { type ActionResult, toActionResult } from "@/shared/action-result";
 import { parseInput } from "@/shared/parse-input";
 
-const notInterestedSchema = z.object({
+const hiddenSchema = z.object({
   gameIds: z.array(z.uuid()).min(1),
-  notInterested: z.boolean(),
+  hidden: z.boolean(),
 });
 
-export async function setNotInterestedAction(gameIds: string[], notInterested: boolean): Promise<ActionResult<void>> {
+export async function setHiddenAction(gameIds: string[], hidden: boolean): Promise<ActionResult<void>> {
   const user = await requireSessionUser();
 
   return toActionResult(async () => {
-    const input = parseInput(notInterestedSchema, { gameIds, notInterested });
+    const input = parseInput(hiddenSchema, { gameIds, hidden });
 
-    await getLibraryService().setNotInterested(user.id, input.gameIds, input.notInterested);
+    await getLibraryService().setHidden(user.id, input.gameIds, input.hidden);
     revalidatePath("/library");
   });
 }

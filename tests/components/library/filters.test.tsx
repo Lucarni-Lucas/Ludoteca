@@ -99,14 +99,14 @@ describe("FilterPanel", () => {
     expect(onChange).toHaveBeenLastCalledWith({ duration: { min: null, max: 8 } });
   });
 
-  it("activa «Mostrar sin interés»", async () => {
+  it("activa «Mostrar ocultos»", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     renderWithIntl(<PanelHarness onChange={onChange} />);
 
-    await user.click(screen.getByRole("switch", { name: "Mostrar sin interés" }));
+    await user.click(screen.getByRole("switch", { name: "Mostrar ocultos" }));
 
-    expect(onChange).toHaveBeenCalledWith({ showNotInterested: true });
+    expect(onChange).toHaveBeenCalledWith({ showHidden: true });
   });
 });
 

@@ -102,16 +102,16 @@ class Component extends DCLogic {
   games() {
     return [
       { title: 'Disco Elysium', mono: 'DE', status: 'jugando', score: 9.3, hours: 18, bg: '#4A2A22', fg: '#F2D9C9', stores: [{ s: 'gog', k: 'comprado' }] },
-      { title: 'Forza Horizon 5', mono: 'FH', status: 'sinfin', score: 8.1, hours: 31, bg: '#1F3A3A', fg: '#CDEDEB', stores: [{ s: 'gp', k: 'susc' }] },
-      { title: 'Civilization VI', mono: 'CV', status: 'sinfin', score: 7.4, hours: 112, bg: '#2E3B23', fg: '#E3EFCF', stores: [{ s: 'epic', k: 'gratis' }, { s: 'steam', k: 'comprado' }] },
+      { title: 'Forza Horizon 5', mono: 'FH', status: 'jugando', score: 8.1, hours: 31, bg: '#1F3A3A', fg: '#CDEDEB', stores: [{ s: 'gp', k: 'susc' }] },
+      { title: 'Civilization VI', mono: 'CV', status: 'jugado', score: 7.4, hours: 112, bg: '#2E3B23', fg: '#E3EFCF', stores: [{ s: 'epic', k: 'gratis' }, { s: 'steam', k: 'comprado' }] },
       { title: 'Frostpunk', mono: 'FP', status: 'quiero', score: 0, hours: 0, bg: '#26303A', fg: '#DCE6EF', stores: [] },
       { title: 'Cyberpunk 2077', mono: 'CP', status: 'pausa', score: 7.9, hours: 21, bg: '#3D3A12', fg: '#F2EEB3', stores: [{ s: 'gog', k: 'comprado' }] },
       { title: 'Hades', mono: 'HA', status: 'cien', score: 9.6, hours: 64, bg: '#4A1E25', fg: '#F6CFD3', stores: [{ s: 'steam', k: 'comprado' }] },
-      { title: 'Outer Wilds', mono: 'OW', status: 'pendiente', score: 0, hours: 0, bg: '#2A2442', fg: '#DCD5F5', stores: [{ s: 'steam', k: 'comprado' }] },
+      { title: 'Outer Wilds', mono: 'OW', status: 'backlog', score: 0, hours: 0, bg: '#2A2442', fg: '#DCD5F5', stores: [{ s: 'steam', k: 'comprado' }] },
       { title: 'Hollow Knight', mono: 'HK', status: 'completado', score: 9.8, hours: 48, bg: '#22304A', fg: '#DCE6F7', stores: [{ s: 'steam', k: 'comprado' }] },
       { title: 'Portal 2', mono: 'P2', status: 'completado', score: 9.0, hours: 9, bg: '#2B3036', fg: '#E2E6EA', stores: [{ s: 'steam', k: 'familia' }] },
       { title: 'Cartas del Faro', mono: 'CF', status: 'completado', score: 8.0, hours: 1, bg: '#3A2E1F', fg: '#F0E0C8', stores: [{ s: 'itch', k: 'gratis' }] },
-      { title: 'Stardew Valley', mono: 'SV', status: 'sinfin', score: 9.0, hours: 140, bg: '#2D4220', fg: '#E1F0CF', stores: [{ s: 'steam', k: 'comprado' }, { s: 'sw', k: 'fisico' }] },
+      { title: 'Stardew Valley', mono: 'SV', status: 'jugando', score: 9.0, hours: 140, bg: '#2D4220', fg: '#E1F0CF', stores: [{ s: 'steam', k: 'comprado' }, { s: 'sw', k: 'fisico' }] },
       { title: 'Celeste', mono: 'CE', status: 'completado', score: 8.7, hours: 22, bg: '#3F2240', fg: '#F1D2F2', stores: [{ s: 'epic', k: 'comprado' }] },
       { title: 'Ori and the Will of the Wisps', mono: 'OR', status: 'completado', score: 8.8, hours: 13, bg: '#1D3340', fg: '#CFE6F2', stores: [{ s: 'gp', k: 'perdido' }] },
       { title: 'Elden Ring', mono: 'ER', status: 'loprobe', score: 6.5, hours: 3, bg: '#3A3426', fg: '#EFE6CF', stores: [{ s: 'steam', k: 'comprado' }] },
@@ -126,8 +126,8 @@ class Component extends DCLogic {
     const all = this.games();
     const STORE = { steam: 'Steam', epic: 'Epic', gog: 'GOG', ms: 'MS Store', gp: 'Game Pass', sw: 'Switch', itch: 'itch.io' };
     const KIND = { gratis: 'Gratis', susc: 'Susc.', familia: 'Familia', fisico: 'Físico', perdido: 'Ya no' };
-    const LABEL = { jugando: 'Jugando', pausa: 'En pausa', sinfin: 'Sin fin', quiero: 'Quiero jugarlo', pendiente: 'Pendiente', completado: 'Completado', cien: '100%', abandonado: 'Abandonado', loprobe: 'Lo probé' };
-    const GROUP_OF = { jugando: 'curso', pausa: 'curso', sinfin: 'curso', quiero: 'empezar', pendiente: 'empezar', completado: 'terminado', cien: 'terminado', abandonado: 'dejado', loprobe: 'dejado' };
+    const LABEL = { jugando: 'Jugando', pausa: 'En pausa', quiero: 'Quiero jugarlo', backlog: 'Backlog', completado: 'Completado', cien: '100%', jugado: 'Jugado', abandonado: 'Abandonado', loprobe: 'Lo probé' };
+    const GROUP_OF = { jugando: 'curso', pausa: 'curso', quiero: 'empezar', backlog: 'empezar', completado: 'terminado', cien: 'terminado', jugado: 'terminado', abandonado: 'dejado', loprobe: 'dejado' };
     const COLOR = { curso: '#C8F25A', empezar: '#C5CCD8', terminado: '#8EC5FF', dejado: '#FF9C8A' };
 
     const chip = (k) => k === 'perdido'

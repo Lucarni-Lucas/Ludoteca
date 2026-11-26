@@ -153,13 +153,13 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
   }
 
   async function overview(userId: string): Promise<ImportOverview> {
-    const [open, sources, steamNow, statusKeys] = await Promise.all([
+    const [open, sources, steamNow, statuses] = await Promise.all([
       importRepo.listOpenReview(userId),
       importRepo.summarizeSources(userId),
       steamState(userId),
-      statusKeysOf(userId),
+      activeStatusesOf(userId),
     ]);
-    const review = buildReview(open, { steamConnected: steamNow.accountId !== null, statusKeys });
+    const review = buildReview(open, { steamConnected: steamNow.accountId !== null, statuses });
 
     return { review, ready: countReady(review), sources: sources.map(toSourceView), steam: steamNow, progress: progressOf(open) };
   }
@@ -169,18 +169,21 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
     return last !== null && isReviewExpired(appDateOf(last), clock.today());
   }
 
-  async function statusKeysOf(userId: string): Promise<readonly string[]> {
-    const statuses = await statusService.listStatuses(userId);
-    return statuses.flatMap((status) => status.systemKey ?? []);
+  /**
+   * Los estados activos; `listStatuses` crea los de fábrica si el usuario todavía no tiene, así cada respuesta
+   * tiene un id para guardar. Hasta la `07` todos los estados son activos (design.md §9).
+   */
+  function activeStatusesOf(userId: string): Promise<readonly Status[]> {
+    return statusService.listStatuses(userId);
   }
 
   async function reviewGamesOf(userId: string, entryIds: readonly string[]): Promise<readonly ReviewGame[]> {
-    const [open, steamNow, statusKeys] = await Promise.all([
+    const [open, steamNow, statuses] = await Promise.all([
       importRepo.listOpenReview(userId),
       steamConnection(userId),
-      statusKeysOf(userId),
+      activeStatusesOf(userId),
     ]);
-    const context = { steamConnected: steamNow !== null, statusKeys };
+    const context = { steamConnected: steamNow !== null, statuses };
 
     return entryIds.map((entryId) => {
       const entry = open.entries.find(({ id }) => id === entryId);
@@ -280,8 +283,8 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
     },
 
     async decide(userId, entryIds, decision) {
-      const [games, statusKeys] = await Promise.all([reviewGamesOf(userId, entryIds), statusKeysOf(userId)]);
-      const plan = planDecision(games, decision, { statusKeys });
+      const [games, statuses] = await Promise.all([reviewGamesOf(userId, entryIds), activeStatusesOf(userId)]);
+      const plan = planDecision(games, decision, { statuses });
 
       for (const { entryIds: ids, write } of plan.writes) {
         await importRepo.saveDecision(userId, ids, write);
@@ -304,8 +307,7 @@ export function createImportService(deps: ImportServiceDependencies): ImportServ
     },
 
     async confirm(userId) {
-      // Crea los estados por defecto si todavía no hay: el plan necesita sus ids.
-      const statuses = await statusService.listStatuses(userId);
+      const statuses = await activeStatusesOf(userId);
       const [open, connection] = await Promise.all([importRepo.listOpenReview(userId), steamConnection(userId)]);
       const plan = planImportConfirmation(open, { steamConnected: connection !== null, statuses, today: clock.today() });
 

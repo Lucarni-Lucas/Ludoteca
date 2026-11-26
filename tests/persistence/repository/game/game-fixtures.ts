@@ -65,6 +65,6 @@ export const MANUAL_DATA = {
   endless: false,
 };
 
-export function entry(statuses: readonly Status[], name = "Pendiente") {
+export function entry(statuses: readonly Status[], name = "Backlog") {
   return { statusId: statusNamed(statuses, name).id, statusSince: TODAY, copies: [], score: null };
 }

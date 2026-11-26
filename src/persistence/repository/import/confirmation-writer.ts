@@ -35,7 +35,7 @@ const CONFIRMED_ITEM_CLEANUP = {
 } satisfies Partial<typeof importItem.$inferInsert>;
 
 const CONFIRMED_ENTRY_CLEANUP = {
-  statusKey: null,
+  statusId: null,
   endlessAnswer: null,
   playAnswer: null,
   manualTitle: null,

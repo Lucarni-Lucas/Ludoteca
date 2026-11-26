@@ -108,7 +108,7 @@ describe("addFromIgdb", () => {
     await service.addFromIgdb(USER_ID, 1, EMPTY_ENTRY_INPUT);
 
     expect(gameRepo.addIgdbGame).toHaveBeenCalledWith(USER_ID, igdbData(1, "Hades"), {
-      statusId: "wishlist",
+      statusId: "backlog",
       statusSince: TODAY,
       copies: [],
       score: null,
@@ -161,13 +161,13 @@ describe("addManual", () => {
     });
   });
 
-  it("sin copia queda en «Quiero jugarlo»", async () => {
+  it("sin copia queda en «Backlog»", async () => {
     const gameRepo = createFakeGameRepo();
     const service = buildService({ gameRepo });
 
     await service.addManual(USER_ID, MANUAL);
 
-    expect(gameRepo.addManualGame.mock.calls[0][2].statusId).toBe("wishlist");
+    expect(gameRepo.addManualGame.mock.calls[0][2].statusId).toBe("backlog");
     expect(gameRepo.addManualGame.mock.calls[0][2].copies).toEqual([]);
   });
 

@@ -7,7 +7,8 @@ export const MATCH_STATES = ["pending", "matched", "candidates", "not_found", "a
 
 export type MatchState = (typeof MATCH_STATES)[number];
 
-export const PLAY_ANSWERS = ["keep", "not_interested"] as const;
+/** «Sí, algún día», «No» u «Ocultar», y «Ya lo jugué», en el orden en que quedaron en la base (design.md §21). */
+export const PLAY_ANSWERS = ["keep", "hidden", "played"] as const;
 
 export type PlayAnswer = (typeof PLAY_ANSWERS)[number];
 
@@ -45,7 +46,8 @@ export type NewImportItem = Omit<ImportRow, "storeName"> & Readonly<{ storeId: s
 
 /** Las respuestas de un juego. Vacías, el juego muestra la sugerencia y sigue en su grupo (design.md §4). */
 export type EntryAnswers = Readonly<{
-  statusKey: string | null;
+  /** El estado elegido, por id: también puede ser uno creado por el usuario (design.md §4). */
+  statusId: string | null;
   endlessAnswer: boolean | null;
   playAnswer: PlayAnswer | null;
   excluded: boolean;
@@ -54,7 +56,7 @@ export type EntryAnswers = Readonly<{
 }>;
 
 export const NO_ANSWERS: EntryAnswers = {
-  statusKey: null,
+  statusId: null,
   endlessAnswer: null,
   playAnswer: null,
   excluded: false,

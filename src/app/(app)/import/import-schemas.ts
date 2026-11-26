@@ -6,6 +6,7 @@ import { COPY_KINDS } from "@/model/copy/copy";
 const MAX_STEAM_PROFILE_LENGTH = 200;
 const MAX_TITLE_LENGTH = 300;
 const MAX_STATUS_KEY_LENGTH = 40;
+const MAX_STATUS_NAME_LENGTH = 100;
 // Una revisión real tiene unos 500 juegos: alcanza con holgura para «Seleccionar todos».
 const MAX_ENTRY_IDS = 1000;
 
@@ -21,9 +22,17 @@ export const candidateSchema = z.object({
 
 const choiceSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("candidate"), candidate: candidateSchema }),
-  z.object({ kind: z.literal("status"), statusKey: z.string().min(1).max(MAX_STATUS_KEY_LENGTH) }),
+  // Del estado solo cuenta el id: el nombre y la clave son para el texto, y el modelo valida el id (design.md §9).
+  z.object({
+    kind: z.literal("status"),
+    status: z.object({
+      id: z.uuid(),
+      name: z.string().min(1).max(MAX_STATUS_NAME_LENGTH),
+      systemKey: z.string().min(1).max(MAX_STATUS_KEY_LENGTH).nullable(),
+    }),
+  }),
   z.object({ kind: z.literal("copy_kind"), copyKind: z.enum(COPY_KINDS) }),
-  ...(["search", "other_status", "manual", "exclude", "endless", "completed", "keep", "not_interested"] as const).map(
+  ...(["search", "other_status", "manual", "exclude", "endless", "completed", "keep", "played", "hidden", "hide"] as const).map(
     (kind) => z.object({ kind: z.literal(kind) }),
   ),
 ]);

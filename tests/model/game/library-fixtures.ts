@@ -45,7 +45,7 @@ export function buildGame(overrides: Partial<LibraryGame> = {}): LibraryGame {
     status: statusByKey("backlog"),
     statusSince: "2026-01-01",
     score: null,
-    notInterested: false,
+    hidden: false,
     addedAt: "2026-01-01T00:00:00.000Z",
     copies: [],
     manualPlayedMinutes: null,

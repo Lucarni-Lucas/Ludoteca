@@ -10,11 +10,11 @@ import { buildCopy, buildGame, STATUSES, statusByKey } from "../game/game-fixtur
 
 import { renderWithIntl } from "../../i18n/render-with-intl";
 
-const { setNotInterestedAction } = vi.hoisted(() => ({
-  setNotInterestedAction: vi.fn(async (): Promise<{ ok: true; data: undefined }> => ({ ok: true, data: undefined })),
+const { setHiddenAction } = vi.hoisted(() => ({
+  setHiddenAction: vi.fn(async (): Promise<{ ok: true; data: undefined }> => ({ ok: true, data: undefined })),
 }));
 
-vi.mock("@/app/(app)/library/actions", () => ({ setNotInterestedAction }));
+vi.mock("@/app/(app)/library/actions", () => ({ setHiddenAction }));
 
 function renderScreen(games: readonly LibraryGame[]) {
   renderWithIntl(
@@ -22,13 +22,13 @@ function renderScreen(games: readonly LibraryGame[]) {
   );
 }
 
-const hidden = buildGame({ id: "oculto", title: "8BitMMO", notInterested: true, addedAt: "2026-02-01T00:00:00.000Z" });
+const hidden = buildGame({ id: "oculto", title: "8BitMMO", hidden: true, addedAt: "2026-02-01T00:00:00.000Z" });
 const visible = buildGame({ id: "visible", title: "Hades", copies: [buildCopy()] });
 
 describe("LibraryScreen", () => {
   beforeEach(() => {
     window.history.replaceState(null, "", "/library");
-    setNotInterestedAction.mockClear();
+    setHiddenAction.mockClear();
   });
 
   it("muestra la invitación cuando la biblioteca está vacía", () => {
@@ -48,7 +48,7 @@ describe("LibraryScreen", () => {
     expect(screen.getByText("1 juego en 1 tienda · 0 en «Quiero jugarlo» · 0 que ya no tenés")).toBeInTheDocument();
   });
 
-  it("muestra los juegos, sin los «Sin interés»", () => {
+  it("muestra los juegos, sin los ocultos", () => {
     const games = [visible, hidden];
 
     renderScreen(games);
@@ -61,10 +61,10 @@ describe("LibraryScreen", () => {
     const user = userEvent.setup();
     renderScreen([visible, hidden]);
 
-    await user.click(screen.getByRole("switch", { name: "Mostrar sin interés" }));
+    await user.click(screen.getByRole("switch", { name: "Mostrar ocultos" }));
 
     expect(screen.getByText("8BitMMO")).toBeInTheDocument();
-    expect(screen.getByText("SIN INTERÉS")).toBeInTheDocument();
+    expect(screen.getByText("OCULTO")).toBeInTheDocument();
   });
 
   it("filtra por título al escribir", async () => {
@@ -88,7 +88,7 @@ describe("LibraryScreen", () => {
     expect(screen.getByText("Hades")).toBeInTheDocument();
   });
 
-  it("marca varios juegos como «Sin interés» desde la selección", async () => {
+  it("oculta varios juegos desde la selección", async () => {
     const user = userEvent.setup();
     const other = buildGame({ id: "otro", title: "Celeste", status: statusByKey("playing") });
     renderScreen([visible, other]);
@@ -96,9 +96,9 @@ describe("LibraryScreen", () => {
     await user.click(screen.getByRole("button", { name: "Seleccionar" }));
     await user.click(screen.getByRole("button", { name: "Seleccionar Hades" }));
     await user.click(screen.getByRole("button", { name: "Seleccionar Celeste" }));
-    await user.click(screen.getByRole("button", { name: "Marcar sin interés" }));
+    await user.click(screen.getByRole("button", { name: "Ocultar" }));
 
-    expect(setNotInterestedAction).toHaveBeenCalledWith(["visible", "otro"], true);
+    expect(setHiddenAction).toHaveBeenCalledWith(["visible", "otro"], true);
   });
 
   it("desmarca cuando todo lo elegido ya está oculto", async () => {
@@ -108,8 +108,8 @@ describe("LibraryScreen", () => {
 
     await user.click(screen.getByRole("button", { name: "Seleccionar" }));
     await user.click(screen.getByRole("button", { name: "Seleccionar 8BitMMO" }));
-    await user.click(screen.getByRole("button", { name: "Quitar «Sin interés»" }));
+    await user.click(screen.getByRole("button", { name: "Volver a mostrar" }));
 
-    expect(setNotInterestedAction).toHaveBeenCalledWith(["oculto"], false);
+    expect(setHiddenAction).toHaveBeenCalledWith(["oculto"], false);
   });
 });

@@ -101,10 +101,10 @@ describe("summarizeLibrary", () => {
     expect(summary).toEqual({ games: 0, stores: 0, wishlist: 0, lost: 0 });
   });
 
-  it("no cuenta los «Sin interés»", () => {
+  it("no cuenta los ocultos", () => {
     const games = [
-      buildGame({ notInterested: true, copies: [buildCopy()] }),
-      buildGame({ notInterested: true, status: statusByKey("wishlist") }),
+      buildGame({ hidden: true, copies: [buildCopy()] }),
+      buildGame({ hidden: true, status: statusByKey("wishlist") }),
     ];
 
     const summary = summarizeLibrary(games);
@@ -132,8 +132,8 @@ describe("countLibraryOptions", () => {
     expect(counts.kinds.lost).toBe(1);
   });
 
-  it("deja afuera a los «Sin interés» salvo que se muestren", () => {
-    const games = [buildGame({ notInterested: true }), buildGame()];
+  it("deja afuera a los ocultos salvo que se muestren", () => {
+    const games = [buildGame({ hidden: true }), buildGame()];
 
     const hidden = countLibraryOptions(games, false);
     const shown = countLibraryOptions(games, true);

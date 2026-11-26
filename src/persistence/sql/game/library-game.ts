@@ -18,7 +18,8 @@ export const libraryGame = pgTable(
       .references(() => status.id),
     statusSince: date("status_since", { mode: "string" }).notNull(),
     score: scoreColumn("score"),
-    notInterested: boolean("not_interested").notNull().default(false),
+    // Antes «Sin interés» (`not_interested`): lo tenés pero no lo pensás jugar.
+    hidden: boolean("hidden").notNull().default(false),
     // En minutos, como copy.playtime_minutes; vacío si no hay total a mano.
     playedMinutesManual: integer("played_minutes_manual"),
     estimatedHours: hoursColumn("estimated_hours"),

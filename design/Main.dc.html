@@ -104,7 +104,7 @@ input::placeholder{color:#7D8696}
               <button type="button" onClick="{{p.pick}}" aria-pressed="{{p.active}}" style="{{p.style}}">{{p.label}}</button>
             </sc-for>
           </div>
-          <p style="margin: 0; font-size: 12px; color: #9AA3B2">Los juegos «Sin fin» no tienen duración y quedan afuera de este filtro.</p>
+          <p style="margin: 0; font-size: 12px; color: #9AA3B2">Los juegos sin fin no tienen duración y quedan afuera de este filtro.</p>
         </section>
 
         <section style="display: flex; flex-direction: column; gap: 10px">
@@ -246,16 +246,16 @@ class Component extends DCLogic {
   games() {
     return [
       { title: 'Disco Elysium', mono: 'DE', year: 2019, status: 'jugando', score: 9.3, hours: 18, dur: 22, bg: '#4A2A22', fg: '#F2D9C9', stores: [{ s: 'gog', k: 'comprado' }] },
-      { title: 'Forza Horizon 5', mono: 'FH', year: 2021, status: 'sinfin', score: 8.1, hours: 31, dur: 0, bg: '#1F3A3A', fg: '#CDEDEB', stores: [{ s: 'gp', k: 'susc' }] },
-      { title: 'Civilization VI', mono: 'CV', year: 2016, status: 'sinfin', score: 7.4, hours: 112, dur: 0, bg: '#2E3B23', fg: '#E3EFCF', dup: true, stores: [{ s: 'epic', k: 'gratis' }, { s: 'steam', k: 'comprado' }] },
+      { title: 'Forza Horizon 5', mono: 'FH', year: 2021, status: 'jugando', score: 8.1, hours: 31, dur: 0, bg: '#1F3A3A', fg: '#CDEDEB', stores: [{ s: 'gp', k: 'susc' }] },
+      { title: 'Civilization VI', mono: 'CV', year: 2016, status: 'jugado', score: 7.4, hours: 112, dur: 0, bg: '#2E3B23', fg: '#E3EFCF', dup: true, stores: [{ s: 'epic', k: 'gratis' }, { s: 'steam', k: 'comprado' }] },
       { title: 'Frostpunk', mono: 'FP', year: 2018, status: 'quiero', score: 0, hours: 0, dur: 12, bg: '#26303A', fg: '#DCE6EF', stores: [], buy: { store: 'Microsoft Store', price: 'ARS 400', seen: 'Visto el 5 nov' } },
       { title: 'Cyberpunk 2077', mono: 'CP', year: 2020, status: 'pausa', score: 7.9, hours: 21, dur: 26, bg: '#3D3A12', fg: '#F2EEB3', reason: 'Lo retomo después · acto 2', stores: [{ s: 'gog', k: 'comprado' }] },
       { title: 'Hades', mono: 'HA', year: 2020, status: 'cien', score: 9.6, hours: 64, dur: 22, bg: '#4A1E25', fg: '#F6CFD3', stores: [{ s: 'steam', k: 'comprado' }] },
-      { title: 'Outer Wilds', mono: 'OW', year: 2019, status: 'pendiente', score: 0, hours: 0, dur: 17, bg: '#2A2442', fg: '#DCD5F5', stores: [{ s: 'steam', k: 'comprado' }] },
+      { title: 'Outer Wilds', mono: 'OW', year: 2019, status: 'backlog', score: 0, hours: 0, dur: 17, bg: '#2A2442', fg: '#DCD5F5', stores: [{ s: 'steam', k: 'comprado' }] },
       { title: 'Hollow Knight', mono: 'HK', year: 2017, status: 'completado', score: 9.8, hours: 48, dur: 27, bg: '#22304A', fg: '#DCE6F7', stores: [{ s: 'steam', k: 'comprado' }] },
       { title: 'Portal 2', mono: 'P2', year: 2011, status: 'completado', score: 9.0, hours: 9, dur: 8, bg: '#2B3036', fg: '#E2E6EA', stores: [{ s: 'steam', k: 'familia' }] },
       { title: 'Cartas del Faro', mono: 'CF', year: 2025, status: 'completado', score: 8.0, hours: 1, dur: 1, bg: '#3A2E1F', fg: '#F0E0C8', manual: true, stores: [{ s: 'itch', k: 'gratis' }] },
-      { title: 'Stardew Valley', mono: 'SV', year: 2016, status: 'sinfin', score: 9.0, hours: 140, dur: 53, bg: '#2D4220', fg: '#E1F0CF', stores: [{ s: 'steam', k: 'comprado' }, { s: 'sw', k: 'fisico' }] },
+      { title: 'Stardew Valley', mono: 'SV', year: 2016, status: 'jugando', score: 9.0, hours: 140, dur: 53, bg: '#2D4220', fg: '#E1F0CF', stores: [{ s: 'steam', k: 'comprado' }, { s: 'sw', k: 'fisico' }] },
       { title: 'Celeste', mono: 'CE', year: 2018, status: 'completado', score: 8.7, hours: 22, dur: 8, bg: '#3F2240', fg: '#F1D2F2', stores: [{ s: 'epic', k: 'comprado' }] },
       { title: 'Ori and the Will of the Wisps', mono: 'OR', year: 2020, status: 'completado', score: 8.8, hours: 13, dur: 11, bg: '#1D3340', fg: '#CFE6F2', stores: [{ s: 'gp', k: 'perdido' }] },
       { title: 'Elden Ring', mono: 'ER', year: 2022, status: 'loprobe', score: 6.5, hours: 3, dur: 58, bg: '#3A3426', fg: '#EFE6CF', reason: 'Muy difícil · a las 3 h', stores: [{ s: 'steam', k: 'comprado' }] },
@@ -281,18 +281,18 @@ class Component extends DCLogic {
     const STORE = { steam: 'Steam', epic: 'Epic Games', gog: 'GOG', ms: 'Microsoft Store', gp: 'Game Pass', sw: 'Switch', itch: 'itch.io' };
     const KIND = { comprado: 'Comprado', gratis: 'Gratis', susc: 'Suscripción', familia: 'Familia', fisico: 'Físico', perdido: 'Ya no lo tengo' };
     const GROUPS = [
-      { id: 'curso', label: 'En curso', statuses: [['jugando', 'Jugando'], ['pausa', 'En pausa'], ['sinfin', 'Sin fin']] },
-      { id: 'empezar', label: 'Sin empezar', statuses: [['quiero', 'Quiero jugarlo'], ['pendiente', 'Pendiente']] },
-      { id: 'terminado', label: 'Terminado', statuses: [['completado', 'Completado'], ['cien', '100%']] },
+      { id: 'curso', label: 'En curso', statuses: [['jugando', 'Jugando'], ['pausa', 'En pausa']] },
+      { id: 'empezar', label: 'Sin empezar', statuses: [['quiero', 'Quiero jugarlo'], ['backlog', 'Backlog']] },
+      { id: 'terminado', label: 'Terminado', statuses: [['completado', 'Completado'], ['cien', '100%'], ['jugado', 'Jugado']] },
       { id: 'dejado', label: 'Dejado', statuses: [['abandonado', 'Abandonado'], ['loprobe', 'Lo probé']] }
     ];
     const GROUP_OF = {};
     const LABEL = {};
     GROUPS.forEach((g) => g.statuses.forEach(([id, label]) => { GROUP_OF[id] = g.id; LABEL[id] = label; }));
     const COLOR = {
-      jugando: ['#C8F25A', 'rgba(200,242,90,0.12)'], pausa: ['#C8F25A', 'rgba(200,242,90,0.12)'], sinfin: ['#C8F25A', 'rgba(200,242,90,0.12)'],
-      quiero: ['#FFC66B', 'rgba(255,198,107,0.13)'], pendiente: ['#C5CCD8', 'rgba(197,204,216,0.10)'],
-      completado: ['#8EC5FF', 'rgba(142,197,255,0.13)'], cien: ['#8EC5FF', 'rgba(142,197,255,0.13)'],
+      jugando: ['#C8F25A', 'rgba(200,242,90,0.12)'], pausa: ['#C8F25A', 'rgba(200,242,90,0.12)'],
+      quiero: ['#FFC66B', 'rgba(255,198,107,0.13)'], backlog: ['#C5CCD8', 'rgba(197,204,216,0.10)'],
+      completado: ['#8EC5FF', 'rgba(142,197,255,0.13)'], cien: ['#8EC5FF', 'rgba(142,197,255,0.13)'], jugado: ['#8EC5FF', 'rgba(142,197,255,0.13)'],
       abandonado: ['#FF9C8A', 'rgba(255,156,138,0.13)'], loprobe: ['#FF9C8A', 'rgba(255,156,138,0.13)']
     };
 

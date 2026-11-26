@@ -80,10 +80,10 @@ export function FilterPanel({ filters, counts, stores, onChange }: FilterPanelPr
         onToggle={(id) => onChange({ kinds: toggleOption(filters.kinds, id as CopyKindFilter) })}
       />
       <Toggle
-        label={t("showNotInterested")}
-        help={HELP.notInterested}
-        checked={filters.showNotInterested}
-        onCheckedChange={(showNotInterested) => onChange({ showNotInterested })}
+        label={t("showHidden")}
+        help={HELP.hidden}
+        checked={filters.showHidden}
+        onCheckedChange={(showHidden) => onChange({ showHidden })}
       />
     </>
   );

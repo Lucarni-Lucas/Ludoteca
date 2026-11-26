@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { KindDetailTooLongError } from "@/model/copy/errors";
-import { buildNewCopy, planStatusAfterNewCopy, validateCopyDetails } from "@/model/copy/new-copy";
+import { buildNewCopy, validateCopyDetails } from "@/model/copy/new-copy";
 
-import { STATUSES, statusByKey } from "../game/library-fixtures";
-
-const TODAY = "2026-11-11";
 const OTHER = { kind: "other" as const, acquiredOn: null, familyOwner: null };
 
 describe("validateCopyDetails", () => {
@@ -74,27 +71,5 @@ describe("buildNewCopy", () => {
     const value = buildNewCopy("steam", details);
 
     expect(value).toEqual({ storeId: "steam", kind: "other", acquiredOn: null, familyOwner: null, kindDetail: "Regalo" });
-  });
-});
-
-describe("planStatusAfterNewCopy", () => {
-  it("Regalo de un juego deseado", () => {
-    const game = { status: statusByKey("wishlist") };
-
-    const plan = planStatusAfterNewCopy(game, "other", STATUSES, TODAY);
-
-    expect(plan).toEqual({
-      statusId: "backlog",
-      statusSince: TODAY,
-      entry: { occurredOn: TODAY, fromStatusId: "wishlist", toStatusId: "backlog" },
-    });
-  });
-
-  it("una copia Familia no saca al juego de «Quiero jugarlo»", () => {
-    const game = { status: statusByKey("wishlist") };
-
-    const plan = planStatusAfterNewCopy(game, "family", STATUSES, TODAY);
-
-    expect(plan).toBeNull();
   });
 });

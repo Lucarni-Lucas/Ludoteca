@@ -4,6 +4,7 @@ import { PLAY_ANSWERS } from "../../../model/import/import-entry";
 import { primaryId, timestamps } from "../columns";
 import { catalogGame } from "../game/catalog-game";
 import { libraryGame } from "../game/library-game";
+import { status } from "../status/status";
 
 export const importPlayAnswerEnum = pgEnum("import_play_answer", PLAY_ANSWERS);
 
@@ -20,7 +21,7 @@ export const importEntry = pgTable(
     catalogGameId: uuid("catalog_game_id").references(() => catalogGame.id, { onDelete: "set null" }),
     multiplayerOnly: boolean("multiplayer_only").notNull().default(false),
     manualTitle: text("manual_title"),
-    statusKey: text("status_key"),
+    statusId: uuid("status_id").references(() => status.id, { onDelete: "set null" }),
     endlessAnswer: boolean("endless_answer"),
     playAnswer: importPlayAnswerEnum("play_answer"),
     excluded: boolean("excluded").notNull().default(false),

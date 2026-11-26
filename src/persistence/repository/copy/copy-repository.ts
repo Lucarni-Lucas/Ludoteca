@@ -5,16 +5,13 @@ import type { LostMark } from "@/model/copy/copy";
 import { NO_LOST_MARK } from "@/model/copy/copy";
 import type { NewCopy } from "@/model/copy/new-copy";
 import { GameNotFoundError } from "@/model/game/errors";
-import type { StatusChangePlan } from "@/model/status/status";
 import type { Database } from "@/persistence/db";
 import { toNewCopyRow } from "@/persistence/mapper/copy/copy-mapper";
 import { copy } from "@/persistence/sql/copy/copy";
 import { libraryGame } from "@/persistence/sql/game/library-game";
 
-import { writeStatusChange } from "../game/status-change-writer";
-
 export type CopyRepository = Readonly<{
-  addCopy(userId: string, gameId: string, value: NewCopy, statusPlan: StatusChangePlan | null): Promise<void>;
+  addCopy(userId: string, gameId: string, value: NewCopy): Promise<void>;
   markLost(userId: string, copyId: string, mark: LostMark): Promise<void>;
   recover(userId: string, copyId: string): Promise<void>;
   remove(userId: string, copyId: string): Promise<void>;
@@ -52,14 +49,10 @@ export function createCopyRepository(db: Database): CopyRepository {
   }
 
   return {
-    addCopy(userId, gameId, value, statusPlan) {
+    addCopy(userId, gameId, value) {
       return db.transaction(async (tx) => {
         await assertOwnGame(tx, userId, gameId);
         await tx.insert(copy).values(toNewCopyRow(userId, gameId, value));
-
-        if (statusPlan) {
-          await writeStatusChange(tx, userId, gameId, statusPlan);
-        }
       });
     },
 

@@ -5,8 +5,23 @@ export const STATUS_COLORS = ["lime", "amber", "gray", "blue", "coral"] as const
 
 export type StatusColor = (typeof STATUS_COLORS)[number];
 
+/**
+ * «Quiero jugarlo» ya no es la wishlist: es «lo querés jugar pronto, lo tengas o no». La clave interna no cambió
+ * porque no se ve y cambiarla pedía otro paso en la migración (`04` design.md §19).
+ */
 export const WISHLIST_KEY = "wishlist";
 export const BACKLOG_KEY = "backlog";
+export const PLAYING_KEY = "playing";
+export const PAUSED_KEY = "paused";
+export const COMPLETED_KEY = "completed";
+export const HUNDRED_PERCENT_KEY = "hundred_percent";
+export const PLAYED_KEY = "played";
+export const ABANDONED_KEY = "abandoned";
+export const TRIED_KEY = "tried";
+
+/** Terminar la historia solo existe si el juego tiene final, y «Jugado» solo si no lo tiene. */
+const FINITE_ONLY_KEYS: readonly string[] = [COMPLETED_KEY, HUNDRED_PERCENT_KEY];
+const ENDLESS_ONLY_KEYS: readonly string[] = [PLAYED_KEY];
 
 export type Status = Readonly<{
   id: string;
@@ -24,17 +39,40 @@ export type DefaultStatus = Omit<Status, "id">;
  * catálogo, en `status.defaults.<system_key>` (design.md §8).
  */
 export const DEFAULT_STATUSES: readonly DefaultStatus[] = [
-  { group: "in_progress", name: "Jugando", color: "lime", position: 1, systemKey: "playing" },
-  { group: "in_progress", name: "En pausa", color: "lime", position: 2, systemKey: "paused" },
-  { group: "in_progress", name: "Sin fin", color: "lime", position: 3, systemKey: "endless" },
+  { group: "in_progress", name: "Jugando", color: "lime", position: 1, systemKey: PLAYING_KEY },
+  { group: "in_progress", name: "En pausa", color: "lime", position: 2, systemKey: PAUSED_KEY },
   { group: "not_started", name: "Quiero jugarlo", color: "amber", position: 1, systemKey: WISHLIST_KEY },
-  { group: "not_started", name: "Pendiente", color: "gray", position: 2, systemKey: BACKLOG_KEY },
-  { group: "finished", name: "Completado", color: "blue", position: 1, systemKey: "completed" },
-  { group: "finished", name: "100%", color: "blue", position: 2, systemKey: "hundred_percent" },
-  { group: "finished", name: "Jugado", color: "blue", position: 3, systemKey: "played" },
-  { group: "dropped", name: "Abandonado", color: "coral", position: 1, systemKey: "abandoned" },
-  { group: "dropped", name: "Lo probé", color: "coral", position: 2, systemKey: "tried" },
+  { group: "not_started", name: "Backlog", color: "gray", position: 2, systemKey: BACKLOG_KEY },
+  { group: "finished", name: "Completado", color: "blue", position: 1, systemKey: COMPLETED_KEY },
+  { group: "finished", name: "100%", color: "blue", position: 2, systemKey: HUNDRED_PERCENT_KEY },
+  { group: "finished", name: "Jugado", color: "blue", position: 3, systemKey: PLAYED_KEY },
+  { group: "dropped", name: "Abandonado", color: "coral", position: 1, systemKey: ABANDONED_KEY },
+  { group: "dropped", name: "Lo probé", color: "coral", position: 2, systemKey: TRIED_KEY },
 ];
+
+export type OfferContext = Readonly<{
+  endless: boolean;
+  /** El estado que el juego ya tiene: se conserva aunque no se le ofrecería. */
+  currentId?: string | null;
+}>;
+
+function fitsGame(status: Pick<Status, "systemKey">, endless: boolean): boolean {
+  const excluded = endless ? FINITE_ONLY_KEYS : ENDLESS_ONLY_KEYS;
+  return status.systemKey === null || !excluded.includes(status.systemKey);
+}
+
+/** Los estados que se ofrecen al elegir: los creados por el usuario, siempre (`04` design.md §19). */
+export function offeredStatuses<T extends Pick<Status, "id" | "systemKey">>(
+  statuses: readonly T[],
+  { endless, currentId = null }: OfferContext,
+): readonly T[] {
+  return statuses.filter((status) => status.id === currentId || fitsGame(status, endless));
+}
+
+/** La clave de «qué significa» del catálogo: la tiene todo estado de fábrica, también renombrado. */
+export function statusMeaningKey(status: Pick<Status, "systemKey">): string | null {
+  return DEFAULT_STATUSES.some((value) => value.systemKey === status.systemKey) ? status.systemKey : null;
+}
 
 export type StatusGroupView = Readonly<{
   group: StatusGroup;

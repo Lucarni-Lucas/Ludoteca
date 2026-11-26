@@ -78,15 +78,14 @@ input::placeholder{color:#7D8696}
     </div>
 
     <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #C5CCD8">Estado
-      <select defaultValue="completado" style="height: 48px; padding: 0 10px; border-radius: 12px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 Inter, system-ui, sans-serif">
+      <select defaultValue="backlog" aria-describedby="estado-significa" style="height: 48px; padding: 0 10px; border-radius: 12px; background: #161A21; border: 1px solid #2A303B; color: #ECEEF2; font: 500 15px/1 Inter, system-ui, sans-serif">
         <optgroup label="En curso">
           <option value="jugando">Jugando</option>
           <option value="pausa">En pausa</option>
-          <option value="sinfin">Sin fin</option>
         </optgroup>
         <optgroup label="Sin empezar">
           <option value="quiero">Quiero jugarlo</option>
-          <option value="pendiente">Pendiente</option>
+          <option value="backlog">Backlog</option>
         </optgroup>
         <optgroup label="Terminado">
           <option value="completado">Completado</option>
@@ -97,6 +96,7 @@ input::placeholder{color:#7D8696}
           <option value="loprobe">Lo probé</option>
         </optgroup>
       </select>
+      <span id="estado-significa" style="font-size: 12.5px; line-height: 1.35; color: #9AA3B2">Lo vas a jugar en algún momento, sin apuro</span>
     </label>
 
     <p style="margin: 0; font-size: 13px; color: #9AA3B2">Queda marcado como «agregado a mano». Si algún día aparece en IGDB, lo podés vincular sin perder tu puntaje ni tu diario.</p>

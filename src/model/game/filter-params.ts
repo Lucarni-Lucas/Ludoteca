@@ -68,7 +68,7 @@ export function parseLibraryView(search: string): LibraryView {
       played: readRange(params, "played"),
       score: readRange(params, "score"),
       title: params.get("q") ?? "",
-      showNotInterested: params.get("hidden") === "1",
+      showHidden: params.get("hidden") === "1",
     },
     sort: readSort(params),
   };
@@ -101,7 +101,7 @@ export function serializeLibraryView({ filters, sort }: LibraryView): string {
     params.set("q", filters.title);
   }
 
-  if (filters.showNotInterested) {
+  if (filters.showHidden) {
     params.set("hidden", "1");
   }
 

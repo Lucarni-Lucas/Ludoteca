@@ -32,9 +32,9 @@ describe("copy con ID en la tienda", () => {
 
   it("dos copias a mano sin ID en la tienda, en la misma tienda, no chocan", async () => {
     const purchased = { storeId, kind: "purchased" as const, acquiredOn: null, familyOwner: null };
-    await repositories.copies.addCopy(USER_A, gameId, purchased, null);
+    await repositories.copies.addCopy(USER_A, gameId, purchased);
 
-    await repositories.copies.addCopy(USER_A, gameId, purchased, null);
+    await repositories.copies.addCopy(USER_A, gameId, purchased);
 
     const game = await repositories.games.findById(USER_A, gameId);
     expect(game?.copies).toHaveLength(2);
@@ -59,7 +59,7 @@ describe("copy con ID en la tienda", () => {
   it("una copia cargada a mano queda con origen manual", async () => {
     const purchased = { storeId, kind: "purchased" as const, acquiredOn: null, familyOwner: null };
 
-    await repositories.copies.addCopy(USER_A, gameId, purchased, null);
+    await repositories.copies.addCopy(USER_A, gameId, purchased);
 
     const [row] = await database.db.select().from(copy).where(eq(copy.libraryGameId, gameId));
     expect(row).toMatchObject({ origin: "manual", storeGameId: null });

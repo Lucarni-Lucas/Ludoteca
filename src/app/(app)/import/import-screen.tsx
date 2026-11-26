@@ -63,7 +63,8 @@ export function ImportScreen({ initial, expired, statuses, avatarInitial, focusS
   const group = chosenGroup ?? firstGroup(overview.review);
   const games = overview.review.groups.find((view) => view.group === group)?.games ?? [];
   const statusOptions: readonly StatusOption[] = useMemo(
-    () => statuses.flatMap((status) => (status.systemKey ? [{ statusKey: status.systemKey, name: statusText.name(status) }] : [])),
+    // Todos los estados activos, también los creados por el usuario (spec «Los estados del usuario»).
+    () => statuses.map((status) => ({ id: status.id, name: status.name, systemKey: status.systemKey, label: statusText.name(status) })),
     [statuses, statusText],
   );
   const hasRows = overview.progress.total > 0;

@@ -51,14 +51,14 @@ test.describe("base que no responde", () => {
     await stallDatabase(page);
     const started = Date.now();
 
-    await page.getByRole("button", { name: "Marcar sin interés" }).click();
+    await page.getByRole("button", { name: "Ocultar" }).click();
 
     await expect(page.getByText(SAVE_ERROR)).toBeVisible({ timeout: SPEC_LIMIT_MS });
     expect(Date.now() - started).toBeLessThan(SPEC_LIMIT_MS);
-    await expect(page.getByRole("button", { name: "Marcar sin interés" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Ocultar" })).toBeVisible();
     await resumeDatabase();
     await page.reload();
-    await expect(page.getByRole("button", { name: "Marcar sin interés" })).toBeVisible({ timeout: SPEC_LIMIT_MS });
+    await expect(page.getByRole("button", { name: "Ocultar" })).toBeVisible({ timeout: SPEC_LIMIT_MS });
   });
 
   test("Las demás pantallas siguen andando", async ({ page }) => {

@@ -5,10 +5,10 @@ Permitir que el usuario adapte los estados y los motivos a su forma de jugar, si
 ## ADDED Requirements
 
 ### Requirement: Editar estados
-El sistema SHALL permitir renombrar un estado, cambiarle el color y reordenarlo dentro de su grupo. Un estado por defecto renombrado MUST conservar su función (por ejemplo, «Quiero jugarlo» sigue siendo la wishlist).
+El sistema SHALL permitir renombrar un estado, cambiarle el color y reordenarlo dentro de su grupo. Un estado por defecto renombrado MUST conservar su función (por ejemplo, «Quiero jugarlo» sigue avisando cuando un juego que no tenés está gratis en Epic).
 
-#### Scenario: Renombrar la wishlist
-- **WHEN** el usuario renombra «Quiero jugarlo» a «Lo quiero»
+#### Scenario: Renombrar «Quiero jugarlo»
+- **WHEN** el usuario renombra «Quiero jugarlo» a «Lo próximo»
 - **THEN** los juegos sin copias siguen entrando a «Lo quiero» y muestran «Sin comprar»
 
 #### Scenario: Orden en el selector de estado
@@ -26,15 +26,15 @@ El sistema SHALL permitir crear un estado nuevo dentro de un grupo. Los estados 
 - **WHEN** el usuario crea «Rejugando» en el grupo En curso
 - **THEN** «Rejugando» aparece en En curso con la marca «TUYO» y se puede asignar a cualquier juego
 
-### Requirement: Ocultar estados
-El sistema SHALL permitir ocultar y volver a mostrar cualquier estado. Un estado oculto no se ofrece al cambiar de estado, pero los juegos que lo tienen lo conservan.
+### Requirement: Desactivar estados
+El sistema SHALL permitir desactivar y volver a activar cualquier estado. Un estado desactivado no se ofrece al cambiar de estado ni en la importación, pero los juegos que lo tienen lo conservan. Se dice «desactivar» para no confundirlo con ocultar un juego.
 
-#### Scenario: Ocultar «100%»
-- **WHEN** el usuario oculta «100%» y Hades está en «100%»
+#### Scenario: Desactivar «100%»
+- **WHEN** el usuario desactiva «100%» y Hades está en «100%»
 - **THEN** «100%» no aparece al cambiar de estado y Hades sigue en «100%»
 
 ### Requirement: Borrar estados propios
-El sistema SHALL permitir borrar un estado creado por el usuario solo si ningún juego lo tiene. Los estados por defecto MUST NOT poder borrarse; solo ocultarse.
+El sistema SHALL permitir borrar un estado creado por el usuario solo si ningún juego lo tiene. Los estados por defecto MUST NOT poder borrarse; solo desactivarse.
 
 #### Scenario: Estado en uso
 - **WHEN** el usuario intenta borrar «Rejugando» y 2 juegos lo tienen

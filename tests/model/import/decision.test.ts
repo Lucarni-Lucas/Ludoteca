@@ -5,10 +5,10 @@ import { InvalidImportDecisionError } from "@/model/import/errors";
 import { type DecisionWrite, type ImportEntry, NO_ANSWERS } from "@/model/import/import-entry";
 import { canGoBack, type ReviewGame, reviewGame } from "@/model/import/review";
 
-import { entry, EPIC, ignItem, playniteItem, STEAM, steamItem } from "./import-fixtures";
+import { entry, EPIC, ignItem, playniteItem, STATUSES, STEAM, statusRef, steamItem } from "./import-fixtures";
 
-const CONTEXT = { statusKeys: ["playing", "backlog", "wishlist", "completed", "abandoned", "played"] };
-const CONNECTED = { steamConnected: true };
+const CONTEXT = { statuses: STATUSES };
+const CONNECTED = { steamConnected: true, statuses: STATUSES };
 const CANDIDATE = { igdbId: 7, baseIgdbId: 7, title: "Overwatch", year: 2016, coverUrl: null };
 
 function view(value: ImportEntry): ReviewGame {
@@ -44,12 +44,12 @@ describe("planDecision", () => {
     const beholder = entry("Beholder", [ignItem("Beholder", { ignStatuses: ["backlog"] }), steamItem("Beholder", "475550", 0)]);
     const game = view(beholder);
 
-    const plan = planDecision([game], { kind: "choose", choice: { kind: "not_interested" } }, CONTEXT);
+    const plan = planDecision([game], { kind: "choose", choice: { kind: "hidden" } }, CONTEXT);
 
     const [after] = applyPlan([beholder], plan).map(view);
     expect(game.group).toBe("play");
-    expect(after).toMatchObject({ group: "ready", decided: true, suggestion: { notInterested: true } });
-    expect(decidedChoice({ kind: "choose", choice: { kind: "not_interested" } })).toEqual({ kind: "not_interested" });
+    expect(after).toMatchObject({ group: "ready", decided: true, suggestion: { hidden: true } });
+    expect(decidedChoice({ kind: "choose", choice: { kind: "hidden" } })).toEqual({ kind: "hidden" });
   });
 
   it("Responder en lote", () => {
@@ -108,12 +108,10 @@ describe("planDecision", () => {
 
   it("Otro estado", () => {
     const frostpunk = entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)]);
-    const context = { statusKeys: [...CONTEXT.statusKeys, "paused"] };
-
-    const plan = planDecision([view(frostpunk)], { kind: "choose", choice: { kind: "status", statusKey: "paused" } }, context);
+    const plan = planDecision([view(frostpunk)], { kind: "choose", choice: { kind: "status", status: statusRef("paused") } }, CONTEXT);
 
     const [after] = applyPlan([frostpunk], plan).map(view);
-    expect(after).toMatchObject({ group: "ready", suggestion: { statusKey: "paused" } });
+    expect(after).toMatchObject({ group: "ready", suggestion: { status: { systemKey: "paused" } } });
   });
 
   it.each([
@@ -217,7 +215,7 @@ describe("planDecision", () => {
   it("un estado que el usuario no tiene da InvalidImportDecisionError", () => {
     const game = view(entry("Terraria", [playniteItem("Terraria", EPIC, "t", { playtimeMinutes: 600 })]));
 
-    const decide = () => planDecision([game], { kind: "choose", choice: { kind: "status", statusKey: "otro" } }, CONTEXT);
+    const decide = () => planDecision([game], { kind: "choose", choice: { kind: "status", status: { id: "otro", name: "Otro", systemKey: null } } }, CONTEXT);
 
     expect(decide).toThrow(InvalidImportDecisionError);
   });
@@ -269,7 +267,7 @@ describe("planDecision", () => {
 
   it("«Volver a revisar» devuelve el juego a su grupo", () => {
     const beholder = entry("Beholder", [ignItem("Beholder", { ignStatuses: ["backlog"] }), steamItem("Beholder", "475550", 0)], {
-      answers: { playAnswer: "not_interested" },
+      answers: { playAnswer: "hidden" },
     });
     const decided = view(beholder);
 
@@ -279,5 +277,70 @@ describe("planDecision", () => {
     expect(decided.group).toBe("ready");
     expect(plan.resets).toEqual([beholder.id]);
     expect(after.group).toBe("play");
+  });
+});
+
+describe("respuestas de los estados nuevos", () => {
+  const REPLAYING = { id: "rejugando", group: "in_progress" as const, name: "Rejugando", color: "lime" as const, position: 3, systemKey: null };
+
+  it("Estado propio", () => {
+    const frostpunk = entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)]);
+    const context = { statuses: [...STATUSES, REPLAYING] };
+    const choice = { kind: "status" as const, status: { id: REPLAYING.id, name: REPLAYING.name, systemKey: null } };
+
+    const plan = planDecision([view(frostpunk)], { kind: "choose", choice }, context);
+
+    expect(plan.writes).toEqual([{ entryIds: [frostpunk.id], write: { answers: { statusId: "rejugando" } } }]);
+  });
+
+  it("«Ya lo jugué» guarda la respuesta y el juego pasa a «Elegí un estado»", () => {
+    const celeste = entry("Celeste", [ignItem("Celeste", { ignStatuses: ["backlog"] }), steamItem("Celeste", "504230", 0)]);
+
+    const plan = planDecision([view(celeste)], { kind: "choose", choice: { kind: "played" } }, CONTEXT);
+
+    const [after] = applyPlan([celeste], plan).map(view);
+    expect(plan.writes).toEqual([{ entryIds: [celeste.id], write: { answers: { playAnswer: "played" } } }]);
+    expect(after.group).toBe("status");
+  });
+
+  it("«Ocultar» guarda el Backlog del usuario y la marca oculto", () => {
+    const terraria = entry("Terraria", [steamItem("Terraria", "105600", 12 * 60)]);
+
+    const plan = planDecision([view(terraria)], { kind: "choose", choice: { kind: "hide" } }, CONTEXT);
+
+    const [after] = applyPlan([terraria], plan).map(view);
+    expect(plan.writes).toEqual([{ entryIds: [terraria.id], write: { answers: { statusId: "backlog", playAnswer: "hidden" } } }]);
+    expect(after).toMatchObject({ group: "ready", suggestion: { hidden: true, status: { systemKey: "backlog" } } });
+  });
+
+  it("un estado que no se le ofrece al juego da InvalidImportDecisionError", () => {
+    const hunt = entry("Hunt: Showdown", [playniteItem("Hunt: Showdown", EPIC, "hunt", { playtimeMinutes: 25 * 60 })], {
+      multiplayerOnly: true,
+    });
+
+    const decide = () => planDecision([view(hunt)], { kind: "choose", choice: { kind: "status", status: statusRef("completed") } }, CONTEXT);
+
+    expect(decide).toThrow(InvalidImportDecisionError);
+  });
+
+  it("un estado desactivado no se puede elegir", () => {
+    const frostpunk = entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)]);
+    const context = { statuses: STATUSES.filter(({ systemKey }) => systemKey !== "abandoned") };
+    const game = reviewGame(frostpunk, [], { steamConnected: true, ...context }) as ReviewGame;
+
+    const decide = () => planDecision([game], { kind: "choose", choice: { kind: "status", status: statusRef("abandoned") } }, context);
+
+    expect(decide).toThrow(InvalidImportDecisionError);
+  });
+});
+
+describe("«¿Cómo lo dejaste?» en un juego solo multijugador", () => {
+  it("«Lo terminaste» vale aunque no se le ofrezca «Completado» y el juego pasa a «¿Es sin fin?»", () => {
+    const overwatch = entry("Overwatch", [ignItem("Overwatch", { ignStatuses: ["beat", "quit"], ignScore: 6 })], { multiplayerOnly: true });
+
+    const plan = planDecision([view(overwatch)], { kind: "choose", choice: { kind: "status", status: statusRef("completed") } }, CONTEXT);
+
+    const [after] = applyPlan([overwatch], plan).map(view);
+    expect(after.group).toBe("endless");
   });
 });

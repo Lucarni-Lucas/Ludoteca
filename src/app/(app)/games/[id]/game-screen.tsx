@@ -14,7 +14,7 @@ import { StatusDialog } from "@/components/status/StatusDialog";
 import { HELP } from "@/components/ui/help-texts";
 import { HelpTip } from "@/components/ui/HelpTip";
 import { useServerAction } from "@/hooks/use-server-action";
-import { effectiveCover, isManual, type LibraryGame } from "@/model/game/library-game";
+import { effectiveCover, effectiveEndless, isManual, type LibraryGame } from "@/model/game/library-game";
 import type { StatusGroupView } from "@/model/status/status";
 import type { Store } from "@/model/store/store";
 
@@ -88,7 +88,7 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
             <GameCover title={game.title} coverUrl={effectiveCover(game)} year={game.year} variant="detail" />
           </div>
           <div className={styles.copies}>
-            <CopiesSection gameId={game.id} gameTitle={game.title} copies={game.copies} stores={stores} openAddDialog={openCopyDialog} />
+            <CopiesSection gameId={game.id} copies={game.copies} stores={stores} openAddDialog={openCopyDialog} />
           </div>
           <div className={styles.facts}>
             <GameFacts game={game} onEdit={() => setEditOpen(true)} onEditPlayed={() => setPlayedOpen(true)} />
@@ -132,6 +132,7 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
           title={game.title}
           current={game.status}
           groups={statusGroups}
+          endless={effectiveEndless(game)}
           pending={changeStatus.pending}
           errorMessage={changeStatus.errorMessage}
           onSave={(statusId) => void saveStatus(statusId)}

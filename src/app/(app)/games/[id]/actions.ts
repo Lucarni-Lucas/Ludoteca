@@ -9,7 +9,6 @@ import { COPY_KINDS, LOST_REASONS, type LostReason } from "@/model/copy/copy";
 import { GameNotFoundError } from "@/model/game/errors";
 import { toCorrections } from "@/model/game/library-game";
 import { requireSessionUser } from "@/security/session";
-import type { AddCopyResult } from "@/service/copy/copy-service";
 import { getCopyService } from "@/service/copy/instance";
 import { getLibraryService, getPlayedHoursService } from "@/service/game/instance";
 import { type ActionFailure, type ActionResult, toActionResult } from "@/shared/action-result";
@@ -103,7 +102,7 @@ export async function setPlayedHoursAction(gameId: string, hours: number | null)
   );
 }
 
-export async function addCopyAction(gameId: string, values: AddCopyFormValues): Promise<ActionResult<AddCopyResult>> {
+export async function addCopyAction(gameId: string, values: AddCopyFormValues): Promise<ActionResult<void>> {
   return runGameAction(gameId, (userId, id) => {
     const input = parseInput(addCopySchema, values);
     const store = input.otherStoreName ? { otherName: input.otherStoreName } : { storeId: input.storeId ?? "" };
@@ -168,9 +167,9 @@ export async function linkToIgdbAction(gameId: string, igdbId: number): Promise<
   );
 }
 
-export async function setGameNotInterestedAction(gameId: string, notInterested: boolean): Promise<ActionResult<void>> {
+export async function setGameHiddenAction(gameId: string, hidden: boolean): Promise<ActionResult<void>> {
   return runGameAction(gameId, (userId, id) =>
-    getLibraryService().setNotInterested(userId, [id], parseInput(z.boolean(), notInterested)),
+    getLibraryService().setHidden(userId, [id], parseInput(z.boolean(), hidden)),
   );
 }
 

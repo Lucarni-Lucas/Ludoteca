@@ -117,16 +117,16 @@ class Component extends DCLogic {
   games() {
     return [
       { status: 'jugando', score: 9.3, hours: 18, dur: 22, stores: [['gog', 'comprado']] },
-      { status: 'sinfin', score: 8.1, hours: 31, dur: 0, stores: [['gp', 'susc']] },
-      { status: 'sinfin', score: 7.4, hours: 112, dur: 0, stores: [['epic', 'gratis'], ['steam', 'comprado']] },
+      { status: 'jugando', score: 8.1, hours: 31, dur: 0, stores: [['gp', 'susc']] },
+      { status: 'jugado', score: 7.4, hours: 112, dur: 0, stores: [['epic', 'gratis'], ['steam', 'comprado']] },
       { status: 'quiero', score: 0, hours: 0, dur: 12, stores: [] },
       { status: 'pausa', score: 7.9, hours: 21, dur: 26, stores: [['gog', 'comprado']] },
       { status: 'cien', score: 9.6, hours: 64, dur: 22, stores: [['steam', 'comprado']] },
-      { status: 'pendiente', score: 0, hours: 0, dur: 17, stores: [['steam', 'comprado']] },
+      { status: 'backlog', score: 0, hours: 0, dur: 17, stores: [['steam', 'comprado']] },
       { status: 'completado', score: 9.8, hours: 48, dur: 27, stores: [['steam', 'comprado']] },
       { status: 'completado', score: 9.0, hours: 9, dur: 8, stores: [['steam', 'familia']] },
       { status: 'completado', score: 8.0, hours: 1, dur: 1, stores: [['itch', 'gratis']] },
-      { status: 'sinfin', score: 9.0, hours: 140, dur: 53, stores: [['steam', 'comprado'], ['sw', 'fisico']] },
+      { status: 'jugando', score: 9.0, hours: 140, dur: 53, stores: [['steam', 'comprado'], ['sw', 'fisico']] },
       { status: 'completado', score: 8.7, hours: 22, dur: 8, stores: [['epic', 'comprado']] },
       { status: 'completado', score: 8.8, hours: 13, dur: 11, stores: [['gp', 'perdido']] },
       { status: 'loprobe', score: 6.5, hours: 3, dur: 58, stores: [['steam', 'comprado']] },
@@ -137,7 +137,7 @@ class Component extends DCLogic {
 
   renderVals() {
     const st = this.state || {};
-    const sel = st.sel || ['quiero', 'pendiente'];
+    const sel = st.sel || ['quiero', 'backlog'];
     const storesSel = st.storesSel || [];
     const kindsSel = st.kindsSel || [];
     const durMin = st.durMin ?? '';
@@ -156,9 +156,9 @@ class Component extends DCLogic {
       : "height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #2A303B; background: transparent; color: #C5CCD8; font: 500 13px/1 'JetBrains Mono', ui-monospace, monospace; cursor: pointer";
 
     const GROUPS = [
-      ['En curso', [['jugando', 'Jugando'], ['pausa', 'En pausa'], ['sinfin', 'Sin fin']]],
-      ['Sin empezar', [['quiero', 'Quiero jugarlo'], ['pendiente', 'Pendiente']]],
-      ['Terminado', [['completado', 'Completado'], ['cien', '100%']]],
+      ['En curso', [['jugando', 'Jugando'], ['pausa', 'En pausa']]],
+      ['Sin empezar', [['quiero', 'Quiero jugarlo'], ['backlog', 'Backlog']]],
+      ['Terminado', [['completado', 'Completado'], ['cien', '100%'], ['jugado', 'Jugado']]],
       ['Dejado', [['abandonado', 'Abandonado'], ['loprobe', 'Lo probé']]]
     ];
     const groups = GROUPS.map(([label, list]) => ({

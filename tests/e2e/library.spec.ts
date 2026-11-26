@@ -78,7 +78,7 @@ test.describe("vista de la biblioteca", () => {
 
     expect(display).toBe("grid");
     await expect(card.getByText("0.1")).toBeVisible();
-    await expect(card.getByText("Pendiente")).toBeVisible();
+    await expect(card.getByText("Backlog")).toBeVisible();
     await expect(card.getByText("Steam")).toBeVisible();
   });
 
@@ -92,7 +92,7 @@ test.describe("vista de la biblioteca", () => {
       .evaluate((element) => getComputedStyle(element.parentElement as HTMLElement).display);
 
     expect(display).toBe("flex");
-    await expect(card.getByText("Pendiente")).toBeVisible();
+    await expect(card.getByText("Backlog")).toBeVisible();
     await expect(card.getByText("Sin empezar")).toBeVisible();
     await expect(card.getByText("Steam")).toBeVisible();
   });
@@ -132,6 +132,20 @@ test.describe("ficha", () => {
     await expect(page.getByText(/Terminado · lo terminaste el/)).toBeVisible();
   });
 
+  test("Juego con final", async ({ page }) => {
+    await signInAsNewAccount(page);
+    const gamePath = await addFromIgdb(page, "disco", "Disco Elysium");
+    await page.goto(gamePath);
+
+    await page.getByRole("button", { name: "Cambiar estado" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Cambiar estado" });
+    await expect(dialog.getByRole("button", { name: "Completado", exact: true })).toHaveAccessibleDescription("Terminaste la historia principal");
+    await expect(dialog.getByRole("button", { name: "Backlog", exact: true })).toHaveAccessibleDescription("Lo vas a jugar en algún momento, sin apuro");
+    await expect(dialog.getByRole("button", { name: "Jugado" })).toHaveCount(0);
+    await expect(dialog.getByRole("button", { name: "Sin fin" })).toHaveCount(0);
+  });
+
   test("Segunda copia", async ({ page }) => {
     await signInAsNewAccount(page);
     const gamePath = await addFromIgdb(page, "disco", "Disco Elysium");
@@ -146,15 +160,17 @@ test.describe("ficha", () => {
     await expect(gameCard(page, "Disco Elysium").getByText("Nintendo Switch · Físico")).toBeVisible();
   });
 
-  test("Compra de un juego deseado", async ({ page }) => {
+  test("agregar una copia a un juego de «Quiero jugarlo» no le cambia el estado", async ({ page }) => {
     await signInAsNewAccount(page);
-    const gamePath = await addFromIgdb(page, "frost", "Frostpunk");
+    const dialog = await openIgdbForm(page, "frost", "Frostpunk");
+    await dialog.getByRole("combobox", { name: "Estado" }).selectOption({ label: "Quiero jugarlo" });
+    const gamePath = await saveIgdbForm(page, dialog, "Frostpunk");
 
     await addCopy(page, gamePath, "Microsoft Store", "Comprado");
 
-    await expect(page.getByText("Frostpunk pasó a «Pendiente»")).toBeVisible();
+    await expect(page.getByText(/pasó a/)).toHaveCount(0);
     await expect(page.getByText("Sin empezar · desde el", { exact: false })).toBeVisible();
-    await expect(page.getByText("Pendiente", { exact: true })).toBeVisible();
+    await expect(page.getByText("Quiero jugarlo", { exact: true })).toBeVisible();
   });
 
   test("Eliminar con confirmación", async ({ page }) => {
@@ -185,14 +201,14 @@ test.describe("ficha", () => {
   });
 });
 
-test.describe("sin interés", () => {
+test.describe("ocultos", () => {
   test("Ocultar un juego", async ({ page }) => {
     await signInAsNewAccount(page);
     const gamePath = await addFromIgdb(page, "8bit", "8BitMMO");
     await addCopy(page, gamePath, "Steam", "Comprado");
 
-    await page.getByRole("button", { name: "Marcar sin interés" }).click();
-    await expect(page.getByRole("button", { name: "Quitar «Sin interés»" })).toBeVisible();
+    await page.getByRole("button", { name: "Ocultar" }).click();
+    await expect(page.getByRole("button", { name: "Volver a mostrar" })).toBeVisible();
 
     await page.goto("/library");
     await expect(gameCard(page, "8BitMMO")).toHaveCount(0);
@@ -300,7 +316,7 @@ test.describe("agregar con copias y puntaje", () => {
     const card = gameCard(page, CIVILIZATION);
     await expect(card.getByText("Epic Games · Gratis")).toBeVisible();
     await expect(card.getByText("Steam", { exact: true })).toBeVisible();
-    await expect(card.getByText("Pendiente")).toBeVisible();
+    await expect(card.getByText("Backlog")).toBeVisible();
   });
 
   test("Agregar con puntaje", async ({ page }) => {

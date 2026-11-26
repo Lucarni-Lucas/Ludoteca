@@ -23,11 +23,11 @@ function renderTip(help: HelpText) {
 
 describe("HelpTip", () => {
   it("Ayuda de «Sin interés»", () => {
-    renderWithIntl(<Toggle label="Mostrar sin interés" help={HELP.notInterested} checked={false} onCheckedChange={() => undefined} />);
+    renderWithIntl(<Toggle label="Mostrar ocultos" help={HELP.hidden} checked={false} onCheckedChange={() => undefined} />);
 
     expectHelp(
-      "Sin interés",
-      "Lo tenés pero no pensás jugarlo: no aparece en la biblioteca ni en los conteos. Lo ves con «Mostrar sin interés».",
+      "Oculto",
+      "Lo tenés pero no pensás jugarlo: no aparece en la biblioteca ni en los conteos, pero «¿Lo tengo?» sabe que es tuyo. Lo ves con «Mostrar ocultos».",
     );
   });
 
@@ -70,7 +70,7 @@ describe("HelpTip", () => {
   it("Ayuda de «Sin fin»", () => {
     renderTip(HELP.endless);
 
-    expectHelp("Sin fin", "Un juego que no se termina, como un multijugador: no tiene duración estimada.");
+    expectHelp("Sin fin", "Un juego que no se termina, como un multijugador: no tiene duración estimada y, cuando lo dejás, queda «Jugado».");
   });
 
   it("cada «?» abre su propio texto aunque haya varios en la pantalla", () => {

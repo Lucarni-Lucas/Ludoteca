@@ -25,7 +25,7 @@ Lo que se decidió en la etapa técnica (5 y 6 de noviembre de 2026), sobre lo q
 | # | Cambio | Qué deja andando |
 |---|---|---|
 | 1 | `01-base` | Login, navegación de PC y celu, tokens de diseño, deploy. |
-| 2 | `02-nucleo-biblioteca` | Juegos (de IGDB o a mano), copias, estados, biblioteca con filtros y orden, puntaje, horas jugadas a mano, «Sin interés». |
+| 2 | `02-nucleo-biblioteca` | Juegos (de IGDB o a mano), copias, estados, biblioteca con filtros y orden, puntaje, horas jugadas a mano, juegos ocultos (antes «Sin interés»). |
 | 3 | `03-idiomas` | Interfaz en español rioplatense y en inglés, con el idioma según el navegador o elegido en Ajustes. |
 | 4 | `04-importacion` | Importar IGN, Playnite y la cuenta de Steam, con pantalla de revisión. |
 | 5 | `05-tiendas-y-steam` | Pantalla de Tiendas, sincronización diaria con Steam y familia de Steam. |
@@ -164,9 +164,9 @@ import_entry        un juego a revisar por cada juego de IGDB (o por fila que no
 3. **«Ya no lo tengo» es una marca de la copia, no un tipo.** La copia conserva su tipo original y suma la fecha y el motivo.
    - El puntaje, el estado, las horas, el diario y la reseña son del juego: perder una copia no toca nada de eso.
    - Aunque se pierdan todas las copias, el juego queda en la biblioteca con todo.
-4. **«Sin fin» es algo del juego**, no solo un estado. Un juego sin fin no tiene duración estimada, pero sí horas jugadas.
+4. **«Sin fin» es algo del juego**, no un estado. Un juego sin fin no tiene duración estimada, pero sí horas jugadas. Desde `04-importacion` no hay estado «Sin fin»: un juego sin fin que ya no jugás queda en «Jugado», con la marca.
 5. **Horas jugadas:** si cargaste un total a mano, vale ese. Si no, se suma lo que dicen las tiendas. Si ninguna tienda lo sabe, se suman las sesiones del diario. Así no se cuentan dos veces.
-6. **Estados con `system_key`:** aunque renombres un estado por defecto, la app sabe cuál es (ej. que «Quiero jugarlo» es la wishlist). Que un estado pida motivo depende de su propia marca `asks_reason`.
+6. **Estados con `system_key`:** aunque renombres un estado por defecto, la app sabe cuál es (ej. cuál es «Quiero jugarlo», aunque le cambies el nombre). La clave de «Quiero jugarlo» sigue siendo `wishlist`, aunque ya no sea la wishlist: es un nombre interno. Que un estado pida motivo depende de su propia marca `asks_reason`.
 7. **La importación se guarda en tablas aparte** hasta que la confirmás, así la revisión se puede hacer en varias tandas. No hay `import_batch`: la revisión abierta son las filas sin `confirmed_at`, y las confirmadas quedan como historia para reconocerlas al reimportar (`04` design.md §4).
 
 **No se guardan, se calculan:** el veredicto de «¿Lo tengo?», el aviso de duplicado, los totales por moneda, el «vence pronto» y las horas del mes de cada suscripción.
@@ -177,14 +177,16 @@ import_entry        un juego a revisar por cada juego de IGDB (o por fila que no
 
 | Tema | Decisión |
 |---|---|
-| Juegos sin fin que ya no jugás | Estado por defecto nuevo **«Jugado»**, en el grupo Terminado. |
-| Juegos que tenés pero nunca vas a jugar | Marca **«Sin interés»** (no es un estado). No aparecen en la biblioteca, no suman a pendientes ni a estadísticas, se pueden ver con un filtro y siguen contando para «¿Lo tengo?». Se puede marcar de a muchos juegos a la vez. |
+| Estados por defecto (desde `04`) | En curso: Jugando, En pausa. Sin empezar: Quiero jugarlo (lo querés jugar pronto, lo tengas o no) y Backlog (antes «Pendiente»). Terminado: Completado, 100% y Jugado. Dejado: Abandonado, Lo probé. Al elegir uno, cada estado de fábrica dice en una línea qué significa. |
+| Estados según el juego | A un juego sin fin no se le ofrecen «Completado» ni «100%»; a uno con final, no «Jugado». Los estados que crea el usuario se ofrecen siempre, y un juego conserva el estado que ya tiene. |
+| Juegos sin fin que ya no jugás | Estado por defecto **«Jugado»**, en el grupo Terminado. Ya no hay estado «Sin fin»: los juegos que estaban ahí pasaron a «Jugado» con la marca, sin registro en el diario (`04` design.md §21). |
+| Juegos que tenés pero nunca vas a jugar | **Ocultos** (antes «Sin interés»; no es un estado). No aparecen en la biblioteca, no suman a los conteos ni a estadísticas, se ven con «Mostrar ocultos» y siguen contando para «¿Lo tengo?». Se ocultan y se vuelven a mostrar de a muchos juegos a la vez. |
 | «Ya no lo tengo» | Marca de la copia, con motivo (salí de la familia, terminó la suscripción, lo vendí u otro). En los filtros sigue apareciendo como «Ya no lo tengo». |
-| Comprar algo de «Quiero jugarlo» | Al agregarle una copia propia, el juego pasa solo a «Pendiente» y te avisa. |
+| Comprar algo de «Quiero jugarlo» | Desde `04`, agregar una copia no cambia el estado: «Quiero jugarlo» es una prioridad, no la wishlist. Un juego sin copias muestra «Sin comprar», esté en el estado que esté. Un juego nuevo entra en Backlog, tenga copias o no. |
 | Puntaje | Puede quedar vacío; vacío no es 0.0. Se muestra solo el número. Las etiquetas por rango (0.0–1.9 Horrible, 2.0–2.9 Muy malo, 3.0–3.9 Malo, 4.0–4.9 Flojo, 5.0–5.9 Regular, 6.0–6.9 Pasable, 7.0–7.9 Bueno, 8.0–8.9 Muy bueno, 9.0–9.9 Excelente, 10.0 Obra maestra) se prenden en Ajustes, apagadas por defecto, con rangos fijos y nombres editables (`07`). |
 | Tipo de copia «Otro» | Para lo que no entra en los demás tipos, con un detalle opcional (ej. «Regalo»). Cuenta como propio, igual que Comprado, Gratis y Físico. |
 | Formulario de agregar | Varias copias, una fila por copia con «Agregar otra copia»; puntaje y horas jugadas opcionales; «Año de lanzamiento» opcional, entre 1950 y el año que viene; los campos opcionales lo dicen. Nota opcional desde `07`. |
-| Ayuda «?» | Junto a los términos propios: Sin interés, Año de lanzamiento, Duración, Familia, Otro, A mano, Ya no lo tengo y Sin fin. |
+| Ayuda «?» | Junto a los términos propios: Oculto, Año de lanzamiento, Duración, Familia, Otro, A mano, Ya no lo tengo y Sin fin. |
 | Notas del diario | Entradas con fecha y texto, sin duración. El diario va de la entrada más nueva a la más vieja (`07`). |
 | Idiomas | Español rioplatense e inglés (`03`). Por defecto, español si el navegador está en español y si no inglés; se cambia en Ajustes. |
 | Filtros en PC | Todos permiten elegir varias opciones, y se suma el rango de puntaje (como en el celu). |
@@ -217,10 +219,11 @@ import_entry        un juego a revisar por cada juego de IGDB (o por fila que no
 | Paused | En pausa |
 | Beat | Completado (o «Jugado» si confirmás que es sin fin) |
 | Quit | Abandonado |
-| Backlog | Pendiente si lo tenés en alguna tienda; si no, Quiero jugarlo |
+| Backlog | Backlog, tenga copias o no |
 | Wishlist | Quiero jugarlo |
 | Beat y Quit a la vez (Overwatch) | Lo decidís en la revisión |
 
+- Los estados se reconocen por su función (`system_key`), aunque el usuario los haya renombrado. Si un estado de fábrica está desactivado (`07`), la respuesta que lo usa no se ofrece y un juego que IGN trae en ese estado pregunta en «Elegí un estado». «Otro estado» ofrece todos los activos, también los creados por el usuario.
 - Los puntajes enteros pasan tal cual: 8 queda como 8.0.
 - **Cruce con IGDB:** primero por el ID de tienda: Steam y GOG. El ID de Epic que trae Playnite no es el que guarda IGDB, así que Epic cruza por título (verificado, `04` design.md §7). Por título, primero el nombre exacto de a 10 por pedido y después la búsqueda de a uno. Un solo resultado con el mismo nombre cruza aunque el año no coincida: el año de Epic suele ser el de la tienda (20XX llega con 2020 y en IGDB es de 2017). Varios con el mismo nombre, o uno solo con otro nombre, quedan para elegir.
 - **Sin la edición:** si por título no aparece nada igual ni parecido y el título nombra una edición («Deluxe Edition», «Game of the Year Edition», «Complete»…), se busca de nuevo sin ella. Lo que aparezca así nunca cruza solo: «Styx: Shards of Darkness - Deluxe Edition» pregunta «¿Es este juego?» con «Styx: Shards of Darkness».
@@ -237,11 +240,11 @@ import_entry        un juego a revisar por cada juego de IGDB (o por fila que no
   | 3 | No lo encontré | Sin cruce con IGDB | Buscar con otro nombre · Cargar a mano · No importar; a lo que no parece un juego se le suma una línea que lo dice |
   | 4 | ¿Es de tu familia? | Steam de tu PC que tu cuenta no tiene | Sí, es de mi familia (Familia) · No, es mío (Comprado) · No importar |
   | 5 | ¿Es sin fin? | Completado y solo multijugador en IGDB | Sí, no se termina (Jugado · sin fin) · No, lo terminé (Completado) · No importar |
-  | 6 | ¿Lo vas a jugar alguna vez? | Pendiente de IGN sin puntaje, o con 0 h en todas sus copias | Sí, algún día (Pendiente) · No (Sin interés: no se ve en la biblioteca, pero cuenta para «¿Lo tengo?») · No importar |
-  | 7 | Elegí un estado | No vino de IGN y tiene horas jugadas | Lo estoy jugando · Lo terminé · Lo abandoné · Lo probé · Otro estado (la lista con todos) · No importar |
-  | 8 | Listos para importar | Nada dudoso, o ya decidido | Cómo va a entrar («Entra como Pendiente · Epic Games · Gratis», o «No se importa · no es un juego») y «Volver a revisar» |
+  | 6 | ¿Lo vas a jugar alguna vez? | En Backlog, sin puntaje, con alguna copia con horas conocidas y menos de 1 h en total | Sí, algún día (Backlog) · Ya lo jugué (pasa a 7) · No (oculto: no se ve en la biblioteca, pero cuenta para «¿Lo tengo?») · No importar |
+  | 7 | Elegí un estado | 1 h o más sin un estado de IGN que sirva (no vino de IGN, o IGN lo tiene en Backlog), «Ya lo jugué», o un estado de IGN desactivado | Con final: Lo estoy jugando · Lo terminé · Lo abandoné · Lo probé. Sin fin: Lo sigo jugando · Ya no lo juego (Jugado) · Lo probé. En los dos: Otro estado (los estados que se le ofrecen) · Ocultar (Backlog, oculto) · No importar |
+  | 8 | Listos para importar | Nada dudoso, o ya decidido | Cómo va a entrar («Entra como Backlog · Epic Games · Gratis», o «No se importa · no es un juego») y «Volver a revisar» |
 
-- **«No importar» deja afuera el juego entero** en todos los grupos, también en «¿Es de tu familia?». El juego no desaparece: queda en «Listos para importar» como «No se importa», y «Volver a revisar» lo trae a su primera pregunta sin respuesta, por si se tocó sin querer. Al confirmar cuenta en «sin importar». El tipo de una copia se cambia, de a uno o en lote, con «¿Cómo lo conseguiste?». El aviso de cada respuesta dice cómo va a entrar («Beholder pasó a «Listos para importar» con «Sin interés».»). «Confirmar importación» suma todo lo que está en «Listos para importar» y lo demás sigue esperando.
+- **«No importar» deja afuera el juego entero** en todos los grupos, también en «¿Es de tu familia?». El juego no desaparece: queda en «Listos para importar» como «No se importa», y «Volver a revisar» lo trae a su primera pregunta sin respuesta, por si se tocó sin querer. Al confirmar cuenta en «sin importar». El tipo de una copia se cambia, de a uno o en lote, con «¿Cómo lo conseguiste?». El aviso de cada respuesta dice cómo va a entrar («Beholder pasó a «Listos para importar», oculto.»). «Confirmar importación» suma todo lo que está en «Listos para importar» y lo demás sigue esperando.
 - **El aviso dice adónde fue el juego:** «LOVE pasó a «¿Lo vas a jugar alguna vez?».», o cómo va a entrar si fue a «Listos para importar». En lote, si fueron a grupos distintos, cuántos fueron a cada uno.
 - **«Volver a revisar»** aparece en cualquier grupo en un juego que tiene alguna respuesta (nunca en «¿Cuál de estos es?» ni en «No lo encontré») y lo devuelve a su primera pregunta sin ninguna, también un candidato elegido o un juego cargado a mano. El aviso dice adónde volvió. Los avisos de cada acción son flotantes, abajo de la pantalla.
 - **«Empezar de nuevo»** borra, previa confirmación, los archivos subidos, lo traído de Steam y lo decidido sin confirmar. No toca la biblioteca, lo ya importado ni la cuenta de Steam conectada.

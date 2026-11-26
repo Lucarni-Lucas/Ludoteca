@@ -3,7 +3,7 @@
  * acá solo queda la lista, para que un tema mal escrito no compile.
  */
 export const HELP = {
-  notInterested: "notInterested",
+  hidden: "hidden",
   releaseYear: "releaseYear",
   duration: "duration",
   family: "family",

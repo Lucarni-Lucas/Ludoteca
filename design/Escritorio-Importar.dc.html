@@ -131,11 +131,11 @@ a{color:#ECEEF2}a:hover{color:#FFFFFF}
             <span style="flex: none; font: 500 13px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">4</span>
           </button>
           <button type="button" style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 12px; box-sizing: border-box; border: 0; border-radius: 10px; background: transparent; color: #C5CCD8; text-align: left; font: inherit; cursor: pointer">
-            <span style="flex: 1; min-width: 0"><span style="display: block; font-weight: 500; font-size: 14px; line-height: 1.3">¿Lo vas a jugar alguna vez?</span><span style="display: block; font-size: 12px; line-height: 1.3; color: #9AA3B2">Pendientes sin puntaje o con 0 h</span></span>
+            <span style="flex: 1; min-width: 0"><span style="display: block; font-weight: 500; font-size: 14px; line-height: 1.3">¿Lo vas a jugar alguna vez?</span><span style="display: block; font-size: 12px; line-height: 1.3; color: #9AA3B2">En Backlog, sin puntaje y con menos de 1 h</span></span>
             <span style="flex: none; font: 500 13px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">167</span>
           </button>
           <button type="button" style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 12px; box-sizing: border-box; border: 0; border-radius: 10px; background: transparent; color: #C5CCD8; text-align: left; font: inherit; cursor: pointer">
-            <span style="flex: 1; min-width: 0"><span style="display: block; font-weight: 500; font-size: 14px; line-height: 1.3">Elegí un estado</span><span style="display: block; font-size: 12px; line-height: 1.3; color: #9AA3B2">Los jugaste y no estaban en IGN</span></span>
+            <span style="flex: 1; min-width: 0"><span style="display: block; font-weight: 500; font-size: 14px; line-height: 1.3">Elegí un estado</span><span style="display: block; font-size: 12px; line-height: 1.3; color: #9AA3B2">Los jugaste y no sabemos cómo los dejaste</span></span>
             <span style="flex: none; font: 500 13px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">41</span>
           </button>
           <button type="button" style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 12px; box-sizing: border-box; border: 0; border-top: 1px solid #222832; border-radius: 0 0 10px 10px; margin-top: 8px; background: transparent; color: #C5CCD8; text-align: left; font: inherit; cursor: pointer">
@@ -260,7 +260,7 @@ a{color:#ECEEF2}a:hover{color:#FFFFFF}
       </div>
 
       <h3 style="margin: 12px 0 0; font: 700 22px/1.15 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif">¿Lo vas a jugar alguna vez?</h3>
-      <p style="margin: -6px 0 0; color: #9AA3B2; max-width: 70ch">Los tenés en alguna tienda, pero no tienen puntaje o nunca los abriste. «No» los suma a tu biblioteca como «Sin interés»: no los ves en la lista, pero «¿Lo tengo?» sabe que son tuyos. «No importar» los deja afuera.</p>
+      <p style="margin: -6px 0 0; color: #9AA3B2; max-width: 70ch">Los tenés en Backlog, sin puntaje y con menos de 1 h jugada. «Ya lo jugué» te pregunta cómo lo dejaste. «No» los suma a tu biblioteca ocultos: no los ves en la lista, pero «¿Lo tengo?» sabe que son tuyos. «No importar» los deja afuera.</p>
       <ul style="list-style: none; margin: 0; padding: 0; border-radius: 16px; background: #161A21; border: 1px solid #2A303B; overflow: hidden">
         <li style="display: flex; flex-direction: column; gap: 12px; padding: 12px 18px 16px 4px">
           <div style="display: flex; align-items: center; gap: 12px">
@@ -273,6 +273,7 @@ a{color:#ECEEF2}a:hover{color:#FFFFFF}
           </div>
           <div role="group" aria-label="¿Vas a jugar 112 Operator alguna vez?" style="display: flex; flex-wrap: wrap; gap: 8px; padding-left: 56px">
             <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">Sí, algún día</button>
+            <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">Ya lo jugué</button>
             <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">No</button>
             <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #FFC2B7; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">No importar</button>
           </div>
@@ -289,6 +290,7 @@ a{color:#ECEEF2}a:hover{color:#FFFFFF}
           </div>
           <div role="group" aria-label="¿Vas a jugar Love alguna vez?" style="display: flex; flex-wrap: wrap; gap: 8px; padding-left: 56px">
             <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">Sí, algún día</button>
+            <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">Ya lo jugué</button>
             <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #ECEEF2; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">No</button>
             <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #3A414E; background: transparent; color: #FFC2B7; font: 500 14px/1.2 Inter, system-ui, sans-serif; cursor: pointer">No importar</button>
           </div>
@@ -304,6 +306,7 @@ a{color:#ECEEF2}a:hover{color:#FFFFFF}
         <span style="font-weight: 600">3 seleccionados</span>
         <div style="display: flex; flex-wrap: wrap; gap: 8px">
           <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; border: 1px solid #3A414E; background: transparent; color: #ECEEF2">Sí, algún día</button>
+          <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; border: 1px solid #3A414E; background: transparent; color: #ECEEF2">Ya lo jugué</button>
           <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; border: 1px solid #3A414E; background: transparent; color: #ECEEF2">No</button>
           <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; border: 1px solid #3A414E; background: transparent; color: #FFC2B7">No importar</button>
           <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer; border: 1px solid #3A414E; background: transparent; color: #ECEEF2">¿Cómo lo conseguiste?</button>
@@ -352,7 +355,7 @@ a{color:#ECEEF2}a:hover{color:#FFFFFF}
           <span aria-hidden="true" style="flex: none; width: 48px; height: 64px; border-radius: 6px; background: #3A2F45 repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 10px); display: grid; place-items: center; font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #C5CCD8">1O</span>
           <div style="flex: 1 1 260px; min-width: 0">
             <p style="margin: 0; font-weight: 600; overflow-wrap: anywhere">112 Operator <span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">2020</span></p>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #C5CCD8">Entra como Pendiente · Epic Games · Gratis</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #C5CCD8">Entra como Backlog · Epic Games · Gratis</p>
           </div>
           <button type="button" style="flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 0; background: transparent; color: #C5CCD8; font: 500 14px/1 Inter, system-ui, sans-serif; cursor: pointer">Volver a revisar</button>
         </li>

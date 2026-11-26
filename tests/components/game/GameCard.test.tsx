@@ -11,7 +11,7 @@ import { renderWithIntl } from "../../i18n/render-with-intl";
 
 describe("GameCard", () => {
   it("Juego sin copias", () => {
-    const game = buildGame({ title: "Frostpunk", status: statusByKey("wishlist") });
+    const game = buildGame({ title: "Frostpunk", status: statusByKey("backlog") });
 
     const { container } = renderWithIntl(<GameCard game={game} />);
 
@@ -92,12 +92,12 @@ describe("GameCard", () => {
     expect(screen.queryByText("A MANO")).not.toBeInTheDocument();
   });
 
-  it("muestra la marca «SIN INTERÉS»", () => {
-    const game = buildGame({ notInterested: true });
+  it("muestra la marca «OCULTO»", () => {
+    const game = buildGame({ hidden: true });
 
     renderWithIntl(<GameCard game={game} />);
 
-    expect(screen.getByText("SIN INTERÉS")).toBeInTheDocument();
+    expect(screen.getByText("OCULTO")).toBeInTheDocument();
   });
 
   it("enlaza con la ficha del juego", () => {

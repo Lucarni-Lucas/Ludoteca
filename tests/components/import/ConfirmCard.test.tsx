@@ -37,10 +37,10 @@ describe("ConfirmCard", () => {
   });
 
   it.each([
-    ["es", { games: 480, copies: 520, notInterested: 60, excluded: 4 }, "Entraron 480 juegos y 520 copias · 60 marcados «Sin interés» · 4 sin importar"],
-    ["es", { games: 1, copies: 1, notInterested: 1, excluded: 0 }, "Entraron 1 juego y 1 copia · 1 marcado «Sin interés» · 0 sin importar"],
-    ["en", { games: 480, copies: 520, notInterested: 60, excluded: 4 }, "480 games and 520 copies came in · 60 marked “Not interested” · 4 not imported"],
-    ["en", { games: 1, copies: 1, notInterested: 1, excluded: 0 }, "1 game and 1 copy came in · 1 marked “Not interested” · 0 not imported"],
+    ["es", { games: 480, copies: 520, hidden: 60, excluded: 4 }, "Entraron 480 juegos y 520 copias · 60 ocultos · 4 sin importar"],
+    ["es", { games: 1, copies: 1, hidden: 1, excluded: 0 }, "Entraron 1 juego y 1 copia · 1 oculto · 0 sin importar"],
+    ["en", { games: 480, copies: 520, hidden: 60, excluded: 4 }, "480 games and 520 copies came in · 60 hidden · 4 not imported"],
+    ["en", { games: 1, copies: 1, hidden: 1, excluded: 0 }, "1 game and 1 copy came in · 1 hidden · 0 not imported"],
   ] as const)("Resumen final en %s: %j", (locale, summary, text) => {
     const ready = { games: 0, copies: 0 };
 

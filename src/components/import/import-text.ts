@@ -3,17 +3,27 @@ import { useLocale, useTranslations } from "next-intl";
 import { useCopyText } from "@/components/copy/copy-text";
 import { statusName as nameOfStatus } from "@/components/status/status-text";
 import { keptCopies, type SuggestedCopy } from "@/model/import/copies";
-import { PLAYED_KEY, type ReviewChoice, type ReviewGame, type ReviewGroup, type ReviewOrigin, STATUS_ANSWER_KEYS } from "@/model/import/review";
+import type { ReviewChoice, ReviewGame, ReviewGroup, ReviewOrigin, StatusRef } from "@/model/import/review";
 import { formatHours } from "@/model/game/library-game";
-import { BACKLOG_KEY, DEFAULT_STATUSES } from "@/model/status/status";
+import {
+  ABANDONED_KEY,
+  BACKLOG_KEY,
+  COMPLETED_KEY,
+  DEFAULT_STATUSES,
+  PAUSED_KEY,
+  PLAYED_KEY,
+  PLAYING_KEY,
+  TRIED_KEY,
+  WISHLIST_KEY,
+} from "@/model/status/status";
 import { EPIC_GAMES_SLUG, STEAM_SLUG } from "@/model/store/store";
 
 const MINUTES_PER_HOUR = 60;
-// Separa las partes de «Entra como Pendiente · Epic Games · Gratis», como en los chips de origen.
+// Separa las partes de «Entra como Backlog · Epic Games · Gratis», como en los chips de origen.
 const PART_SEPARATOR = " · ";
 
 /** Los estados de IGN que «¿Cómo lo dejaste?» dice en palabras («Lo terminaste»). */
-const HOW_LEFT_KEYS = ["completed", "abandoned", "playing", "paused", "backlog", "wishlist"] as const;
+const HOW_LEFT_KEYS = [COMPLETED_KEY, ABANDONED_KEY, PLAYING_KEY, PAUSED_KEY, BACKLOG_KEY, WISHLIST_KEY] as const;
 
 type HowLeftKey = (typeof HOW_LEFT_KEYS)[number];
 
@@ -21,13 +31,27 @@ function howLeftKeyOf(statusKey: string): HowLeftKey | undefined {
   return HOW_LEFT_KEYS.find((key) => key === statusKey);
 }
 
-type StatusAnswerKey = (typeof STATUS_ANSWER_KEYS)[number];
+/** El texto de cada respuesta de «Elegí un estado», según el juego tenga final o sea sin fin (design.md §9). */
+const STATUS_ANSWERS = {
+  [PLAYING_KEY]: "playing",
+  [COMPLETED_KEY]: "completed",
+  [ABANDONED_KEY]: "abandoned",
+  [TRIED_KEY]: "tried",
+} as const;
 
-function statusAnswerKeyOf(statusKey: string): StatusAnswerKey | undefined {
-  return STATUS_ANSWER_KEYS.find((key) => key === statusKey);
+const ENDLESS_STATUS_ANSWERS = {
+  [PLAYING_KEY]: "stillPlaying",
+  [PLAYED_KEY]: "notAnymore",
+  [TRIED_KEY]: "tried",
+} as const;
+
+type StatusAnswer = (typeof STATUS_ANSWERS)[keyof typeof STATUS_ANSWERS] | (typeof ENDLESS_STATUS_ANSWERS)[keyof typeof ENDLESS_STATUS_ANSWERS];
+
+function statusAnswerOf(systemKey: string | null, endless: boolean): StatusAnswer | undefined {
+  const answers: Readonly<Record<string, StatusAnswer>> = endless ? ENDLESS_STATUS_ANSWERS : STATUS_ANSWERS;
+  return systemKey === null ? undefined : answers[systemKey];
 }
 
-const COMPLETED_KEY = "completed";
 const STEAM_NAME = "Steam";
 
 export type OriginChip = Readonly<{ label: string; warning: boolean }>;
@@ -39,59 +63,69 @@ export function useImportText() {
   const locale = useLocale();
   const copyText = useCopyText();
 
-  /** La revisión habla de los estados de fábrica por su `system_key`. */
-  function statusName(statusKey: string): string {
-    const status = DEFAULT_STATUSES.find((value) => value.systemKey === statusKey);
-    return status ? nameOfStatus(status, tStatus) : statusKey;
+  /** El nombre del estado del usuario: el renombrado tal cual, el de fábrica en el idioma elegido. */
+  function statusName(status: StatusRef): string {
+    return nameOfStatus(status, tStatus);
   }
 
-  /** «Lo terminaste»; un estado que IGN no da se nombra tal cual. */
-  function howLeft(statusKey: string): string {
-    const key = howLeftKeyOf(statusKey);
-    return key ? t(`choices.howLeft.${key}`) : statusName(statusKey);
+  /** Un estado de fábrica por su `system_key`, cuando la revisión no tiene el del usuario a mano. */
+  function defaultStatusName(systemKey: string): string {
+    const status = DEFAULT_STATUSES.find((value) => value.systemKey === systemKey);
+    return status ? nameOfStatus(status, tStatus) : systemKey;
   }
 
-  /** «Lo estoy jugando»: las respuestas de «Elegí un estado»; otro estado se nombra tal cual. */
-  function statusAnswer(statusKey: string): string {
-    const key = statusAnswerKeyOf(statusKey);
-    return key ? t(`choices.statusAnswer.${key}`) : statusName(statusKey);
+  /** «Lo terminaste»; un estado que IGN no da se nombra como lo tiene el usuario. */
+  function howLeft(status: StatusRef): string {
+    const key = status.systemKey === null ? undefined : howLeftKeyOf(status.systemKey);
+    return key ? t(`choices.howLeft.${key}`) : statusName(status);
+  }
+
+  /** «Lo estoy jugando» o «Lo sigo jugando»; un estado de «Otro estado» se nombra como lo tiene el usuario. */
+  function statusAnswer(status: StatusRef, game: ReviewGame): string {
+    const key = statusAnswerOf(status.systemKey, game.endless);
+    return key ? t(`choices.statusAnswer.${key}`) : statusName(status);
   }
 
   /** El texto de cada respuesta, dicho como respuesta a la pregunta del grupo (design.md §9). */
-  function choice(value: ReviewChoice): string {
+  function choice(value: ReviewChoice, game?: ReviewGame): string {
     switch (value.kind) {
       case "candidate":
         return value.candidate.year === null ? value.candidate.title : `${value.candidate.title} (${value.candidate.year})`;
       case "status":
-        return statusAnswer(value.statusKey);
+        if (game?.group === "how_left") {
+          return howLeft(value.status);
+        }
+
+        return game ? statusAnswer(value.status, game) : statusName(value.status);
       case "copy_kind":
         return value.copyKind === "family" ? t("choices.familyYes") : t("choices.familyNo");
       case "other_status":
         return t("choices.otherStatus");
-      case "not_interested":
-        return t("choices.notInterested");
+      case "hidden":
+        return t("choices.hidden");
       default:
         return t(`choices.${value.kind}`);
     }
   }
 
-  /** Cómo va a entrar después de una respuesta, para el aviso: «No» es «Sin interés» (design.md §9). */
+  /** Cómo va a entrar después de una respuesta, para el aviso (design.md §9). */
   function result(value: ReviewChoice, game: ReviewGame): string {
     switch (value.kind) {
       case "status":
-        return statusName(value.statusKey);
+        return statusName(value.status);
       case "copy_kind": {
         const steam = game.suggestion.copies.find((copy) => copy.store.slug === STEAM_SLUG)?.store.name ?? STEAM_NAME;
         return t("review.origin.store", { store: steam, kind: copyText.kind(value.copyKind) });
       }
       case "keep":
-        return statusName(BACKLOG_KEY);
-      case "not_interested":
-        return t("review.entersNotInterested");
+        return game.suggestion.status ? statusName(game.suggestion.status) : defaultStatusName(BACKLOG_KEY);
+      case "hidden":
+      case "hide":
+        return t("review.entersHidden");
       case "endless":
-        return [statusName(PLAYED_KEY), t("review.entersEndless")].join(PART_SEPARATOR);
+        return [defaultStatusName(PLAYED_KEY), t("review.entersEndless")].join(PART_SEPARATOR);
       case "completed":
-        return statusName(COMPLETED_KEY);
+        return defaultStatusName(COMPLETED_KEY);
       default:
         return choice(value);
     }
@@ -133,7 +167,7 @@ export function useImportText() {
     return origin.storeSlug === EPIC_GAMES_SLUG ? t("review.arrival.epic") : t("review.arrival.store", { store: origin.storeName ?? "" });
   }
 
-  /** «Entra como Pendiente · Epic Games · Gratis» (design.md §9). */
+  /** «Entra como Backlog · Epic Games · Gratis» (design.md §9). */
   function entersAs(game: ReviewGame): string {
     const copies = keptCopies(game.suggestion.copies).map(copyEntry);
 
@@ -141,11 +175,11 @@ export function useImportText() {
       return t("review.inLibraryAdds", { copies: copies.join(PART_SEPARATOR) });
     }
 
-    const status = statusName(game.suggestion.statusKey);
+    const status = game.suggestion.status ? statusName(game.suggestion.status) : "";
     const parts = [
       game.manual ? t("review.entersManual", { status }) : t("review.enters", { status }),
       game.suggestion.endless ? t("review.entersEndless") : "",
-      game.suggestion.notInterested ? t("review.entersNotInterested") : "",
+      game.suggestion.hidden ? t("review.entersHidden") : "",
       ...copies,
     ];
     return parts.filter(Boolean).join(PART_SEPARATOR);

@@ -30,7 +30,7 @@ vi.mock("@/app/(app)/import/actions", () => actions);
 const STATUSES = DEFAULT_STATUSES.map((status) => ({ ...status, id: `status-${status.systemKey}` }));
 
 const EMPTY: ImportOverview = {
-  review: buildReview(openReview([]), { steamConnected: true }),
+  review: buildReview(openReview([]), { steamConnected: true, statuses: STATUSES }),
   ready: { games: 0, copies: 0 },
   sources: [],
   steam: { configured: true, accountId: "76561197960287930" },
@@ -41,7 +41,7 @@ const LOADED: ImportOverview = {
   ...EMPTY,
   review: buildReview(
     openReview([entry("Beholder", [ignItem("Beholder", { ignStatuses: ["backlog"] }), steamItem("Beholder", "475550", 0)])]),
-    { steamConnected: true },
+    { steamConnected: true, statuses: STATUSES },
   ),
   sources: [
     { source: "ign", itemCount: 303, lastReadOn: "2026-11-23" },

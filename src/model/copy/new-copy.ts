@@ -1,13 +1,5 @@
-import { type CopyKind, isOwnCopyKind, MAX_KIND_DETAIL_LENGTH } from "@/model/copy/copy";
+import { type CopyKind, MAX_KIND_DETAIL_LENGTH } from "@/model/copy/copy";
 import { CopyStoreMissingError, KindDetailTooLongError } from "@/model/copy/errors";
-import {
-  BACKLOG_KEY,
-  findStatusByKey,
-  isWishlist,
-  planStatusChange,
-  type Status,
-  type StatusChangePlan,
-} from "@/model/status/status";
 
 export type NewCopy = Readonly<{
   storeId: string;
@@ -78,16 +70,3 @@ export function validateCopyRows<TStore>(rows: readonly CopyRow<TStore>[]): read
     return { ...validateCopyDetails(row), store: row.store };
   });
 }
-
-/** Comprar o recibir algo de «Quiero jugarlo» lo pasa a «Pendiente»; una suscripción o una familia, no. */
-export function planStatusAfterNewCopy(
-  game: Readonly<{ status: Pick<Status, "id" | "systemKey"> }>,
-  kind: CopyKind,
-  statuses: readonly Status[],
-  today: string,
-): StatusChangePlan | null {
-  const backlog = findStatusByKey(statuses, BACKLOG_KEY);
-
-  return isOwnCopyKind(kind) && isWishlist(game.status) && backlog ? planStatusChange(game, backlog, today) : null;
-}
-

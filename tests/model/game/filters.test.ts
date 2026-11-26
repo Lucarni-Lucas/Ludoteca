@@ -222,8 +222,8 @@ describe("búsqueda por título", () => {
   });
 });
 
-describe("juegos «Sin interés»", () => {
-  const hidden = buildGame({ title: "Oculto", notInterested: true });
+describe("juegos ocultos", () => {
+  const hidden = buildGame({ title: "Oculto", hidden: true });
   const shown = buildGame({ title: "Visible" });
 
   it("no aparecen por defecto", () => {
@@ -234,10 +234,10 @@ describe("juegos «Sin interés»", () => {
     expect(result).toEqual(["Visible"]);
   });
 
-  it("aparecen con «Mostrar sin interés»", () => {
+  it("aparecen con «Mostrar ocultos»", () => {
     const games = [hidden, shown];
 
-    const result = titles(games, { showNotInterested: true });
+    const result = titles(games, { showHidden: true });
 
     expect(result).toEqual(["Oculto", "Visible"]);
   });
@@ -254,8 +254,8 @@ describe("normalizeText", () => {
 });
 
 describe("hasActiveFilters", () => {
-  it("no cuenta «Mostrar sin interés» como filtro para limpiar", () => {
-    const filters = { ...NO_FILTERS, showNotInterested: true };
+  it("no cuenta «Mostrar ocultos» como filtro para limpiar", () => {
+    const filters = { ...NO_FILTERS, showHidden: true };
 
     const active = hasActiveFilters(filters);
 

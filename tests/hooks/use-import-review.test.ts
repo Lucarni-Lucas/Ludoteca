@@ -121,7 +121,7 @@ describe("useImportReview", () => {
   });
 
   it("confirmar guarda el resumen", async () => {
-    const summary = { games: 480, copies: 520, notInterested: 60, excluded: 4 };
+    const summary = { games: 480, copies: 520, hidden: 60, excluded: 4 };
     actions.confirmImportAction.mockResolvedValue({ ok: true, data: summary });
     const { result } = renderHookWithIntl(() => useImportReview(LOADED));
 

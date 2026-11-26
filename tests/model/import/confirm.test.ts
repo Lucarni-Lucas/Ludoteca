@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { addSummaries, isEmptyPlan, planImportConfirmation } from "@/model/import/confirm";
 import { DEFAULT_STATUSES, type Status } from "@/model/status/status";
-import { StatusNotFoundError } from "@/model/status/errors";
 
 import { entry, EPIC, ignItem, openReview, playniteItem, STEAM, steamItem } from "./import-fixtures";
 
@@ -13,7 +12,7 @@ const CONTEXT = { steamConnected: true, statuses: STATUSES, today: TODAY };
 describe("planImportConfirmation", () => {
   it("Juego que nunca se va a jugar", () => {
     const mmo = entry("8BitMMO", [ignItem("8BitMMO", { ignStatuses: ["backlog"] }), steamItem("8BitMMO", "250420", 0)], {
-      answers: { playAnswer: "not_interested" },
+      answers: { playAnswer: "hidden" },
     });
 
     const plan = planImportConfirmation(openReview([mmo]), CONTEXT);
@@ -24,7 +23,7 @@ describe("planImportConfirmation", () => {
         target: {
           kind: "igdb",
           catalogGameId: mmo.catalogGameId,
-          values: { statusId: "status-backlog", statusSince: TODAY, score: null, notInterested: true, endless: null, hltbHours: null },
+          values: { statusId: "status-backlog", statusSince: TODAY, score: null, hidden: true, endless: null, hltbHours: null },
         },
         copies: [{ storeId: STEAM.id, kind: "purchased", storeGameId: "250420", playtimeMinutes: 0 }],
       },
@@ -75,17 +74,17 @@ describe("planImportConfirmation", () => {
     const entries = [
       entry("Celeste", [ignItem("Celeste", { ignStatuses: ["playing"] }), steamItem("Celeste", "1", 60), playniteItem("Celeste", EPIC, "c")]),
       entry("Beholder", [ignItem("Beholder", { ignStatuses: ["backlog"] }), steamItem("Beholder", "2", 0)], {
-        answers: { playAnswer: "not_interested" },
+        answers: { playAnswer: "hidden" },
       }),
       entry("Portal 2", [playniteItem("Portal 2", STEAM, "620", { excluded: true }), playniteItem("Portal 2", EPIC, "p")], {
-        answers: { statusKey: "backlog", playAnswer: "keep" },
+        answers: { statusId: "status-backlog", playAnswer: "keep" },
       }),
       entry("Excluido", [ignItem("Excluido")], { answers: { excluded: true } }),
     ];
 
     const plan = planImportConfirmation(openReview(entries), CONTEXT);
 
-    expect(plan.summary).toEqual({ games: 3, copies: 4, notInterested: 1, excluded: 2 });
+    expect(plan.summary).toEqual({ games: 3, copies: 4, hidden: 1, excluded: 2 });
     expect(plan.entryIds).toHaveLength(4);
   });
 
@@ -154,7 +153,7 @@ describe("planImportConfirmation", () => {
 
     expect(plan.games).toEqual([]);
     expect(plan.entryIds).toEqual([demo.id]);
-    expect(plan.summary).toEqual({ games: 0, copies: 0, notInterested: 0, excluded: 1 });
+    expect(plan.summary).toEqual({ games: 0, copies: 0, hidden: 0, excluded: 1 });
   });
 
   it("un plan sin nada en «Listos para importar» está vacío", () => {
@@ -163,24 +162,25 @@ describe("planImportConfirmation", () => {
     const plan = planImportConfirmation(openReview([toReview]), CONTEXT);
 
     expect(isEmptyPlan(plan)).toBe(true);
-    expect(plan.summary).toEqual({ games: 0, copies: 0, notInterested: 0, excluded: 0 });
+    expect(plan.summary).toEqual({ games: 0, copies: 0, hidden: 0, excluded: 0 });
   });
 
-  it("un estado que el usuario no tiene da StatusNotFoundError", () => {
+  it("un juego en un estado que no está activo no entra: espera en «Elegí un estado»", () => {
     const celeste = entry("Celeste", [ignItem("Celeste", { ignStatuses: ["playing"], ignScore: 9 })]);
+    const statuses = STATUSES.filter(({ systemKey }) => systemKey !== "playing");
 
-    const plan = () => planImportConfirmation(openReview([celeste]), { ...CONTEXT, statuses: [] });
+    const plan = planImportConfirmation(openReview([celeste]), { ...CONTEXT, statuses });
 
-    expect(plan).toThrow(StatusNotFoundError);
+    expect(isEmptyPlan(plan)).toBe(true);
   });
 });
 
 describe("addSummaries", () => {
   it("suma los resúmenes de dos tandas", () => {
-    const first = { games: 600, copies: 610, notInterested: 40, excluded: 3 };
+    const first = { games: 600, copies: 610, hidden: 40, excluded: 3 };
 
-    const total = addSummaries(first, { games: 10, copies: 12, notInterested: 1, excluded: 1 });
+    const total = addSummaries(first, { games: 10, copies: 12, hidden: 1, excluded: 1 });
 
-    expect(total).toEqual({ games: 610, copies: 622, notInterested: 41, excluded: 4 });
+    expect(total).toEqual({ games: 610, copies: 622, hidden: 41, excluded: 4 });
   });
 });

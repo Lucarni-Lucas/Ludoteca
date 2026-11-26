@@ -124,9 +124,9 @@
   },
   "help": {
     "label": "What is “{term}”",
-    "notInterested": {
-      "term": "Not interested",
-      "text": "You have it but don’t plan to play it: it doesn’t show up in the library or in the counts. You see it with “Show not interested”."
+    "hidden": {
+      "term": "Hidden",
+      "text": "You own it but don’t plan to play it: it doesn’t show up in the library or in the counts, but “Do I own it?” knows it’s yours. You see it with “Show hidden”."
     },
     "releaseYear": {
       "term": "Release year",
@@ -154,7 +154,7 @@
     },
     "endless": {
       "term": "Endless",
-      "text": "A game that doesn’t end, like a multiplayer one: it has no estimated length."
+      "text": "A game that never ends, like a multiplayer one: it has no estimated length and, when you stop playing it, it becomes “Played”."
     }
   },
   "dates": {
@@ -185,7 +185,7 @@
     "store": "Store",
     "kind": "How you have it",
     "lost": "I no longer have it",
-    "showNotInterested": "Show not interested",
+    "showHidden": "Show hidden",
     "from": "From",
     "to": "To",
     "withUnit": "{label} ({unit})",
@@ -214,7 +214,6 @@
     "defaults": {
       "playing": "Playing",
       "paused": "Paused",
-      "endless": "Endless",
       "wishlist": "Want to play",
       "backlog": "Backlog",
       "completed": "Completed",
@@ -223,11 +222,21 @@
       "abandoned": "Abandoned",
       "tried": "Tried it"
     },
+    "meanings": {
+      "playing": "You're playing it right now",
+      "paused": "You started it and plan to come back",
+      "wishlist": "You want to play it soon, whether you own it or not",
+      "backlog": "You'll play it someday, no rush",
+      "completed": "You finished the main story",
+      "hundred_percent": "You finished everything",
+      "played": "An endless game you played and stopped",
+      "abandoned": "You played it seriously and left it unfinished",
+      "tried": "You played it a bit and it didn't hook you"
+    },
     "since": "since {date}",
     "finishedOn": "you finished it on {date}",
     "title": "Status",
     "change": "Change status",
-    "fromCopies": "From copies",
     "dialog": {
       "current": "{title} · now: {status}",
       "saveAs": "Save as “{status}”",
@@ -241,7 +250,7 @@
       "hours": "{hours} h",
       "notStarted": "Not started",
       "manual": "BY HAND",
-      "notInterested": "NOT INTERESTED",
+      "hidden": "HIDDEN",
       "select": "Select {title}",
       "open": "Open {title}"
     },
@@ -264,8 +273,8 @@
     "selection": {
       "label": "Selection",
       "count": "{count, plural, one {# selected} other {# selected}}",
-      "mark": "Mark not interested",
-      "unmark": "Remove “Not interested”"
+      "mark": "Hide",
+      "unmark": "Show again"
     },
     "empty": "You haven’t added any games yet.",
     "emptyAction": "Add a game",
@@ -277,7 +286,6 @@
     "back": "Library",
     "backLabel": "Back to the library",
     "manual": "BY HAND",
-    "movedTo": "{title} moved to “{status}”",
     "notFound": "We couldn’t find this game",
     "facts": {
       "title": "Details",
@@ -347,8 +355,8 @@
       "edit": "Edit",
       "link": "Link to IGDB",
       "refresh": "Update data",
-      "markNotInterested": "Mark not interested",
-      "unmarkNotInterested": "Remove “Not interested”",
+      "hide": "Hide",
+      "unhide": "Show again",
       "remove": "Remove from the library",
       "removeDescription": "{title} is deleted with its copies, its score and its history. This can’t be undone.",
       "removeConfirm": "Remove"
@@ -543,16 +551,16 @@
         "playing": "as playing",
         "paused": "as paused",
         "backlog": "in the backlog",
-        "wishlist": "on the wishlist"
+        "wishlist": "as “want to play”"
       },
       "notGame": "It doesn’t look like a game: it’s a demo, a beta, a soundtrack or something similar.",
       "enters": "Enters as {status}",
       "entersManual": "Enters by hand as {status}",
-      "entersNotInterested": "Not interested",
+      "entersHidden": "hidden",
       "entersEndless": "endless",
       "inLibraryAdds": "Already in your library · adds {copies}",
       "notImported": "Not imported · not a game",
-      "allStatuses": "All statuses",
+      "allStatuses": "Statuses for this game",
       "apply": "Apply",
       "answersFor": "Answers for {title}",
       "otherStatusMany": "Status of {count, plural, one {# game} other {# games}}",
@@ -561,7 +569,8 @@
       "movedManySplit": "{count} games changed group: {list}.",
       "movedPart": "{count} to “{group}”",
       "stayed": "“{title}” is still in “{group}”.",
-      "excludedEntry": "Not imported"
+      "excludedEntry": "Not imported",
+      "movedToHidden": "“{title}” moved to “Ready to import”, hidden."
     },
     "groups": {
       "which": {
@@ -591,13 +600,13 @@
       },
       "play": {
         "name": "Will you ever play it?",
-        "hint": "Backlog with no score or 0 h",
-        "explanation": "You own them in some store, but they have no score or you never opened them. “No” adds them to your library as “Not interested”: you don’t see them in the list, but “Do I own it?” knows they’re yours. “Don’t import” leaves them out."
+        "hint": "In your backlog, with no score and under 1 h",
+        "explanation": "They’re in your backlog, with no score and under 1 h played. “I already played it” asks how you left it. “No” adds them to your library hidden: you don’t see them in the list, but “Do I own it?” knows they’re yours. “Don’t import” leaves them out."
       },
       "status": {
         "name": "Choose a status",
-        "hint": "You played them and they weren’t on IGN",
-        "explanation": "They have hours played but didn’t come from IGN, so we don’t know their status."
+        "hint": "You played them and we don’t know how you left them",
+        "explanation": "You played them, but we don’t know how you left them. “Hide” adds them hidden, in your backlog."
       },
       "ready": {
         "name": "Ready to import",
@@ -613,7 +622,7 @@
       "endless": "Yes, it never ends",
       "completed": "No, I beat it",
       "keep": "Yes, someday",
-      "notInterested": "No",
+      "hidden": "No",
       "searchNo": "No, I’ll search",
       "yes": "Yes",
       "howLeft": {
@@ -622,7 +631,7 @@
         "playing": "You’re playing it",
         "paused": "You paused it",
         "backlog": "It’s in your backlog",
-        "wishlist": "You want to play it"
+        "wishlist": "You want to play it soon"
       },
       "familyYes": "Yes, it’s my family’s",
       "familyNo": "No, it’s mine",
@@ -630,8 +639,12 @@
         "playing": "I’m playing it",
         "completed": "I beat it",
         "abandoned": "I quit it",
-        "tried": "I tried it"
-      }
+        "tried": "I tried it",
+        "stillPlaying": "I’m still playing it",
+        "notAnymore": "I don’t play it anymore"
+      },
+      "played": "I already played it",
+      "hide": "Hide"
     },
     "confirm": {
       "ready": "In “Ready to import”: {games, plural, one {<n>#</n> game} other {<n>#</n> games}} and {copies, plural, one {<n>#</n> copy} other {<n>#</n> copies}}",
@@ -639,7 +652,7 @@
       "action": "Confirm import",
       "confirming": "Confirming…",
       "nothingReady": "There’s nothing in “Ready to import” to confirm yet.",
-      "summary": "{games, plural, one {# game} other {# games}} and {copies, plural, one {# copy} other {# copies}} came in · {notInterested} marked “Not interested” · {excluded} not imported"
+      "summary": "{games, plural, one {# game} other {# games}} and {copies, plural, one {# copy} other {# copies}} came in · {hidden} hidden · {excluded} not imported"
     },
     "restart": {
       "action": "Start over",

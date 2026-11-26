@@ -5,7 +5,7 @@ Responder en segundos, antes de comprar, si el usuario ya tiene un juego, de qu�
 ## ADDED Requirements
 
 ### Requirement: Búsqueda en la biblioteca
-El buscador «¿Lo tengo?» SHALL buscar a partir de 2 letras en toda la biblioteca del usuario, sin distinguir mayúsculas ni acentos, incluyendo los juegos «Sin interés» y los que ya no tiene.
+El buscador «¿Lo tengo?» SHALL buscar a partir de 2 letras en toda la biblioteca del usuario, sin distinguir mayúsculas ni acentos, incluyendo los juegos ocultos y los que ya no tiene.
 
 #### Scenario: Búsqueda corta
 - **WHEN** el usuario escribe «civ»
@@ -45,9 +45,9 @@ El sistema SHALL responder con el primer veredicto que corresponda: «Ya lo ten�
 - **WHEN** el usuario busca Ori and the Will of the Wisps, cuya única copia de Game Pass está marcada «Ya no lo tengo»
 - **THEN** el veredicto es «Ya no lo tenés», con la nota «Lo jugaste con Game Pass. Tu puntaje y tus horas siguen guardados.»
 
-#### Scenario: Está en la wishlist
+#### Scenario: En la biblioteca sin copias
 - **WHEN** el usuario busca Frostpunk, que está en «Quiero jugarlo» sin copias
-- **THEN** el veredicto es «No lo tenés», con la nota «Está en «Quiero jugarlo».»
+- **THEN** el veredicto es «No lo tenés», con la nota «Está en tu biblioteca, en «Quiero jugarlo».»
 
 ### Requirement: Detalle de las copias
 Cada resultado SHALL listar sus copias con tienda, tipo y fecha, mostrando tachadas las que ya no tiene.
@@ -56,15 +56,15 @@ Cada resultado SHALL listar sus copias con tienda, tipo y fecha, mostrando tacha
 - **WHEN** el usuario busca Civilization VI
 - **THEN** ve «Epic Games · Gratis · may 2020» y «Steam · Comprado · ago 2023»
 
-### Requirement: Juegos «Sin interés»
-Un juego marcado «Sin interés» SHALL aparecer en «¿Lo tengo?» con su veredicto normal y una nota que lo indique.
+### Requirement: Juegos ocultos
+Un juego oculto SHALL aparecer en «¿Lo tengo?» con su veredicto normal y una nota que lo indique.
 
-#### Scenario: Juego sin interés
-- **WHEN** el usuario busca 8BitMMO, que tiene en Steam y marcó «Sin interés»
-- **THEN** el veredicto es «Ya lo tenés» con la nota «Lo marcaste sin interés»
+#### Scenario: Juego oculto
+- **WHEN** el usuario busca 8BitMMO, que tiene en Steam y ocultó
+- **THEN** el veredicto es «Ya lo tenés» con la nota «Lo ocultaste»
 
 ### Requirement: Juego que no está en la biblioteca
-Si la búsqueda no encuentra nada, el sistema SHALL decirlo y ofrecer «Agregar a «Quiero jugarlo»» y «Ya lo tengo en otro lado».
+Si la búsqueda no encuentra nada, el sistema SHALL decirlo y ofrecer «Agregar a tu biblioteca» (entra en «Backlog», sin copias) y «Ya lo tengo en otro lado».
 
 #### Scenario: Sin resultados
 - **WHEN** el usuario busca «Hades II» y no está en su biblioteca

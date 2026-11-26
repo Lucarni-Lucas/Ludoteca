@@ -3,7 +3,6 @@ import { keptCopies, type SuggestedCopy } from "@/model/import/copies";
 import type { ImportEntry, OpenReview } from "@/model/import/import-entry";
 import { type ReviewContext, type ReviewGame, reviewGame } from "@/model/import/review";
 import { StatusNotFoundError } from "@/model/status/errors";
-import { findStatusByKey, type Status } from "@/model/status/status";
 
 /** Por encima de esto, la confirmación va en tandas, cada una en su transacción (design.md §11). */
 export const MAX_CONFIRM_ENTRIES = 600;
@@ -20,7 +19,7 @@ export type ImportedGameValues = Readonly<{
   statusId: string;
   statusSince: string;
   score: number | null;
-  notInterested: boolean;
+  hidden: boolean;
   /** `true` si se aceptó «sin fin»; vacío es «usá el catálogo». */
   endless: boolean | null;
   hltbHours: number | null;
@@ -41,7 +40,7 @@ export type ConfirmedGame = Readonly<{
 export type ImportSummary = Readonly<{
   games: number;
   copies: number;
-  notInterested: number;
+  hidden: number;
   /** Los juegos y las copias excluidos en esta confirmación. */
   excluded: number;
 }>;
@@ -53,10 +52,11 @@ export type ImportConfirmationPlan = Readonly<{
   summary: ImportSummary;
 }>;
 
-export const EMPTY_SUMMARY: ImportSummary = { games: 0, copies: 0, notInterested: 0, excluded: 0 };
+export const EMPTY_SUMMARY: ImportSummary = { games: 0, copies: 0, hidden: 0, excluded: 0 };
 
-function statusIdOf(statuses: readonly Status[], statusKey: string): string {
-  const status = findStatusByKey(statuses, statusKey);
+/** Un juego en «Listos para importar» siempre tiene estado: sin uno activo, pregunta en «Elegí un estado». */
+function statusIdOf(game: ReviewGame): string {
+  const { status } = game.suggestion;
 
   if (!status) {
     throw new StatusNotFoundError();
@@ -74,31 +74,31 @@ function toImportedCopy(copy: SuggestedCopy): ImportedCopy {
   };
 }
 
-function valuesOf(game: ReviewGame, statuses: readonly Status[], today: string): ImportedGameValues {
+function valuesOf(game: ReviewGame, today: string): ImportedGameValues {
   const { suggestion } = game;
 
   return {
-    statusId: statusIdOf(statuses, suggestion.statusKey),
+    statusId: statusIdOf(game),
     statusSince: today,
     score: suggestion.score,
-    notInterested: suggestion.notInterested,
+    hidden: suggestion.hidden,
     endless: suggestion.endless ? true : null,
     hltbHours: suggestion.hltbHours,
   };
 }
 
-function targetOf(game: ReviewGame, entry: ImportEntry, statuses: readonly Status[], today: string): ConfirmTarget | null {
+function targetOf(game: ReviewGame, entry: ImportEntry, today: string): ConfirmTarget | null {
   if (game.libraryGameId) {
     return { kind: "existing", libraryGameId: game.libraryGameId };
   }
 
   if (entry.catalogGameId) {
-    return { kind: "igdb", catalogGameId: entry.catalogGameId, values: valuesOf(game, statuses, today) };
+    return { kind: "igdb", catalogGameId: entry.catalogGameId, values: valuesOf(game, today) };
   }
 
   // Sin cruce ni «Cargar a mano» no hay qué crear: el juego sigue esperando.
   return entry.answers.manualTitle
-    ? { kind: "manual", title: entry.answers.manualTitle, year: game.year, values: valuesOf(game, statuses, today) }
+    ? { kind: "manual", title: entry.answers.manualTitle, year: game.year, values: valuesOf(game, today) }
     : null;
 }
 
@@ -117,7 +117,7 @@ function addGame(parts: PlanParts, game: ReviewGame, target: ConfirmTarget): voi
   parts.summary = addSummaries(parts.summary, {
     games: isNew ? 1 : 0,
     copies: copies.length,
-    notInterested: isNew && game.suggestion.notInterested ? 1 : 0,
+    hidden: isNew && game.suggestion.hidden ? 1 : 0,
     excluded: countExcludedCopies(game),
   });
 }
@@ -127,7 +127,7 @@ function addExcluded(parts: PlanParts, entry: ImportEntry): void {
   parts.summary = addSummaries(parts.summary, { ...EMPTY_SUMMARY, excluded: 1 });
 }
 
-export type ConfirmContext = ReviewContext & Readonly<{ statuses: readonly Status[]; today: string }>;
+export type ConfirmContext = ReviewContext & Readonly<{ today: string }>;
 
 /** Confirma lo que está en «Listos para importar»: los demás grupos siguen esperando (design.md §11). */
 export function planImportConfirmation(open: OpenReview, context: ConfirmContext): ImportConfirmationPlan {
@@ -148,7 +148,7 @@ export function planImportConfirmation(open: OpenReview, context: ConfirmContext
       continue;
     }
 
-    const target = game.group === "ready" ? targetOf(game, entry, context.statuses, context.today) : null;
+    const target = game.group === "ready" ? targetOf(game, entry, context.today) : null;
 
     if (target) {
       addGame(parts, game, target);
@@ -163,7 +163,7 @@ export function addSummaries(a: ImportSummary, b: ImportSummary): ImportSummary 
   return {
     games: a.games + b.games,
     copies: a.copies + b.copies,
-    notInterested: a.notInterested + b.notInterested,
+    hidden: a.hidden + b.hidden,
     excluded: a.excluded + b.excluded,
   };
 }

@@ -37,7 +37,7 @@ export function toLibraryGame({ library, catalog }: GameRow, status: Status, cop
     status,
     statusSince: library.statusSince,
     score: library.score,
-    notInterested: library.notInterested,
+    hidden: library.hidden,
     manualPlayedMinutes: library.playedMinutesManual,
     addedAt: library.createdAt.toISOString(),
     copies,

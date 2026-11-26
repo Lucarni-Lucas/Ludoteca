@@ -83,7 +83,7 @@ export function toImportItem(row: ImportItemRow, store: Store | null): ImportIte
 
 function toEntryAnswers(row: ImportEntryRow): EntryAnswers {
   return {
-    statusKey: row.statusKey,
+    statusId: row.statusId,
     endlessAnswer: row.endlessAnswer,
     playAnswer: row.playAnswer,
     excluded: row.excluded,
@@ -120,7 +120,7 @@ export function toImportEntry(
 
 export function toEntryAnswersUpdate(answers: Partial<EntryAnswers>): Partial<ImportEntryRow> {
   return {
-    statusKey: answers.statusKey,
+    statusId: answers.statusId,
     endlessAnswer: answers.endlessAnswer,
     playAnswer: answers.playAnswer,
     excluded: answers.excluded,
@@ -135,7 +135,7 @@ export function toImportedLibraryGameRow(userId: string, catalogGameId: string, 
     statusId: values.statusId,
     statusSince: values.statusSince,
     score: values.score,
-    notInterested: values.notInterested,
+    hidden: values.hidden,
     endless: values.endless,
     hltbHours: values.hltbHours,
   };

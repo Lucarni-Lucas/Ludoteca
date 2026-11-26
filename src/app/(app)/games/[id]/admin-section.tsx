@@ -17,7 +17,7 @@ import {
   linkToIgdbAction,
   refreshFromIgdbAction,
   removeFromLibraryAction,
-  setGameNotInterestedAction,
+  setGameHiddenAction,
 } from "./actions";
 import styles from "./page.module.css";
 
@@ -33,10 +33,10 @@ export function AdminSection({ game, onEdit }: AdminSectionProps) {
   const search = useIgdbSearch();
   const link = useServerAction(linkToIgdbAction);
   const refresh = useServerAction(refreshFromIgdbAction);
-  const notInterested = useServerAction(setGameNotInterestedAction);
+  const hidden = useServerAction(setGameHiddenAction);
   const remove = useRedirectingAction(removeFromLibraryAction);
   const manual = isManual(game);
-  const errorMessage = refresh.errorMessage ?? notInterested.errorMessage;
+  const errorMessage = refresh.errorMessage ?? hidden.errorMessage;
 
   async function linkGame(igdbId: number): Promise<void> {
     const result = await link.run(game.id, igdbId);
@@ -70,12 +70,12 @@ export function AdminSection({ game, onEdit }: AdminSectionProps) {
           <button
             type="button"
             className={controls.secondary}
-            disabled={notInterested.pending}
-            onClick={() => void notInterested.run(game.id, !game.notInterested)}
+            disabled={hidden.pending}
+            onClick={() => void hidden.run(game.id, !game.hidden)}
           >
-            {game.notInterested ? t("unmarkNotInterested") : t("markNotInterested")}
+            {game.hidden ? t("unhide") : t("hide")}
           </button>
-          <HelpTip help={HELP.notInterested} />
+          <HelpTip help={HELP.hidden} />
         </span>
         <button type="button" className={controls.danger} onClick={() => setRemoveOpen(true)}>
           {t("remove")}

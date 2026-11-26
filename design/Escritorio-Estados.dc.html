@@ -132,9 +132,9 @@ class Component extends DCLogic {
     const added = st.added || {};
     const removed = st.removed || [];
     const BASE = [
-      { id: 'curso', label: 'En curso', hint: 'Cuenta como «jugando»', color: '#C8F25A', items: [['Jugando'], ['En pausa'], ['Sin fin'], ['Rejugando', true]] },
-      { id: 'empezar', label: 'Sin empezar', hint: 'Backlog y wishlist', color: '#C5CCD8', items: [['Quiero jugarlo', false, '#FFC66B'], ['Pendiente']] },
-      { id: 'terminado', label: 'Terminado', hint: 'Cuenta como completado', color: '#8EC5FF', items: [['Completado'], ['100%']] },
+      { id: 'curso', label: 'En curso', hint: 'Cuenta como «jugando»', color: '#C8F25A', items: [['Jugando'], ['En pausa'], ['Rejugando', true]] },
+      { id: 'empezar', label: 'Sin empezar', hint: 'Lo que todavía no empezaste', color: '#C5CCD8', items: [['Quiero jugarlo', false, '#FFC66B'], ['Backlog']] },
+      { id: 'terminado', label: 'Terminado', hint: 'Cuenta como completado', color: '#8EC5FF', items: [['Completado'], ['100%'], ['Jugado']] },
       { id: 'dejado', label: 'Dejado', hint: 'Pide motivo al guardar', color: '#FF9C8A', items: [['Abandonado'], ['Lo probé']] }
     ];
 

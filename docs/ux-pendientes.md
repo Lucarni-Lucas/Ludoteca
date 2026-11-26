@@ -10,7 +10,6 @@ Cómo anotar: una línea por cosa, en la sección de su pantalla, con qué pasa 
 - Textos en inglés que suenan forzados, por traducción literal. → Pasar todo `en.json` por una revisión de estilo. Ejemplos: «Add by hand» → «Add manually»; «BY HAND» → «MANUAL»; «Enter the hours played, from 0 up» → «Enter 0 or more hours».
 - Al rediseñar, los e2e existentes pasan a leer sus textos del catálogo con t(), en vez de frases en español escritas a mano.
 - La interfaz tiene que explicarse sola: cada grupo o sección, una pregunta corta; cada acción, un nombre que diga qué hace. Los usuarios leen poco: no depender de párrafos de explicación ni de «?» en todos lados.
-- «Sin interés» no dice qué es: un juego que tenés pero no pensás jugar, que no se ve en la biblioteca pero cuenta para «¿Lo tengo?». → Buscarle un nombre que se entienda solo.
 - Nombre visible, ícono y dirección más propios. El proyecto y el repo siguen llamándose Ludoteca. → Si la dirección sigue siendo gratis, es un subdominio nuevo de `vercel.app`; un dominio propio se paga.
 
 ## Biblioteca (`/library`)

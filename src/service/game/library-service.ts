@@ -14,7 +14,7 @@ type LibraryServiceDependencies = Readonly<{
     applyStatusChange(userId: string, gameId: string, plan: StatusChangePlan): Promise<void>;
     updateCorrections(userId: string, gameId: string, corrections: GameCorrections): Promise<void>;
     updateScore(userId: string, gameId: string, score: number | null): Promise<void>;
-    setNotInterested(userId: string, gameIds: readonly string[], notInterested: boolean): Promise<void>;
+    setHidden(userId: string, gameIds: readonly string[], hidden: boolean): Promise<void>;
     linkToIgdb(userId: string, game: Pick<LibraryGame, "id" | "catalogGameId">, data: IgdbGameData): Promise<void>;
     updateCatalogFromIgdb(catalogGameId: string, data: IgdbGameData): Promise<void>;
     removeFromLibrary(userId: string, plan: GameRemovalPlan): Promise<void>;
@@ -30,7 +30,7 @@ export type LibraryService = Readonly<{
   changeStatus(userId: string, gameId: string, statusId: string): Promise<void>;
   setScore(userId: string, gameId: string, score: number | null): Promise<number | null>;
   updateCorrections(userId: string, gameId: string, corrections: GameCorrections): Promise<void>;
-  setNotInterested(userId: string, gameIds: readonly string[], notInterested: boolean): Promise<void>;
+  setHidden(userId: string, gameIds: readonly string[], hidden: boolean): Promise<void>;
   linkToIgdb(userId: string, gameId: string, igdbId: number): Promise<void>;
   refreshFromIgdb(userId: string, gameId: string): Promise<void>;
   removeFromLibrary(userId: string, gameId: string): Promise<void>;
@@ -105,8 +105,8 @@ export function createLibraryService({
       await gameRepo.updateCorrections(userId, gameId, corrections);
     },
 
-    setNotInterested(userId, gameIds, notInterested) {
-      return gameRepo.setNotInterested(userId, gameIds, notInterested);
+    setHidden(userId, gameIds, hidden) {
+      return gameRepo.setHidden(userId, gameIds, hidden);
     },
 
     async linkToIgdb(userId, gameId, igdbId) {

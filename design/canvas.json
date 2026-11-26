@@ -17,14 +17,14 @@
     "Movil-Biblioteca.dc.html": { "x": 0, "y": 2500, "w": 390, "h": 844, "title": "Móvil · Biblioteca", "is_interactive": true, "radius": 36 },
     "Movil-Filtros.dc.html": { "x": 470, "y": 2500, "w": 390, "h": 1400, "title": "Móvil · Filtros", "is_interactive": true, "radius": 36 },
     "Movil-Juego.dc.html": { "x": 940, "y": 2500, "w": 390, "h": 1380, "title": "Móvil · Ficha del juego", "is_interactive": true, "radius": 36 },
-    "Movil-Estado.dc.html": { "x": 1410, "y": 2500, "w": 390, "h": 1300, "title": "Móvil · Cambiar estado", "is_interactive": true, "radius": 36 },
+    "Movil-Estado.dc.html": { "x": 1410, "y": 2500, "w": 390, "h": 1560, "title": "Móvil · Cambiar estado", "is_interactive": true, "radius": 36 },
     "Movil-Estados.dc.html": { "x": 1880, "y": 2500, "w": 390, "h": 1520, "title": "Móvil · Editar estados", "is_interactive": true, "radius": 36 },
     "Movil-LoTengo.dc.html": { "x": 0, "y": 4380, "w": 390, "h": 844, "title": "Móvil · ¿Lo tengo?", "is_interactive": true, "radius": 36 },
     "Movil-Agregar.dc.html": { "x": 470, "y": 4380, "w": 390, "h": 844, "title": "Móvil · Agregar juego", "is_interactive": true, "radius": 36 },
     "Movil-AgregarManual.dc.html": { "x": 940, "y": 4380, "w": 390, "h": 1320, "title": "Móvil · Agregar a mano", "is_interactive": true, "radius": 36 },
     "Movil-Suscripciones.dc.html": { "x": 1410, "y": 4380, "w": 390, "h": 1540, "title": "Móvil · Suscripciones", "is_interactive": true, "radius": 36 },
     "Movil-Tiendas.dc.html": { "x": 1880, "y": 4380, "w": 390, "h": 1480, "title": "Móvil · Tiendas y avisos", "is_interactive": true, "radius": 36 },
-    "Movil-Importar.dc.html": { "x": 2350, "y": 4380, "w": 390, "h": 3700, "title": "Móvil · Importar", "is_interactive": true, "radius": 36 }
+    "Movil-Importar.dc.html": { "x": 2350, "y": 4380, "w": 390, "h": 3950, "title": "Móvil · Importar", "is_interactive": true, "radius": 36 }
   },
   "order": [
     "Main.dc.html",
