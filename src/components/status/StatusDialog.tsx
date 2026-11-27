@@ -3,10 +3,12 @@
 import { useTranslations } from "next-intl";
 import { type CSSProperties, useId, useState } from "react";
 
+import { Checkbox } from "@/components/ui/Checkbox";
 import controls from "@/components/ui/controls.module.css";
 import { Modal } from "@/components/ui/Modal";
-import { offeredStatuses, type Status, type StatusGroupView } from "@/model/status/status";
+import { COMPLETED_KEY, endlessChangeOf, type MarkChoice, type Status, type StatusGroupView } from "@/model/status/status";
 
+import { EndlessConfirm } from "./EndlessConfirm";
 import styles from "./StatusDialog.module.css";
 import { useStatusText } from "./status-text";
 
@@ -16,11 +18,14 @@ type StatusDialogProps = Readonly<{
   title: string;
   current: Status;
   groups: readonly StatusGroupView[];
-  /** Un juego sin fin no ve «Completado» ni «100%», y uno con final no ve «Jugado» (`04` design.md §19). */
+  /** Si el juego es sin fin: «Jugado» y «Completado» pueden cambiarlo, con el aviso (`04` design.md §22). */
   endless: boolean;
+  /** La marca «100%» que ya tiene el juego. */
+  hundredPercent: boolean;
   pending: boolean;
   errorMessage: string | null;
-  onSave: (statusId: string) => void;
+  /** Sin `marks` no cambia ninguna marca: así se llama como siempre cuando no hay nada que decir. */
+  onSave: (statusId: string, marks?: MarkChoice) => void;
 }>;
 
 type StatusOptionProps = Readonly<{ status: Status; selected: boolean; onPick: () => void }>;
@@ -63,6 +68,7 @@ export function StatusDialog({
   current,
   groups,
   endless,
+  hundredPercent,
   pending,
   errorMessage,
   onSave,
@@ -70,8 +76,30 @@ export function StatusDialog({
   const t = useTranslations();
   const statusText = useStatusText();
   const [selectedId, setSelectedId] = useState(current.id);
-  const offered = groups.map((view) => ({ ...view, statuses: offeredStatuses(view.statuses, { endless, currentId: current.id }) }));
-  const selected = offered.flatMap(({ statuses }) => statuses).find(({ id }) => id === selectedId) ?? current;
+  const [hundred, setHundred] = useState(hundredPercent);
+  const [confirming, setConfirming] = useState(false);
+  const selected = groups.flatMap(({ statuses }) => statuses).find(({ id }) => id === selectedId) ?? current;
+  const completed = selected.systemKey === COMPLETED_KEY;
+  const endlessChange = endlessChangeOf(endless, selected);
+
+  /** Solo lo que cambia: la casilla si cambió, y el aviso si se aceptó. */
+  function marksOf(acceptEndless: boolean): MarkChoice | undefined {
+    const marks: MarkChoice = {
+      ...(completed && hundred !== hundredPercent ? { hundredPercent: hundred } : {}),
+      ...(acceptEndless ? { acceptEndless: true } : {}),
+    };
+    return Object.keys(marks).length > 0 ? marks : undefined;
+  }
+
+  /** El aviso sale al guardar: elegir una opción todavía no cambia nada (`04` design.md §22). */
+  function save(): void {
+    if (endlessChange === null) {
+      onSave(selected.id, marksOf(false));
+      return;
+    }
+
+    setConfirming(true);
+  }
 
   return (
     <Modal
@@ -85,7 +113,7 @@ export function StatusDialog({
           <button type="button" className={controls.secondary} onClick={() => onOpenChange(false)}>
             {t("common.cancel")}
           </button>
-          <button type="button" className={controls.primary} disabled={pending} onClick={() => onSave(selected.id)}>
+          <button type="button" className={controls.primary} disabled={pending} onClick={save}>
             {t("status.dialog.saveAs", { status: statusText.name(selected) })}
           </button>
         </>
@@ -93,7 +121,7 @@ export function StatusDialog({
     >
       <div className={styles.columns}>
         <div className={styles.groups}>
-          {offered.map(({ group, statuses }) => (
+          {groups.map(({ group, statuses }) => (
             <div key={group} className={styles.group}>
               <span className={controls.sectionLabel}>{statusText.group(group)}</span>
               <div className={styles.options}>
@@ -109,6 +137,7 @@ export function StatusDialog({
             <>
               <h2 className={styles.panelTitle}>{t("status.dialog.finishedTitle")}</h2>
               <p className={styles.note}>{t("status.dialog.finishedNote")}</p>
+              {completed ? <Checkbox label={t("status.hundredPercent")} checked={hundred} onCheckedChange={setHundred} /> : null}
             </>
           ) : (
             <p className={styles.note}>{t("status.dialog.note")}</p>
@@ -116,6 +145,15 @@ export function StatusDialog({
           {errorMessage ? <p className={controls.error}>{errorMessage}</p> : null}
         </div>
       </div>
+      {confirming && endlessChange !== null ? (
+        <EndlessConfirm
+          endless={endlessChange}
+          pending={pending}
+          errorMessage={errorMessage}
+          onCancel={() => setConfirming(false)}
+          onAccept={() => onSave(selected.id, marksOf(true))}
+        />
+      ) : null}
     </Modal>
   );
 }

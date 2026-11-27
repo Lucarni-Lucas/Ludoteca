@@ -287,3 +287,34 @@ describe("los estados del usuario", () => {
     expect(statusService.listStatuses).toHaveBeenCalledWith(USER_ID);
   });
 });
+
+describe("«Otro estado» con el aviso de «Sin fin»", () => {
+  it("Otro estado: «Jugado» con el aviso guarda el estado y la marca", async () => {
+    const frostpunk = entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)]);
+    const played = STATUSES.find((value) => value.systemKey === "played");
+    const { service, importRepo } = setup({ importRepo: withReview([frostpunk]) });
+
+    await service.decide(USER_ID, [frostpunk.id], {
+      kind: "choose",
+      choice: { kind: "status", status: { id: played?.id ?? "", name: "Jugado", systemKey: "played" }, endless: true },
+    });
+
+    expect(importRepo.saveDecision).toHaveBeenCalledWith(USER_ID, [frostpunk.id], {
+      answers: { statusId: played?.id, endlessAnswer: true },
+    });
+  });
+
+  it("sin el aviso no guarda nada", async () => {
+    const frostpunk = entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)]);
+    const played = STATUSES.find((value) => value.systemKey === "played");
+    const { service, importRepo } = setup({ importRepo: withReview([frostpunk]) });
+
+    const decide = service.decide(USER_ID, [frostpunk.id], {
+      kind: "choose",
+      choice: { kind: "status", status: { id: played?.id ?? "", name: "Jugado", systemKey: "played" } },
+    });
+
+    await expect(decide).rejects.toBeInstanceOf(InvalidImportDecisionError);
+    expect(importRepo.saveDecision).not.toHaveBeenCalled();
+  });
+});

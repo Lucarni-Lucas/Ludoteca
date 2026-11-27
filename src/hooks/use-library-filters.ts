@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 
-import { type LibraryFilters, NO_FILTERS } from "@/model/game/filters";
+import { clearedFilters, type LibraryFilters } from "@/model/game/filters";
 import { type LibraryView, parseLibraryView, serializeLibraryView } from "@/model/game/filter-params";
 import type { LibrarySort } from "@/model/game/sort";
 
@@ -49,9 +49,9 @@ export function useLibraryFilters(initialSearch: string) {
     [view],
   );
 
-  // Limpiar no toca el orden ni «Mostrar sin interés»: no son filtros de resultados.
+  // Limpiar no toca el orden ni «Mostrar ocultos»: no son filtros de resultados (`04` design.md §22).
   const clearFilters = useCallback(() => {
-    writeView({ ...view, filters: { ...NO_FILTERS, showHidden: view.filters.showHidden } });
+    writeView({ ...view, filters: clearedFilters(view.filters) });
   }, [view]);
 
   return { filters: view.filters, sort: view.sort, setFilters, setSort, clearFilters };

@@ -39,16 +39,33 @@ El sistema SHALL mostrar los estados agrupados por grupo, cada uno con su cantid
 - **THEN** ve los juegos que están en cualquiera de los dos
 
 ### Requirement: Juegos ocultos
-El sistema SHALL permitir ocultar y volver a mostrar juegos, de a uno o varios a la vez. Un juego oculto no aparece en la biblioteca ni en los conteos, salvo que el usuario active el filtro «Mostrar ocultos», y «¿Lo tengo?» sigue sabiendo que es suyo. Los juegos que estaban marcados «Sin interés» quedan ocultos.
+El sistema SHALL permitir ocultar y volver a mostrar juegos, de a uno o varios a la vez. Un juego oculto no aparece en la biblioteca ni en los conteos, y «¿Lo tengo?» sigue sabiendo que es suyo. El filtro «Ocultos» tiene tres opciones: «No mostrar» (la de siempre), «Mostrar ocultos», que los suma a los demás, y «Solo ocultos». Los juegos que estaban marcados «Sin interés» quedan ocultos.
 
 #### Scenario: Ocultar un juego
 - **WHEN** el usuario oculta 8BitMMO
 - **THEN** 8BitMMO deja de aparecer en la biblioteca y en la cantidad de «Backlog»
 
 #### Scenario: Ver los juegos sin interés
-- **WHEN** el usuario activa «Mostrar ocultos»
+- **WHEN** el usuario elige «Mostrar ocultos» en el filtro «Ocultos»
 - **THEN** ve también los juegos ocultos, con la marca «Oculto» visible
+
+#### Scenario: Solo ocultos
+- **WHEN** el usuario elige «Solo ocultos»
+- **THEN** ve únicamente los juegos ocultos
 
 #### Scenario: Marcar varios
 - **WHEN** el usuario selecciona 20 juegos y los oculta
 - **THEN** los 20 dejan de aparecer en la biblioteca
+
+## ADDED Requirements
+
+### Requirement: Filtro por marcas
+La biblioteca SHALL tener un filtro por marcas, «Sin fin» y «100%», que se combina con los demás filtros.
+
+#### Scenario: Solo los sin fin
+- **WHEN** el usuario elige la marca «Sin fin»
+- **THEN** ve solo los juegos marcados sin fin
+
+#### Scenario: Completados al 100%
+- **WHEN** el usuario elige el grupo «Terminado» y la marca «100%»
+- **THEN** ve solo los juegos en «Completado · 100%»

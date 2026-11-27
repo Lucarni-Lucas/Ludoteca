@@ -117,7 +117,7 @@ describe("countLibraryOptions", () => {
   it("cuenta cada juego una sola vez por opción, aunque tenga dos copias iguales", () => {
     const games = [buildGame({ copies: [buildCopy(), buildCopy({ id: "otra" })] })];
 
-    const counts = countLibraryOptions(games, false);
+    const counts = countLibraryOptions(games, "exclude");
 
     expect(counts.stores.steam).toBe(1);
     expect(counts.kinds.purchased).toBe(1);
@@ -126,7 +126,7 @@ describe("countLibraryOptions", () => {
   it("separa las copias vigentes de las perdidas", () => {
     const games = [buildGame({ copies: [buildCopy({ kind: "free", lostAt: "2026-01-01" })] })];
 
-    const counts = countLibraryOptions(games, false);
+    const counts = countLibraryOptions(games, "exclude");
 
     expect(counts.kinds.free).toBe(0);
     expect(counts.kinds.lost).toBe(1);
@@ -135,8 +135,8 @@ describe("countLibraryOptions", () => {
   it("deja afuera a los ocultos salvo que se muestren", () => {
     const games = [buildGame({ hidden: true }), buildGame()];
 
-    const hidden = countLibraryOptions(games, false);
-    const shown = countLibraryOptions(games, true);
+    const hidden = countLibraryOptions(games, "exclude");
+    const shown = countLibraryOptions(games, "include");
 
     expect(hidden.statuses.backlog).toBe(1);
     expect(shown.statuses.backlog).toBe(2);
@@ -145,7 +145,7 @@ describe("countLibraryOptions", () => {
   it("agrupa por grupo de estado", () => {
     const games = [buildGame({ status: statusByKey("abandoned") }), buildGame({ status: statusByKey("tried") })];
 
-    const counts = countLibraryOptions(games, false);
+    const counts = countLibraryOptions(games, "exclude");
 
     expect(counts.groups.dropped).toBe(2);
   });

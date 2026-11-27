@@ -50,6 +50,9 @@ const entryShape = {
   score: z.number().nullable(),
   // Igual que el puntaje: el rango y el redondeo son del modelo.
   playedHours: optional(z.coerce.number({ error: PLAYED_HOURS_INVALID })).optional(),
+  // El aviso de «Sin fin» y la casilla «Lo completé al 100%»: qué vale lo decide el modelo.
+  acceptEndless: z.boolean().optional(),
+  hundredPercent: z.boolean().optional(),
 };
 
 const manualGameSchema = z.object({
@@ -78,6 +81,8 @@ export type EntryFormValues = Readonly<{
   statusId: string;
   score: number | null;
   playedHours?: string;
+  acceptEndless?: boolean;
+  hundredPercent?: boolean;
 }>;
 
 export type ManualGameFormValues = EntryFormValues &
@@ -117,6 +122,8 @@ function toEntryInput(input: z.output<z.ZodObject<typeof entryShape>>): LibraryE
     score: input.score,
     // Vacío no viaja: es «sin total a mano».
     ...(input.playedHours == null ? {} : { playedHours: input.playedHours }),
+    ...(input.acceptEndless === undefined ? {} : { acceptEndless: input.acceptEndless }),
+    ...(input.hundredPercent === undefined ? {} : { hundredPercent: input.hundredPercent }),
   };
 }
 

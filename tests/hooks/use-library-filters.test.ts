@@ -66,7 +66,7 @@ describe("useLibraryFilters", () => {
     act(() => result.current.clearFilters());
 
     expect(result.current.sort).toBe("title");
-    expect(result.current.filters.showHidden).toBe(true);
+    expect(result.current.filters.hidden).toBe("include");
     expect(result.current.filters.storeIds).toEqual([]);
   });
 
@@ -103,7 +103,8 @@ describe("parámetros de la URL", () => {
         played: { min: 0, max: 0 },
         score: { min: 9, max: null },
         title: "civ vi",
-        showHidden: true,
+        hidden: "include",
+        marks: ["endless"],
       },
       sort: "score",
     };
@@ -128,7 +129,7 @@ describe("parámetros de la URL", () => {
     { search: "?dur=abc", check: (view: LibraryView) => view.filters.duration, expected: { min: null, max: null } },
     { search: "?dur=x-y", check: (view: LibraryView) => view.filters.duration, expected: { min: null, max: null } },
     { search: "?score=9-", check: (view: LibraryView) => view.filters.score, expected: { min: 9, max: null } },
-    { search: "?hidden=si", check: (view: LibraryView) => view.filters.showHidden, expected: false },
+    { search: "?hidden=si", check: (view: LibraryView) => view.filters.hidden, expected: "exclude" },
   ])("ignora o interpreta «$search» sin romper", ({ search, check, expected }) => {
     const value = search;
 

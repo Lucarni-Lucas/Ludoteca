@@ -508,3 +508,59 @@ describe("formularios de alta con horas jugadas", () => {
     expect(screen.getByRole("button", { name: "Qué es «Duración»" })).toBeInTheDocument();
   });
 });
+
+describe("estado al agregar", () => {
+  function renderManual() {
+    const onSubmit = vi.fn();
+    renderWithIntl(
+      <ManualGameForm
+        stores={STORES}
+        statusGroups={GROUPS}
+        pending={false}
+        errorMessage={null}
+        uploading={false}
+        uploadError={null}
+        onUploadCover={async () => undefined}
+        onSubmit={onSubmit}
+      />,
+    );
+    return onSubmit;
+  }
+
+  it("Al agregar", async () => {
+    const user = userEvent.setup();
+    const onSubmit = renderManual();
+    await user.type(screen.getByRole("textbox", { name: "Título" }), "Rocket League");
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Estado" }), "Jugado");
+    await user.click(screen.getByRole("button", { name: "Guardar juego" }));
+    const confirm = screen.getByRole("dialog", { name: "Marca «Sin fin»" });
+    expect(onSubmit).not.toHaveBeenCalled();
+    await user.click(within(confirm).getByRole("button", { name: "Aceptar" }));
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ statusId: "played", acceptEndless: true }));
+  });
+
+  it("cancelar el aviso no guarda nada", async () => {
+    const user = userEvent.setup();
+    const onSubmit = renderManual();
+    await user.selectOptions(screen.getByRole("combobox", { name: "Estado" }), "Jugado");
+
+    await user.click(screen.getByRole("button", { name: "Guardar juego" }));
+    await user.click(within(screen.getByRole("dialog", { name: "Marca «Sin fin»" })).getByRole("button", { name: "Cancelar" }));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("con «Completado» aparece la casilla «Lo completé al 100%»", async () => {
+    const user = userEvent.setup();
+    const onSubmit = renderManual();
+    expect(screen.queryByRole("checkbox", { name: "Lo completé al 100%" })).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Estado" }), "Completado");
+    await user.click(screen.getByRole("checkbox", { name: "Lo completé al 100%" }));
+    await user.click(screen.getByRole("button", { name: "Guardar juego" }));
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ statusId: "completed", hundredPercent: true }));
+  });
+});

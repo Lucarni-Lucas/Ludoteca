@@ -6,6 +6,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { readIgnExport } from "@/adapter/ign/ign-adapter";
 import { readPlayniteExport } from "@/adapter/playnite/playnite-adapter";
+import { planGameRemoval } from "@/model/game/removal";
+import type { ImportRow } from "@/model/import/import-row";
 import { gamesInGroup } from "@/model/import/review";
 import { DEFAULT_STATUSES } from "@/model/status/status";
 import { createImportRepository, type ImportRepository } from "@/persistence/repository/import/import-repository";
@@ -31,7 +33,12 @@ const PLAYNITE_SAMPLE = readFileSync(path.resolve("tests/adapter/playnite/playni
 const FIXED_CLOCK: Clock = { today: () => TODAY };
 
 /** El servicio con los repositorios reales sobre PGlite y un IGDB falso que conoce los juegos de la muestra. */
-function createService(database: TestDatabase, repositories: Repositories, clock: Clock = FIXED_CLOCK): ImportService {
+function createService(
+  database: TestDatabase,
+  repositories: Repositories,
+  clock: Clock = FIXED_CLOCK,
+  steam = createFakeSteam(),
+): ImportService {
   const games = new Map([
     [199748, matchedGame(199748, "20 Minutes Till Dawn", { year: 2022 })],
     [368360, matchedGame(368360, "60 Seconds!", { year: 2015, estimatedHours: null })],
@@ -49,7 +56,7 @@ function createService(database: TestDatabase, repositories: Repositories, clock
     importRepo: createImportRepository(database.db),
     fileReaders: [readIgnExport, readPlayniteExport],
     igdb,
-    steam: createFakeSteam(),
+    steam,
     connections: createStoreConnectionRepository(database.db),
     stores: repositories.stores,
     storeResolver: createStoreResolver(repositories.stores),
@@ -378,5 +385,52 @@ describe("importación contra la base", () => {
     expect((await imports.listOpenReview(USER_A)).entries.length).toBeGreaterThan(0);
     expect(await imports.summarizeSources(USER_B)).toEqual([]);
     expect(await imports.listLibraryTitles(USER_B)).toEqual([]);
+  });
+});
+
+describe("reimportar Steam contra la base", () => {
+  let database: TestDatabase;
+  let repositories: Repositories;
+
+  beforeEach(async () => {
+    database = await createTestDatabase();
+    repositories = createRepositories(database);
+  });
+
+  afterEach(async () => {
+    await database.client.close();
+  });
+
+  it("Sacado de la biblioteca", async () => {
+    const celeste: ImportRow = {
+      source: "steam",
+      sourceKey: "504230",
+      title: "Celeste",
+      altTitles: [],
+      year: null,
+      storeName: "Steam",
+      storeGameId: "504230",
+      playtimeMinutes: 120,
+      ignStatuses: [],
+      ignScore: null,
+      hltbMainHours: null,
+      steamAppId: "504230",
+    };
+    const service = createService(database, repositories, FIXED_CLOCK, createFakeSteam([celeste]));
+    await service.connectSteam(USER_A, "lucas");
+    await service.advanceMatching(USER_A);
+    const [game] = gamesInGroup((await service.getOverview(USER_A)).review, "status");
+    const [answer] = game.choices.filter((choice) => choice.kind === "status");
+    await service.decide(USER_A, [game.entryId], { kind: "choose", choice: answer });
+    await service.confirm(USER_A);
+    const [imported] = await repositories.games.listLibrary(USER_A);
+    await repositories.games.removeFromLibrary(USER_A, planGameRemoval(imported));
+
+    await service.refreshSteam(USER_A);
+    await service.advanceMatching(USER_A);
+
+    const overview = await service.getOverview(USER_A);
+    expect(overview.review.groups.flatMap(({ games }) => games)).toEqual([]);
+    expect(await repositories.games.listLibrary(USER_A)).toEqual([]);
   });
 });

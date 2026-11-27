@@ -393,3 +393,31 @@ describe("CopyList con copias de tipo Otro", () => {
     expect(screen.getByText("Otro")).toBeInTheDocument();
   });
 });
+
+describe("«100%» en la ficha", () => {
+  it("la casilla «Lo completé al 100%» de «Editar» aparece solo en «Completado»", async () => {
+    const user = userEvent.setup();
+    renderScreen(buildGame({ id: "juego", status: statusByKey("completed") }));
+
+    await user.click(screen.getAllByRole("button", { name: "Editar" })[0]);
+    await user.click(screen.getByRole("checkbox", { name: "Lo completé al 100%" }));
+    await user.click(screen.getByRole("button", { name: "Guardar cambios" }));
+
+    expect(actions.updateCorrectionsAction).toHaveBeenCalledWith("juego", expect.objectContaining({ hundredPercent: true }));
+  });
+
+  it("fuera de «Completado», «Editar» no muestra la casilla", async () => {
+    const user = userEvent.setup();
+    renderScreen(buildGame({ id: "juego", status: statusByKey("playing") }));
+
+    await user.click(screen.getAllByRole("button", { name: "Editar" })[0]);
+
+    expect(screen.queryByRole("checkbox", { name: "Lo completé al 100%" })).not.toBeInTheDocument();
+  });
+
+  it("la ficha dice «Completado · 100%»", () => {
+    renderScreen(buildGame({ id: "juego", status: statusByKey("completed"), hundredPercent: true }));
+
+    expect(screen.getByText("Completado · 100%")).toBeInTheDocument();
+  });
+});

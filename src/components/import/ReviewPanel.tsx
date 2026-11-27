@@ -8,7 +8,8 @@ import controls from "@/components/ui/controls.module.css";
 import { COPY_KINDS } from "@/model/copy/copy";
 import type { ImportDecision } from "@/model/import/decision";
 import { canGoBack, type ImportReview, isQuestionGroup, type ReviewChoice, type ReviewGame, type ReviewGroup } from "@/model/import/review";
-import { offeredStatuses } from "@/model/status/status";
+import { EndlessConfirm } from "@/components/status/EndlessConfirm";
+import { endlessChangeOf } from "@/model/status/status";
 import type { Store } from "@/model/store/store";
 
 import { useImportText } from "./import-text";
@@ -54,9 +55,12 @@ function batchChoices(group: ReviewGroup, games: readonly ReviewGame[]): readonl
   return first.choices.filter((choice) => !ROW_ONLY.has(choice.kind) && shared(choice));
 }
 
-/** Los estados de «Otro estado» que se le ofrecen a todos los elegidos. */
-function batchStatuses(statuses: readonly StatusOption[], games: readonly ReviewGame[]): readonly StatusOption[] {
-  return games.reduce((offered, game) => offeredStatuses(offered, { endless: game.endless }), statuses);
+type BatchEndless = Readonly<{ status: StatusOption; endless: boolean; count: number }>;
+
+/** A cuántos de los elegidos el estado les cambia la marca «Sin fin»: en lote, un solo aviso con la cantidad. */
+function batchEndless(status: StatusOption, games: readonly ReviewGame[]): BatchEndless | null {
+  const changes = games.flatMap((game) => endlessChangeOf(game.endless, status) ?? []);
+  return changes.length === 0 ? null : { status, endless: changes[0], count: changes.length };
 }
 
 function storesOf(games: readonly ReviewGame[]): readonly Store[] {
@@ -124,7 +128,20 @@ function SelectionBar({ group, selected, statuses, disabled, onDecide, onCancel 
   const text = useImportText();
   const [copyKindOpen, setCopyKindOpen] = useState(false);
   const [statusesOpen, setStatusesOpen] = useState(false);
+  const [confirming, setConfirming] = useState<BatchEndless | null>(null);
   const stores = storesOf(selected);
+
+  /** Si a algunos les cambia la marca «Sin fin», primero el aviso con la cantidad (`04` design.md §22). */
+  function pickStatus(status: StatusOption): void {
+    const change = batchEndless(status, selected);
+
+    if (change === null) {
+      onDecide({ kind: "choose", choice: statusChoiceOf(status) });
+      return;
+    }
+
+    setConfirming(change);
+  }
 
   function onAnswer(choice: ReviewChoice) {
     if (choice.kind === "other_status") {
@@ -168,9 +185,22 @@ function SelectionBar({ group, selected, statuses, disabled, onDecide, onCancel 
       {statusesOpen ? (
         <StatusList
           label={t("otherStatusMany", { count: selected.length })}
-          statuses={batchStatuses(statuses, selected)}
+          statuses={statuses}
           disabled={disabled}
-          onPick={(status) => onDecide({ kind: "choose", choice: statusChoiceOf(status) })}
+          onPick={pickStatus}
+        />
+      ) : null}
+      {confirming ? (
+        <EndlessConfirm
+          endless={confirming.endless}
+          count={confirming.count}
+          pending={disabled}
+          errorMessage={null}
+          onCancel={() => setConfirming(null)}
+          onAccept={() => {
+            setConfirming(null);
+            onDecide({ kind: "choose", choice: statusChoiceOf(confirming.status, confirming.endless) });
+          }}
         />
       ) : null}
       {copyKindOpen ? (

@@ -30,6 +30,7 @@ const choiceSchema = z.discriminatedUnion("kind", [
       name: z.string().min(1).max(MAX_STATUS_NAME_LENGTH),
       systemKey: z.string().min(1).max(MAX_STATUS_KEY_LENGTH).nullable(),
     }),
+    endless: z.boolean().optional(),
   }),
   z.object({ kind: z.literal("copy_kind"), copyKind: z.enum(COPY_KINDS) }),
   ...(["search", "other_status", "manual", "exclude", "endless", "completed", "keep", "played", "hidden", "hide"] as const).map(

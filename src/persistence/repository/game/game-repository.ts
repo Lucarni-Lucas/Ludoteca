@@ -1,4 +1,5 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
+import type { MarksUpdate } from "@/model/game/game-status";
 
 import type { Copy } from "@/model/copy/copy";
 import type { NewCopy } from "@/model/copy/new-copy";
@@ -27,7 +28,8 @@ export type GameRepository = Readonly<{
   findOwnedMarks(userId: string, igdbIds: readonly number[]): Promise<readonly OwnedGameMark[]>;
   addIgdbGame(userId: string, data: IgdbGameData, entry: NewLibraryEntry): Promise<AddGameResult>;
   addManualGame(userId: string, data: CatalogGameData, entry: NewLibraryEntry): Promise<string>;
-  applyStatusChange(userId: string, gameId: string, plan: StatusChangePlan): Promise<void>;
+  /** Con `marks`, las marcas cambian en la misma transacción que el estado (`04` design.md §22). */
+  applyStatusChange(userId: string, gameId: string, plan: StatusChangePlan | null, marks?: MarksUpdate): Promise<void>;
   updateCorrections(userId: string, gameId: string, corrections: GameCorrections): Promise<void>;
   updateScore(userId: string, gameId: string, score: number | null): Promise<void>;
   updatePlayedMinutes(userId: string, gameId: string, minutes: number | null): Promise<void>;
@@ -90,6 +92,8 @@ async function insertLibraryEntry(
       statusSince: entry.statusSince,
       score: entry.score,
       playedMinutesManual: entry.playedMinutes ?? null,
+      endless: entry.marks?.endless ?? null,
+      hundredPercent: entry.marks?.hundredPercent ?? false,
     })
     .onConflictDoNothing({ target: [libraryGame.userId, libraryGame.catalogGameId] })
     .returning({ id: libraryGame.id });
@@ -216,8 +220,16 @@ export function createGameRepository(db: Database): GameRepository {
       });
     },
 
-    applyStatusChange(userId, gameId, plan) {
-      return db.transaction((tx) => writeStatusChange(tx, userId, gameId, plan));
+    applyStatusChange(userId, gameId, plan, marks) {
+      return db.transaction(async (tx) => {
+        if (plan) {
+          await writeStatusChange(tx, userId, gameId, plan);
+        }
+
+        if (marks) {
+          await updateOwnGame(tx, userId, gameId, marks);
+        }
+      });
     },
 
     updateCorrections(userId, gameId, corrections) {

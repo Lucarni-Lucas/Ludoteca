@@ -55,6 +55,9 @@
   --color-status-blue-bg: var(--color-status-finished-bg);
   --color-status-coral: var(--color-status-dropped);
   --color-status-coral-bg: var(--color-status-dropped-bg);
+  /* «Lo probé»: probar un juego y que no enganche no es negativo (04 design.md §22). */
+  --color-status-violet: #c9a7ff;
+  --color-status-violet-bg: rgba(201, 167, 255, 0.13);
 
   /* Superficies y bordes propios de la biblioteca */
   --color-sheet: #12151b;

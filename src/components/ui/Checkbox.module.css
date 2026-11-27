@@ -1,0 +1,22 @@
+.row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-height: var(--touch-target);
+  color: var(--color-text);
+  font-size: var(--text-15);
+  cursor: pointer;
+}
+
+.box {
+  width: var(--space-20);
+  height: var(--space-20);
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.box:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

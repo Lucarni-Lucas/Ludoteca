@@ -31,7 +31,7 @@ describe("createStatusService", () => {
     const groups = await service.listGrouped(USER_ID);
 
     const finished = groups.find(({ group }) => group === "finished");
-    expect(finished?.statuses.map(({ name }) => name)).toEqual(["Completado", "100%", "Jugado"]);
+    expect(finished?.statuses.map(({ name }) => name)).toEqual(["Completado", "Jugado"]);
   });
 
   it("no vuelve a crear los estados si el usuario ya tiene", async () => {

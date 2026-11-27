@@ -14,8 +14,9 @@ Lucas ya tiene su historial en IGN (303 juegos con estado y puntaje), cientos de
 - Guías «¿Cómo lo saco?» para exportar de Playnite y de IGN; para IGN, un marcador del navegador que descarga el archivo.
 - Nada entra a la biblioteca hasta confirmar; la revisión se guarda y se retoma.
 - Reimportar no duplica nada.
-- Estados por defecto más claros: sale el estado «Sin fin» (queda la marca del juego), «Pendiente» pasa a «Backlog», «Quiero jugarlo» pasa a ser «lo querés jugar pronto, lo tengas o no», cada estado dice qué significa y «Completado»/«100%» o «Jugado» se ofrecen según el juego sea sin fin o no.
-- La marca «Sin interés» pasa a llamarse «Oculto».
+- Estados por defecto más claros: sale el estado «Sin fin» (queda la marca del juego), «Pendiente» pasa a «Backlog», «Quiero jugarlo» pasa a ser «lo querés jugar pronto, lo tengas o no» y cada estado dice qué significa.
+- La marca «Sin interés» pasa a llamarse «Oculto», con un filtro que puede mostrar solo los ocultos.
+- «100%» deja de ser un estado y pasa a ser una marca de «Completado»; «Jugado» se ofrece siempre y pone o saca la marca «Sin fin» con un aviso; «Lo probé» pasa a violeta; filtro por marcas.
 
 ## Capabilities
 

@@ -1,0 +1,1 @@
+ALTER TABLE "library_game" ADD COLUMN "hundred_percent" boolean DEFAULT false NOT NULL;

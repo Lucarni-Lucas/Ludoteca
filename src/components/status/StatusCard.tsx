@@ -9,11 +9,13 @@ import styles from "./StatusCard.module.css";
 
 type StatusCardProps = Readonly<{
   status: Status;
+  /** La marca «100%» de un juego en «Completado». */
+  hundredPercent?: boolean;
   statusSince: string;
   onChange: () => void;
 }>;
 
-export function StatusCard({ status, statusSince, onChange }: StatusCardProps) {
+export function StatusCard({ status, hundredPercent = false, statusSince, onChange }: StatusCardProps) {
   const t = useTranslations("status");
   const statusText = useStatusText();
   const dot = { "--status-dot": `var(--color-status-${status.color})` } as CSSProperties;
@@ -25,7 +27,7 @@ export function StatusCard({ status, statusSince, onChange }: StatusCardProps) {
         <span className={styles.summary}>
           <span className={styles.dot} style={dot} />
           <span className={styles.texts}>
-            <span className={styles.name}>{statusText.name(status)}</span>
+            <span className={styles.name}>{statusText.label(status, hundredPercent)}</span>
             <span className={styles.detail}>{statusText.since(status, statusSince)}</span>
           </span>
         </span>

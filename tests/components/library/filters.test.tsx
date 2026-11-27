@@ -24,7 +24,7 @@ const GAMES = [
   buildGame({ id: "b", status: statusByKey("abandoned") }),
 ];
 const GROUPS = groupStatuses(STATUSES);
-const COUNTS = countLibraryOptions(GAMES, false);
+const COUNTS = countLibraryOptions(GAMES, "exclude");
 const STORES = listStoreOptions(GAMES);
 
 function PanelHarness({ onChange }: Readonly<{ onChange?: (changes: Partial<LibraryFilters>) => void }>) {
@@ -104,9 +104,9 @@ describe("FilterPanel", () => {
     const onChange = vi.fn();
     renderWithIntl(<PanelHarness onChange={onChange} />);
 
-    await user.click(screen.getByRole("switch", { name: "Mostrar ocultos" }));
+    await user.click(within(screen.getByRole("group", { name: "Ocultos" })).getByRole("button", { name: "Mostrar ocultos" }));
 
-    expect(onChange).toHaveBeenCalledWith({ showHidden: true });
+    expect(onChange).toHaveBeenCalledWith({ hidden: "include" });
   });
 });
 
@@ -324,11 +324,43 @@ describe("FilterPanel con copias de tipo Otro", () => {
       buildGame({ id: "b", copies: [buildCopy({ kind: "other" })] }),
     ];
     renderWithIntl(
-      <FilterPanel filters={NO_FILTERS} counts={countLibraryOptions(games, false)} stores={listStoreOptions(games)} onChange={onChange} />,
+      <FilterPanel filters={NO_FILTERS} counts={countLibraryOptions(games, "exclude")} stores={listStoreOptions(games)} onChange={onChange} />,
     );
 
     await user.click(screen.getByRole("button", { name: "Otro 2" }));
 
     expect(onChange).toHaveBeenLastCalledWith({ kinds: ["other"] });
+  });
+});
+
+describe("FilterPanel: ocultos y marcas", () => {
+  it("Solo ocultos", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderWithIntl(<PanelHarness onChange={onChange} />);
+
+    const group = screen.getByRole("group", { name: "Ocultos" });
+    await user.click(within(group).getByRole("button", { name: "Solo ocultos" }));
+
+    expect(onChange).toHaveBeenCalledWith({ hidden: "only" });
+    expect(within(group).getByRole("button", { name: "Solo ocultos" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(group).getByRole("button", { name: "No mostrar" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("Solo los sin fin", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderWithIntl(<PanelHarness onChange={onChange} />);
+
+    await user.click(screen.getByRole("button", { name: /^Sin fin \d+$/ }));
+
+    expect(onChange).toHaveBeenCalledWith({ marks: ["endless"] });
+  });
+
+  it("muestra los filtros en inglés", () => {
+    renderWithIntl(<PanelHarness />, { locale: "en" });
+
+    expect(within(screen.getByRole("group", { name: "Hidden" })).getByRole("button", { name: "Only hidden" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Marks" })).toBeInTheDocument();
   });
 });

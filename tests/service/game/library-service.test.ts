@@ -7,7 +7,7 @@ import {
   GameNotManualError,
   ScoreOutOfRangeError,
 } from "@/model/game/errors";
-import { StatusNotFoundError } from "@/model/status/errors";
+import { EndlessChangeNotAcceptedError, StatusNotFoundError } from "@/model/status/errors";
 import { createLibraryService } from "@/service/game/library-service";
 
 import { buildGame, statusByKey } from "../../model/game/library-fixtures";
@@ -204,6 +204,55 @@ describe("createLibraryService", () => {
 
       await expect(removal).rejects.toBeInstanceOf(GameNotFoundError);
       expect(gameRepo.removeFromLibrary).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe("marcas al cambiar el estado", () => {
+  it("Jugado en un juego con final", async () => {
+    const gameRepo = createFakeGameRepo([buildGame({ id: "hollow", status: statusByKey("playing") })]);
+    const service = buildService({ gameRepo });
+
+    await service.changeStatus(USER_ID, "hollow", "played", { acceptEndless: true });
+
+    expect(gameRepo.applyStatusChange).toHaveBeenCalledWith(USER_ID, "hollow", expect.objectContaining({ statusId: "played" }), {
+      endless: true,
+      hundredPercent: false,
+    });
+  });
+
+  it("Completado en un juego sin fin: sin el aviso aceptado no cambia nada", async () => {
+    const rocket = buildGame({ id: "rocket", status: statusByKey("playing"), corrections: { estimatedHours: null, endless: true, coverUrl: null } });
+    const gameRepo = createFakeGameRepo([rocket]);
+    const service = buildService({ gameRepo });
+
+    const change = service.changeStatus(USER_ID, "rocket", "completed");
+
+    await expect(change).rejects.toBeInstanceOf(EndlessChangeNotAcceptedError);
+    expect(gameRepo.applyStatusChange).not.toHaveBeenCalled();
+  });
+
+  it("Completar al 100%", async () => {
+    const gameRepo = createFakeGameRepo([buildGame({ id: "hollow", status: statusByKey("playing") })]);
+    const service = buildService({ gameRepo });
+
+    await service.changeStatus(USER_ID, "hollow", "completed", { hundredPercent: true });
+
+    expect(gameRepo.applyStatusChange).toHaveBeenCalledWith(USER_ID, "hollow", expect.objectContaining({ statusId: "completed" }), {
+      endless: null,
+      hundredPercent: true,
+    });
+  });
+
+  it("Salir de Completado", async () => {
+    const gameRepo = createFakeGameRepo([buildGame({ id: "hollow", status: statusByKey("completed"), hundredPercent: true })]);
+    const service = buildService({ gameRepo });
+
+    await service.changeStatus(USER_ID, "hollow", "playing");
+
+    expect(gameRepo.applyStatusChange).toHaveBeenCalledWith(USER_ID, "hollow", expect.objectContaining({ statusId: "playing" }), {
+      endless: null,
+      hundredPercent: false,
     });
   });
 });

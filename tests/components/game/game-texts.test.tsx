@@ -43,7 +43,7 @@ describe("cantidad de juegos de los filtros del celu", () => {
     { locale: "en", count: 1, expected: "See 1 game" },
     { locale: "en", count: 5, expected: "See 5 games" },
   ] as const)("$count en $locale da «$expected»", ({ locale, count, expected }) => {
-    const panel = { filters: NO_FILTERS, counts: countLibraryOptions([], false), stores: [], onChange: vi.fn() };
+    const panel = { filters: NO_FILTERS, counts: countLibraryOptions([], "exclude"), stores: [], onChange: vi.fn() };
 
     renderWithIntl(
       <MobileFilters {...panel} open onOpenChange={vi.fn()} groups={[]} resultCount={count} onClear={vi.fn()} />,

@@ -47,6 +47,7 @@
     "PLAYED_HOURS_OUT_OF_RANGE": "Enter the hours played, from 0 up",
     "RELEASE_YEAR_OUT_OF_RANGE": "Enter a year between {min} and {max}",
     "STATUS_NOT_FOUND": "We couldn’t find that status.",
+    "ENDLESS_CHANGE_NOT_ACCEPTED": "That status changes the “Endless” mark: accept the warning to save it.",
     "STORE_NOT_FOUND": "We couldn’t find that store.",
     "INVALID_STORE_NAME": "Write a store name with letters or numbers.",
     "INVALID_IMPORT_DECISION": "That option doesn't apply to this game.",
@@ -185,7 +186,6 @@
     "store": "Store",
     "kind": "How you have it",
     "lost": "I no longer have it",
-    "showHidden": "Show hidden",
     "from": "From",
     "to": "To",
     "withUnit": "{label} ({unit})",
@@ -202,7 +202,18 @@
     "all": "All",
     "title": "Filters",
     "clear": "Clear",
-    "seeGames": "{count, plural, one {See # game} other {See # games}}"
+    "seeGames": "{count, plural, one {See # game} other {See # games}}",
+    "hidden": {
+      "title": "Hidden",
+      "exclude": "Don’t show",
+      "include": "Show hidden",
+      "only": "Only hidden"
+    },
+    "marks": {
+      "title": "Marks",
+      "endless": "Endless",
+      "hundred_percent": "100%"
+    }
   },
   "status": {
     "groups": {
@@ -217,7 +228,6 @@
       "wishlist": "Want to play",
       "backlog": "Backlog",
       "completed": "Completed",
-      "hundred_percent": "100%",
       "played": "Played",
       "abandoned": "Abandoned",
       "tried": "Tried it"
@@ -228,7 +238,6 @@
       "wishlist": "You want to play it soon, whether you own it or not",
       "backlog": "You'll play it someday, no rush",
       "completed": "You finished the main story",
-      "hundred_percent": "You finished everything",
       "played": "An endless game you played and stopped",
       "abandoned": "You played it seriously and left it unfinished",
       "tried": "You played it a bit and it didn't hook you"
@@ -243,6 +252,14 @@
       "finishedTitle": "Finished!",
       "finishedNote": "We save today’s date as the end date. You can score it afterwards.",
       "note": "The change is recorded with today’s date."
+    },
+    "hundredPercent": "I completed it 100%",
+    "withHundredPercent": "{status} · 100%",
+    "endlessConfirm": {
+      "title": "“Endless” mark",
+      "add": "{count, plural, one {This adds the “Endless” mark to the game. Do you agree?} other {This adds the “Endless” mark to # games. Do you agree?}}",
+      "remove": "{count, plural, one {This removes the “Endless” mark from the game. Do you agree?} other {This removes the “Endless” mark from # games. Do you agree?}}",
+      "accept": "Accept"
     }
   },
   "library": {
@@ -560,7 +577,7 @@
       "entersEndless": "endless",
       "inLibraryAdds": "Already in your library · adds {copies}",
       "notImported": "Not imported · not a game",
-      "allStatuses": "Statuses for this game",
+      "allStatuses": "All statuses",
       "apply": "Apply",
       "answersFor": "Answers for {title}",
       "otherStatusMany": "Status of {count, plural, one {# game} other {# games}}",

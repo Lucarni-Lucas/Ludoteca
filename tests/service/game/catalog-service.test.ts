@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { GameNotFoundError, ScoreOutOfRangeError } from "@/model/game/errors";
-import { StatusNotFoundError } from "@/model/status/errors";
+import { EndlessChangeNotAcceptedError, StatusNotFoundError } from "@/model/status/errors";
 import { StoreNotFoundError } from "@/model/store/errors";
 import {
   createCatalogService,
@@ -369,5 +369,36 @@ describe("agregar con horas jugadas", () => {
     await expect(add).rejects.toThrow("Poné las horas jugadas, de 0 en adelante");
     expect(igdb.getGame).not.toHaveBeenCalled();
     expect(gameRepo.addIgdbGame).not.toHaveBeenCalled();
+  });
+});
+
+describe("marcas al agregar", () => {
+  it("Al agregar", async () => {
+    const igdb = createFakeIgdb([], new Map([[1, igdbData(1, "Rocket League")]]));
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ igdb, gameRepo });
+
+    await service.addFromIgdb(USER_ID, 1, { ...EMPTY_ENTRY_INPUT, statusId: "played", acceptEndless: true });
+
+    expect(gameRepo.addIgdbGame.mock.calls[0][2]).toMatchObject({ statusId: "played", marks: { endless: true, hundredPercent: false } });
+  });
+
+  it("«Jugado» al agregar sin el aviso aceptado no guarda nada", async () => {
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ gameRepo });
+
+    const add = service.addManual(USER_ID, { ...MANUAL, statusId: "played" });
+
+    await expect(add).rejects.toBeInstanceOf(EndlessChangeNotAcceptedError);
+    expect(gameRepo.addManualGame).not.toHaveBeenCalled();
+  });
+
+  it("«Completado» al agregar con la casilla queda con «100%»", async () => {
+    const gameRepo = createFakeGameRepo();
+    const service = buildService({ gameRepo });
+
+    await service.addManual(USER_ID, { ...MANUAL, statusId: "completed", hundredPercent: true });
+
+    expect(gameRepo.addManualGame.mock.calls[0][2]).toMatchObject({ statusId: "completed", marks: { endless: null, hundredPercent: true } });
   });
 });

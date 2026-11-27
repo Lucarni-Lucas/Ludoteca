@@ -157,12 +157,13 @@ describe("paso a los estados nuevos", () => {
     expect(backlog.name).toBe("Algún día");
   });
 
-  it("el estado «Sin fin» deja de existir para todos los usuarios", async () => {
+  it("los estados «Sin fin» y «100%» dejan de existir para todos los usuarios", async () => {
     const left = await rows(client, `select "id" from "status" where "system_key" = 'endless'`);
 
     const counts = await rows(client, `select "user_id", count(*)::int as "count" from "status" group by "user_id" order by "user_id"`);
     expect(left).toEqual([]);
-    expect(counts.map(({ count }) => count)).toEqual([OLD_STATUSES.length - 1, OLD_STATUSES.length - 1]);
+    // Salen «Sin fin» y, con la 0015, «100%».
+    expect(counts.map(({ count }) => count)).toEqual([OLD_STATUSES.length - 2, OLD_STATUSES.length - 2]);
   });
 
   it("los juegos de cada usuario pasan a su propio «Jugado»", async () => {
@@ -189,5 +190,100 @@ describe("paso a los estados nuevos", () => {
     const byId = new Map(entries.map((entry) => [entry.id, entry]));
     expect(byId.get(ids.entryEndless)).toMatchObject({ status_id: statusesA.get("played"), endless_answer: true, play_answer: "hidden" });
     expect(byId.get(ids.entryCompleted)).toMatchObject({ status_id: statusesA.get("completed"), endless_answer: null });
+  });
+});
+
+describe("«100%» como marca de «Completado»", () => {
+  // La última migración antes del paso de «100%» (design.md §23).
+  const LAST_BEFORE_MARKS = "0013_drop_import_status_key";
+  // Los estados de fábrica como quedaron con la 0011 a la 0013: todavía con «100%» y «Lo probé» en coral.
+  const STATUSES_WITH_HUNDRED = OLD_STATUSES.filter(([, , , , systemKey]) => systemKey !== "endless");
+
+  let client: PGlite;
+  let before: string;
+  let statuses: Map<string, string>;
+  let hadesId: string;
+  let entryId: string;
+
+  beforeAll(async () => {
+    client = new PGlite();
+    await client.exec(SUPABASE_ROLES.map((role) => `create role ${role} nologin;`).join("\n"));
+    before = migrationsUpTo(LAST_BEFORE_MARKS);
+    await migrate(drizzle({ client }), { migrationsFolder: before });
+
+    statuses = new Map();
+    for (const [group, name, color, position, systemKey] of STATUSES_WITH_HUNDRED) {
+      const [row] = await rows(
+        client,
+        `insert into "status" ("user_id", "status_group", "name", "color", "position", "system_key")
+         values ($1, $2, $3, $4, $5, $6) returning "id"`,
+        [USER_A, group, name, color, position, systemKey],
+      );
+      statuses.set(systemKey, String(row.id));
+    }
+    const [catalog] = await rows(client, `insert into "catalog_game" ("source", "title") values ('igdb', 'Hades') returning "id"`);
+    const [game] = await rows(
+      client,
+      `insert into "library_game" ("user_id", "catalog_game_id", "status_id", "status_since") values ($1, $2, $3, '2025-06-01') returning "id"`,
+      [USER_A, catalog.id, statuses.get("hundred_percent")],
+    );
+    hadesId = String(game.id);
+    await client.query(
+      `insert into "journal_entry" ("user_id", "library_game_id", "kind", "occurred_on", "from_status_id", "to_status_id")
+       values ($1, $2, 'status_change', '2025-05-01', $3, $4), ($1, $2, 'status_change', '2025-06-01', $4, $5)`,
+      [USER_A, hadesId, statuses.get("playing"), statuses.get("completed"), statuses.get("hundred_percent")],
+    );
+    const [entry] = await rows(client, `insert into "import_entry" ("user_id", "status_id") values ($1, $2) returning "id"`, [
+      USER_A,
+      statuses.get("hundred_percent"),
+    ]);
+    entryId = String(entry.id);
+
+    await migrate(drizzle({ client }), { migrationsFolder: MIGRATIONS });
+  });
+
+  afterAll(async () => {
+    await client.close();
+    rmSync(before, { recursive: true, force: true });
+  });
+
+  it("Juego en «100%»", async () => {
+    const [game] = await rows(
+      client,
+      `select "s"."system_key", "lg"."hundred_percent", "lg"."status_since"::text as "since"
+       from "library_game" "lg" join "status" "s" on "s"."id" = "lg"."status_id" where "lg"."id" = $1`,
+      [hadesId],
+    );
+
+    const journal = await rows(
+      client,
+      `select "f"."system_key" as "from", "t"."system_key" as "to" from "journal_entry" "je"
+       join "status" "f" on "f"."id" = "je"."from_status_id" join "status" "t" on "t"."id" = "je"."to_status_id"
+       order by "je"."occurred_on"`,
+    );
+    expect(game).toEqual({ system_key: "completed", hundred_percent: true, since: "2025-06-01" });
+    // El registro de «Completado» a «100%» quedó de «Completado» a «Completado» y se borró: no suma ninguno.
+    expect(journal).toEqual([{ from: "playing", to: "completed" }]);
+  });
+
+  it("el estado «100%» deja de existir", async () => {
+    const left = await rows(client, `select "id" from "status" where "system_key" = 'hundred_percent'`);
+
+    expect(left).toEqual([]);
+  });
+
+  it("una revisión abierta con «100%» elegido pasa a «Completado»", async () => {
+    const [entry] = await rows(client, `select "status_id" from "import_entry" where "id" = $1`, [entryId]);
+
+    expect(entry.status_id).toBe(statuses.get("completed"));
+  });
+
+  it("«Lo probé» pasa a violeta y «Jugado» queda segundo en Terminado", async () => {
+    const changed = await rows(client, `select "system_key", "color", "position" from "status" where "system_key" in ('tried', 'played') order by "system_key"`);
+
+    expect(changed).toEqual([
+      { system_key: "played", color: "blue", position: 2 },
+      { system_key: "tried", color: "violet", position: 2 },
+    ]);
   });
 });

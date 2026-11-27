@@ -1,5 +1,8 @@
 import {
   type CopyKindFilter,
+  GAME_MARKS,
+  type GameMark,
+  type HiddenFilter,
   type LibraryFilters,
   LOST_KIND,
   NO_FILTERS,
@@ -54,6 +57,21 @@ function readSort(params: URLSearchParams): LibrarySort {
   return sort ?? DEFAULT_SORT;
 }
 
+// «1» es el de siempre: los links guardados con «Mostrar ocultos» siguen andando.
+const HIDDEN_PARAMS: Readonly<Record<Exclude<HiddenFilter, "exclude">, string>> = { include: "1", only: "solo" };
+const MARK_PARAMS: Readonly<Record<GameMark, string>> = { endless: "sin-fin", hundred_percent: "100" };
+
+function readHidden(params: URLSearchParams): HiddenFilter {
+  const value = params.get("hidden");
+  const found = (Object.keys(HIDDEN_PARAMS) as Exclude<HiddenFilter, "exclude">[]).find((key) => HIDDEN_PARAMS[key] === value);
+  return found ?? "exclude";
+}
+
+function readMarks(params: URLSearchParams): readonly GameMark[] {
+  const values = readList(params, "marcas");
+  return GAME_MARKS.filter((mark) => values.includes(MARK_PARAMS[mark]));
+}
+
 /** Un parámetro inválido se ignora: la URL se puede editar a mano y nunca tiene que romper la pantalla. */
 export function parseLibraryView(search: string): LibraryView {
   const params = new URLSearchParams(search);
@@ -68,7 +86,8 @@ export function parseLibraryView(search: string): LibraryView {
       played: readRange(params, "played"),
       score: readRange(params, "score"),
       title: params.get("q") ?? "",
-      showHidden: params.get("hidden") === "1",
+      hidden: readHidden(params),
+      marks: readMarks(params),
     },
     sort: readSort(params),
   };
@@ -101,9 +120,11 @@ export function serializeLibraryView({ filters, sort }: LibraryView): string {
     params.set("q", filters.title);
   }
 
-  if (filters.showHidden) {
-    params.set("hidden", "1");
+  if (filters.hidden !== "exclude") {
+    params.set("hidden", HIDDEN_PARAMS[filters.hidden]);
   }
+
+  writeList(params, "marcas", filters.marks.map((mark) => MARK_PARAMS[mark]));
 
   if (sort !== DEFAULT_SORT) {
     params.set("sort", sort);

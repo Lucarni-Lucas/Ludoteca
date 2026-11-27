@@ -187,3 +187,21 @@ describe("GameCard con el puntaje", () => {
     expect(screen.queryByText(/Excelente/)).not.toBeInTheDocument();
   });
 });
+
+describe("GameCard con marcas", () => {
+  it("Completar al 100%", () => {
+    const game = buildGame({ status: statusByKey("completed"), hundredPercent: true });
+
+    renderWithIntl(<GameCard game={game} />);
+
+    expect(screen.getByText("Completado · 100%")).toBeInTheDocument();
+  });
+
+  it("«Lo probé» se ve en violeta", () => {
+    const game = buildGame({ status: statusByKey("tried") });
+
+    renderWithIntl(<GameCard game={game} />);
+
+    expect(screen.getByText("Lo probé").style.getPropertyValue("--badge-color")).toBe("var(--color-status-violet)");
+  });
+});

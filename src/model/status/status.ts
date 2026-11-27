@@ -1,7 +1,8 @@
 import type { StatusChangeEntry } from "@/model/journal/journal-entry";
+import { EndlessChangeNotAcceptedError } from "@/model/status/errors";
 import { STATUS_GROUPS, type StatusGroup } from "@/model/status/status-group";
 
-export const STATUS_COLORS = ["lime", "amber", "gray", "blue", "coral"] as const;
+export const STATUS_COLORS = ["lime", "amber", "gray", "blue", "coral", "violet"] as const;
 
 export type StatusColor = (typeof STATUS_COLORS)[number];
 
@@ -14,14 +15,9 @@ export const BACKLOG_KEY = "backlog";
 export const PLAYING_KEY = "playing";
 export const PAUSED_KEY = "paused";
 export const COMPLETED_KEY = "completed";
-export const HUNDRED_PERCENT_KEY = "hundred_percent";
 export const PLAYED_KEY = "played";
 export const ABANDONED_KEY = "abandoned";
 export const TRIED_KEY = "tried";
-
-/** Terminar la historia solo existe si el juego tiene final, y «Jugado» solo si no lo tiene. */
-const FINITE_ONLY_KEYS: readonly string[] = [COMPLETED_KEY, HUNDRED_PERCENT_KEY];
-const ENDLESS_ONLY_KEYS: readonly string[] = [PLAYED_KEY];
 
 export type Status = Readonly<{
   id: string;
@@ -44,29 +40,46 @@ export const DEFAULT_STATUSES: readonly DefaultStatus[] = [
   { group: "not_started", name: "Quiero jugarlo", color: "amber", position: 1, systemKey: WISHLIST_KEY },
   { group: "not_started", name: "Backlog", color: "gray", position: 2, systemKey: BACKLOG_KEY },
   { group: "finished", name: "Completado", color: "blue", position: 1, systemKey: COMPLETED_KEY },
-  { group: "finished", name: "100%", color: "blue", position: 2, systemKey: HUNDRED_PERCENT_KEY },
-  { group: "finished", name: "Jugado", color: "blue", position: 3, systemKey: PLAYED_KEY },
+  { group: "finished", name: "Jugado", color: "blue", position: 2, systemKey: PLAYED_KEY },
   { group: "dropped", name: "Abandonado", color: "coral", position: 1, systemKey: ABANDONED_KEY },
-  { group: "dropped", name: "Lo probé", color: "coral", position: 2, systemKey: TRIED_KEY },
+  // Probar un juego y que no enganche no es algo negativo: no lleva el coral de Dejado (`04` design.md §22).
+  { group: "dropped", name: "Lo probé", color: "violet", position: 2, systemKey: TRIED_KEY },
 ];
 
-export type OfferContext = Readonly<{
-  endless: boolean;
-  /** El estado que el juego ya tiene: se conserva aunque no se le ofrecería. */
-  currentId?: string | null;
-}>;
+/** Las marcas de un juego que dependen de su estado: «Sin fin» y «100%» (`04` design.md §22). */
+export type StatusMarks = Readonly<{ endless: boolean; hundredPercent: boolean }>;
 
-function fitsGame(status: Pick<Status, "systemKey">, endless: boolean): boolean {
-  const excluded = endless ? FINITE_ONLY_KEYS : ENDLESS_ONLY_KEYS;
-  return status.systemKey === null || !excluded.includes(status.systemKey);
+/** Lo que eligió el usuario: el aviso de «Sin fin» aceptado y la casilla «Lo completé al 100%». */
+export type MarkChoice = Readonly<{ acceptEndless?: boolean; hundredPercent?: boolean }>;
+
+/**
+ * Cómo cambia la marca «Sin fin» al pasar a `target`: «Jugado» la pone y «Completado» la saca. `null` si no
+ * cambia.
+ */
+export function endlessChangeOf(endless: boolean, target: Pick<Status, "systemKey">): boolean | null {
+  if (target.systemKey === PLAYED_KEY && !endless) {
+    return true;
+  }
+
+  return target.systemKey === COMPLETED_KEY && endless ? false : null;
 }
 
-/** Los estados que se ofrecen al elegir: los creados por el usuario, siempre (`04` design.md §19). */
-export function offeredStatuses<T extends Pick<Status, "id" | "systemKey">>(
-  statuses: readonly T[],
-  { endless, currentId = null }: OfferContext,
-): readonly T[] {
-  return statuses.filter((status) => status.id === currentId || fitsGame(status, endless));
+/**
+ * Las marcas que quedan al pasar a `target`. Cambiar «Sin fin» pide el aviso aceptado; «100%» solo vale en
+ * «Completado», y fuera de ese estado se borra.
+ */
+export function statusMarks(current: StatusMarks, target: Pick<Status, "systemKey">, choice: MarkChoice = {}): StatusMarks {
+  const endlessChange = endlessChangeOf(current.endless, target);
+
+  if (endlessChange !== null && choice.acceptEndless !== true) {
+    throw new EndlessChangeNotAcceptedError();
+  }
+
+  const completed = target.systemKey === COMPLETED_KEY;
+  return {
+    endless: endlessChange ?? current.endless,
+    hundredPercent: completed && (choice.hundredPercent ?? current.hundredPercent),
+  };
 }
 
 /** La clave de «qué significa» del catálogo: la tiene todo estado de fábrica, también renombrado. */
@@ -89,6 +102,11 @@ export function groupStatuses(statuses: readonly Status[]): readonly StatusGroup
 
 export function needsDefaultStatuses(statuses: readonly Status[]): boolean {
   return statuses.length === 0;
+}
+
+/** El estado elegido en un formulario; vacío es «el de entrada», el Backlog del usuario. */
+export function chosenOrBacklog(statuses: readonly Status[], statusId: string): Status | undefined {
+  return statusId === "" ? findStatusByKey(statuses, BACKLOG_KEY) : statuses.find((status) => status.id === statusId);
 }
 
 export function findStatusByKey(statuses: readonly Status[], systemKey: string): Status | undefined {

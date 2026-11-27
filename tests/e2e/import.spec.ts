@@ -239,8 +239,24 @@ test.describe("importación", () => {
     await expect(page.getByRole("status").filter({ hasText: "Entraron" })).toContainText("1 oculto");
     await page.goto("/library");
     await expect(gameCard(page, "112 Operator")).toHaveCount(0);
-    await page.getByRole("switch", { name: "Mostrar ocultos" }).click();
+    await page.getByRole("group", { name: "Ocultos" }).getByRole("button", { name: "Mostrar ocultos" }).click();
     await expect(gameCard(page, "112 Operator").getByText("OCULTO")).toBeVisible();
+  });
+
+  test("Otro estado: «Jugado» en un juego con final pide el aviso de «Sin fin»", async ({ page }) => {
+    await signInAsNewAccount(page);
+    await importAllSources(page);
+    await openGroup(page, "Elegí un estado");
+    await gameRow(page, "Hollow Knight").getByRole("button", { name: "Otro estado" }).click();
+
+    await page.getByRole("group", { name: "Estado de Hollow Knight" }).getByRole("button", { name: "Jugado" }).click();
+    const confirm = page.getByRole("dialog", { name: "Marca «Sin fin»" });
+    await expect(confirm).toContainText("Esto le pone la marca «Sin fin» al juego. ¿Estás de acuerdo?");
+    await confirm.getByRole("button", { name: "Aceptar" }).click();
+
+    await expect(toast(page, "«Hollow Knight» pasó a «Listos para importar» con «Jugado».")).toBeVisible();
+    await openGroup(page, "Listos para importar");
+    await expect(gameRow(page, "Hollow Knight")).toContainText("Entra como Jugado · sin fin");
   });
 
   test("Elegido sin jugar", async ({ page }) => {

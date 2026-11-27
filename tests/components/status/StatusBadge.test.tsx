@@ -71,4 +71,21 @@ describe("StatusBadge", () => {
 
     expect(tokenValue(reference)).toBe("#c5ccd8");
   });
+
+  it("Color de «Lo probé»", () => {
+    render(
+      <>
+        <StatusBadge group="dropped" color="violet">
+          Lo probé
+        </StatusBadge>
+        <StatusBadge group="dropped" color="coral">
+          Abandonado
+        </StatusBadge>
+      </>,
+    );
+
+    const colors = ["Lo probé", "Abandonado"].map((name) => tokenValue(screen.getByText(name).style.getPropertyValue("--badge-color")));
+
+    expect(colors).toEqual(["#c9a7ff", "var(--color-status-dropped)"]);
+  });
 });

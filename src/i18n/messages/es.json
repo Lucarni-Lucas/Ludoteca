@@ -47,6 +47,7 @@
     "PLAYED_HOURS_OUT_OF_RANGE": "Poné las horas jugadas, de 0 en adelante",
     "RELEASE_YEAR_OUT_OF_RANGE": "Poné un año entre {min} y {max}",
     "STATUS_NOT_FOUND": "No encontramos ese estado.",
+    "ENDLESS_CHANGE_NOT_ACCEPTED": "Ese estado cambia la marca «Sin fin»: aceptá el aviso para guardarlo.",
     "STORE_NOT_FOUND": "No encontramos esa tienda.",
     "INVALID_STORE_NAME": "Escribí un nombre de tienda con letras o números.",
     "INVALID_IMPORT_DECISION": "Esa opción no vale para este juego.",
@@ -185,7 +186,6 @@
     "store": "Tienda",
     "kind": "Cómo lo tenés",
     "lost": "Ya no lo tengo",
-    "showHidden": "Mostrar ocultos",
     "from": "Desde",
     "to": "Hasta",
     "withUnit": "{label} ({unit})",
@@ -202,7 +202,18 @@
     "all": "Todos",
     "title": "Filtros",
     "clear": "Limpiar",
-    "seeGames": "{count, plural, one {Ver # juego} other {Ver # juegos}}"
+    "seeGames": "{count, plural, one {Ver # juego} other {Ver # juegos}}",
+    "hidden": {
+      "title": "Ocultos",
+      "exclude": "No mostrar",
+      "include": "Mostrar ocultos",
+      "only": "Solo ocultos"
+    },
+    "marks": {
+      "title": "Marcas",
+      "endless": "Sin fin",
+      "hundred_percent": "100%"
+    }
   },
   "status": {
     "groups": {
@@ -217,7 +228,6 @@
       "wishlist": "Quiero jugarlo",
       "backlog": "Backlog",
       "completed": "Completado",
-      "hundred_percent": "100%",
       "played": "Jugado",
       "abandoned": "Abandonado",
       "tried": "Lo probé"
@@ -228,7 +238,6 @@
       "wishlist": "Lo querés jugar pronto, lo tengas o no",
       "backlog": "Lo vas a jugar en algún momento, sin apuro",
       "completed": "Terminaste la historia principal",
-      "hundred_percent": "Lo terminaste todo",
       "played": "Un juego sin fin que jugaste y ya no",
       "abandoned": "Lo jugaste en serio y lo dejaste sin terminar",
       "tried": "Lo jugaste un rato y no te enganchó"
@@ -243,6 +252,14 @@
       "finishedTitle": "¡Terminado!",
       "finishedNote": "Guardamos la fecha de hoy como fecha de fin. Después podés ponerle puntaje.",
       "note": "El cambio queda registrado con la fecha de hoy."
+    },
+    "hundredPercent": "Lo completé al 100%",
+    "withHundredPercent": "{status} · 100%",
+    "endlessConfirm": {
+      "title": "Marca «Sin fin»",
+      "add": "{count, plural, one {Esto le pone la marca «Sin fin» al juego. ¿Estás de acuerdo?} other {Esto le pone la marca «Sin fin» a # juegos. ¿Estás de acuerdo?}}",
+      "remove": "{count, plural, one {Esto le saca la marca «Sin fin» al juego. ¿Estás de acuerdo?} other {Esto le saca la marca «Sin fin» a # juegos. ¿Estás de acuerdo?}}",
+      "accept": "Aceptar"
     }
   },
   "library": {
@@ -560,7 +577,7 @@
       "entersEndless": "sin fin",
       "inLibraryAdds": "Ya está en tu biblioteca · suma {copies}",
       "notImported": "No se importa · no es un juego",
-      "allStatuses": "Estados para este juego",
+      "allStatuses": "Todos los estados",
       "apply": "Aplicar",
       "answersFor": "Respuestas para {title}",
       "otherStatusMany": "Estado de {count, plural, one {# juego} other {# juegos}}",

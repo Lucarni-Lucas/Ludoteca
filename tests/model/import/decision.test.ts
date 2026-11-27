@@ -344,3 +344,58 @@ describe("«¿Cómo lo dejaste?» en un juego solo multijugador", () => {
     expect(after.group).toBe("endless");
   });
 });
+
+describe("«Otro estado» y la marca «Sin fin»", () => {
+  const hunt = () =>
+    entry("Hunt: Showdown", [playniteItem("Hunt: Showdown", EPIC, "hunt", { playtimeMinutes: 25 * 60 })], { multiplayerOnly: true });
+
+  it("Otro estado: «Jugado» en un juego con final, con el aviso, guarda el estado y la marca", () => {
+    const frostpunk = entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)]);
+    const choice = { kind: "status" as const, status: statusRef("played"), endless: true };
+
+    const plan = planDecision([view(frostpunk)], { kind: "choose", choice }, CONTEXT);
+
+    const [after] = applyPlan([frostpunk], plan).map(view);
+    expect(plan.writes).toEqual([{ entryIds: [frostpunk.id], write: { answers: { statusId: "played", endlessAnswer: true } } }]);
+    expect(after).toMatchObject({ group: "ready", suggestion: { status: { systemKey: "played" }, endless: true } });
+  });
+
+  it("«Completado» en un juego solo multijugador, con el aviso, le saca la marca", () => {
+    const value = hunt();
+    const choice = { kind: "status" as const, status: statusRef("completed"), endless: false };
+
+    const plan = planDecision([view(value)], { kind: "choose", choice }, CONTEXT);
+
+    const [after] = applyPlan([value], plan).map(view);
+    expect(after).toMatchObject({ group: "ready", endless: false, suggestion: { status: { systemKey: "completed" }, endless: false } });
+  });
+
+  it("un estado que cambia la marca sin el aviso da InvalidImportDecisionError", () => {
+    const frostpunk = entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)]);
+
+    const decide = () => planDecision([view(frostpunk)], { kind: "choose", choice: { kind: "status", status: statusRef("played") } }, CONTEXT);
+
+    expect(decide).toThrow(InvalidImportDecisionError);
+  });
+
+  it("las respuestas fijas de «Elegí un estado» no piden el aviso", () => {
+    const value = hunt();
+
+    const plan = planDecision([view(value)], { kind: "choose", choice: { kind: "status", status: statusRef("played") } }, CONTEXT);
+
+    expect(plan.writes).toEqual([{ entryIds: [value.id], write: { answers: { statusId: "played" } } }]);
+  });
+
+  it("en lote, el aviso vale para los que cambian y los demás guardan solo el estado", () => {
+    const frostpunk = entry("Frostpunk", [steamItem("Frostpunk", "323190", 12 * 60)]);
+    const value = hunt();
+    const choice = { kind: "status" as const, status: statusRef("played"), endless: true };
+
+    const plan = planDecision([view(frostpunk), view(value)], { kind: "choose", choice }, CONTEXT);
+
+    expect(plan.writes).toEqual([
+      { entryIds: [frostpunk.id], write: { answers: { statusId: "played", endlessAnswer: true } } },
+      { entryIds: [value.id], write: { answers: { statusId: "played" } } },
+    ]);
+  });
+});

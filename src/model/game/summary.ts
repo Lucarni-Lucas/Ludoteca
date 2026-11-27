@@ -1,5 +1,5 @@
 import { COPY_KINDS, isLost } from "@/model/copy/copy";
-import { type CopyKindFilter, LOST_KIND, visibleGames } from "@/model/game/filters";
+import { type CopyKindFilter, GAME_MARKS, type GameMark, type HiddenFilter, LOST_KIND, marksOf, visibleGames } from "@/model/game/filters";
 import type { LibraryGame } from "@/model/game/library-game";
 import { isWishlist } from "@/model/status/status";
 import type { StatusGroup } from "@/model/status/status-group";
@@ -19,6 +19,7 @@ export type LibraryCounts = Readonly<{
   groups: Readonly<Partial<Record<StatusGroup, number>>>;
   stores: Tally;
   kinds: Readonly<Record<CopyKindFilter, number>>;
+  marks: Readonly<Record<GameMark, number>>;
 }>;
 
 export type StoreOption = Readonly<{ id: string; name: string }>;
@@ -29,7 +30,7 @@ function currentCopies(game: LibraryGame) {
 
 /** Nunca cuenta los ocultos: aunque se muestren, no son parte de la biblioteca. */
 export function summarizeLibrary(games: readonly LibraryGame[]): LibrarySummary {
-  const interesting = visibleGames(games, false);
+  const interesting = visibleGames(games, "exclude");
   const owned = interesting.filter((game) => currentCopies(game).length > 0);
 
   return {
@@ -63,9 +64,13 @@ function withEveryKind(counts: Tally): Readonly<Record<CopyKindFilter, number>> 
   return Object.fromEntries(kinds.map((kind) => [kind, counts[kind] ?? 0])) as Record<CopyKindFilter, number>;
 }
 
+function withEveryMark(counts: Tally): Readonly<Record<GameMark, number>> {
+  return Object.fromEntries(GAME_MARKS.map((mark) => [mark, counts[mark] ?? 0])) as Record<GameMark, number>;
+}
+
 /** Las cantidades son sobre toda la biblioteca visible, no sobre el resultado de los otros filtros. */
-export function countLibraryOptions(games: readonly LibraryGame[], showHidden: boolean): LibraryCounts {
-  const visible = visibleGames(games, showHidden);
+export function countLibraryOptions(games: readonly LibraryGame[], hidden: HiddenFilter): LibraryCounts {
+  const visible = visibleGames(games, hidden);
 
   return {
     total: visible.length,
@@ -73,6 +78,7 @@ export function countLibraryOptions(games: readonly LibraryGame[], showHidden: b
     groups: tally(visible.map((game) => game.status.group)),
     stores: countGamesWith(visible, (game) => game.copies.map((copy) => copy.storeId)),
     kinds: withEveryKind(countGamesWith(visible, kindKeys)),
+    marks: withEveryMark(countGamesWith(visible, marksOf)),
   };
 }
 

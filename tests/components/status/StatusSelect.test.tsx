@@ -26,11 +26,14 @@ describe("StatusSelect", () => {
     expect(select).toHaveAccessibleDescription("Lo vas a jugar en algún momento, sin apuro");
   });
 
-  it("no ofrece «Jugado» a un juego nuevo, que todavía no es sin fin", () => {
+  it("ofrece todos los estados, también «Jugado», y no «100%»", () => {
     renderSelect();
 
-    expect(screen.queryByRole("option", { name: "Jugado" })).not.toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Completado" })).toBeInTheDocument();
+    const options = screen.getAllByRole("option").map((option) => option.textContent);
+
+    expect(options).toContain("Jugado");
+    expect(options).toContain("Completado");
+    expect(options).not.toContain("100%");
   });
 
   it("muestra la línea del estado elegido", async () => {

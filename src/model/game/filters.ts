@@ -1,5 +1,5 @@
 import { type CopyKind, isLost } from "@/model/copy/copy";
-import { effectiveHours, hasPlayedHours, type LibraryGame, playedHours } from "@/model/game/library-game";
+import { effectiveEndless, effectiveHours, hasPlayedHours, type LibraryGame, playedHours } from "@/model/game/library-game";
 import { normalizeText } from "@/model/game/normalize-text";
 import type { StatusGroup } from "@/model/status/status-group";
 
@@ -11,6 +11,16 @@ export type NumberRange = Readonly<{ min: number | null; max: number | null }>;
 
 export const NO_RANGE: NumberRange = { min: null, max: null };
 
+/** «No mostrar», «Mostrar ocultos» y «Solo ocultos» (`04` design.md §22). */
+export const HIDDEN_FILTERS = ["exclude", "include", "only"] as const;
+
+export type HiddenFilter = (typeof HIDDEN_FILTERS)[number];
+
+/** Las marcas del juego: «Sin fin» y «100%». */
+export const GAME_MARKS = ["endless", "hundred_percent"] as const;
+
+export type GameMark = (typeof GAME_MARKS)[number];
+
 export type LibraryFilters = Readonly<{
   statusIds: readonly string[];
   groups: readonly StatusGroup[];
@@ -20,7 +30,8 @@ export type LibraryFilters = Readonly<{
   played: NumberRange;
   score: NumberRange;
   title: string;
-  showHidden: boolean;
+  hidden: HiddenFilter;
+  marks: readonly GameMark[];
 }>;
 
 export const NO_FILTERS: LibraryFilters = {
@@ -32,7 +43,8 @@ export const NO_FILTERS: LibraryFilters = {
   played: NO_RANGE,
   score: NO_RANGE,
   title: "",
-  showHidden: false,
+  hidden: "exclude",
+  marks: [],
 };
 
 export const DURATION_PRESET_IDS = ["under5", "from5to15", "from15to40", "over40"] as const;
@@ -104,13 +116,29 @@ function playedValue(game: LibraryGame): number | null {
   return hasPlayedHours(game) ? playedHours(game) : null;
 }
 
-export function visibleGames(games: readonly LibraryGame[], showHidden: boolean): readonly LibraryGame[] {
-  return showHidden ? games : games.filter((game) => !game.hidden);
+export function visibleGames(games: readonly LibraryGame[], hidden: HiddenFilter): readonly LibraryGame[] {
+  switch (hidden) {
+    case "include":
+      return games;
+    case "only":
+      return games.filter((game) => game.hidden);
+    case "exclude":
+      return games.filter((game) => !game.hidden);
+  }
+}
+
+export function marksOf(game: LibraryGame): readonly GameMark[] {
+  return GAME_MARKS.filter((mark) => (mark === "endless" ? effectiveEndless(game) : game.hundredPercent === true));
+}
+
+/** Como los demás filtros: varias marcas valen como «cualquiera de ellas». */
+function matchesMarks(game: LibraryGame, marks: readonly GameMark[]): boolean {
+  return marks.length === 0 || marksOf(game).some((mark) => marks.includes(mark));
 }
 
 /** Cada filtro se evalúa por separado: Civilization VI (Epic gratis, Steam comprado) aparece con Steam + Gratis. */
 export function filterLibrary(games: readonly LibraryGame[], filters: LibraryFilters): readonly LibraryGame[] {
-  return visibleGames(games, filters.showHidden).filter(
+  return visibleGames(games, filters.hidden).filter(
     (game) =>
       matchesStatus(game, filters) &&
       matchesStore(game, filters.storeIds) &&
@@ -118,6 +146,7 @@ export function filterLibrary(games: readonly LibraryGame[], filters: LibraryFil
       matchesRange(effectiveHours(game), filters.duration) &&
       matchesRange(playedValue(game), filters.played) &&
       matchesRange(game.score, filters.score) &&
+      matchesMarks(game, filters.marks) &&
       matchesTitle(game, filters.title),
   );
 }
@@ -131,6 +160,16 @@ export function hasActiveFilters(filters: LibraryFilters): boolean {
     isRangeActive(filters.duration) ||
     isRangeActive(filters.played) ||
     isRangeActive(filters.score) ||
+    filters.marks.length > 0 ||
+    filters.hidden === "only" ||
     filters.title.trim() !== ""
   );
+}
+
+/**
+ * «Limpiar» deja todo sin filtrar. «Mostrar ocultos» se conserva porque no esconde nada; «Solo ocultos» sí es un
+ * filtro y vuelve a «No mostrar» (`04` design.md §22).
+ */
+export function clearedFilters(filters: LibraryFilters): LibraryFilters {
+  return { ...NO_FILTERS, hidden: filters.hidden === "include" ? "include" : "exclude" };
 }

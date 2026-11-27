@@ -9,6 +9,8 @@ export type GameCorrections = Readonly<{
   estimatedHours: number | null;
   endless: boolean | null;
   coverUrl: string | null;
+  /** «Lo completé al 100%» desde «Editar»: solo vale en «Completado» (`04` design.md §22). */
+  hundredPercent?: boolean;
 }>;
 
 /** Datos planos: esta misma forma viaja al navegador, donde corren los filtros. */
@@ -33,6 +35,8 @@ export type LibraryGame = Readonly<{
   manualPlayedMinutes: number | null;
   /** La duración principal de HowLongToBeat que trajo IGN al importar; no es una corrección (`04` §16). */
   hltbHours?: number;
+  /** La marca «100%» de un juego en «Completado»; vacío es `false`, como en los juegos de siempre. */
+  hundredPercent?: boolean;
 }>;
 
 type GameData = Pick<LibraryGame, "catalog" | "corrections" | "hltbHours">;
@@ -98,6 +102,8 @@ export type CorrectionsForm = Readonly<{
   estimatedHours: number | null;
   endless: boolean;
   coverUrl: string | null;
+  /** Solo si el juego está en «Completado»: la casilla «Lo completé al 100%» de «Editar». */
+  hundredPercent?: boolean;
 }>;
 
 /** Vacío significa «usá el catálogo»: si la marca coincide con la del catálogo, no es una corrección. */
@@ -106,6 +112,7 @@ export function toCorrections(game: GameData, form: CorrectionsForm): GameCorrec
     estimatedHours: form.estimatedHours,
     endless: form.endless === game.catalog.endless ? null : form.endless,
     coverUrl: form.coverUrl,
+    ...(form.hundredPercent === undefined ? {} : { hundredPercent: form.hundredPercent }),
   };
 }
 

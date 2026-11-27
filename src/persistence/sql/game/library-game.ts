@@ -20,6 +20,8 @@ export const libraryGame = pgTable(
     score: scoreColumn("score"),
     // Antes «Sin interés» (`not_interested`): lo tenés pero no lo pensás jugar.
     hidden: boolean("hidden").notNull().default(false),
+    // La marca «100%» de un juego en «Completado» (04 design.md §22).
+    hundredPercent: boolean("hundred_percent").notNull().default(false),
     // En minutos, como copy.playtime_minutes; vacío si no hay total a mano.
     playedMinutesManual: integer("played_minutes_manual"),
     estimatedHours: hoursColumn("estimated_hours"),

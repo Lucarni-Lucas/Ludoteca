@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import { EndlessChangeNotAcceptedError } from "@/model/status/errors";
 import {
   DEFAULT_STATUSES,
   finishedOn,
   groupStatuses,
   hasDefaultName,
-  offeredStatuses,
   planStatusChange,
   type Status,
+  statusMarks,
   statusMeaningKey,
 } from "@/model/status/status";
 
@@ -130,7 +131,7 @@ describe("estados por defecto", () => {
   it("Estado «Jugado»", () => {
     const names = namesOf("finished");
 
-    expect(names).toEqual(["Completado", "100%", "Jugado"]);
+    expect(names).toEqual(["Completado", "Jugado"]);
   });
 
   it("Sin empezar", () => {
@@ -147,54 +148,6 @@ describe("estados por defecto", () => {
   });
 });
 
-describe("offeredStatuses", () => {
-  const ALL: readonly Status[] = DEFAULT_STATUSES.map((value) => ({ ...value, id: value.systemKey ?? value.name }));
-  const replaying = status({ id: "rejugando", name: "Rejugando", position: 3, systemKey: null });
-
-  function offeredKeys(statuses: readonly Status[], endless: boolean, currentId: string | null = null): readonly string[] {
-    return offeredStatuses(statuses, { endless, currentId }).map(({ id }) => id);
-  }
-
-  it("Juego sin fin", () => {
-    const offered = offeredKeys(ALL, true);
-
-    expect(offered).toContain("played");
-    expect(offered).not.toContain("completed");
-    expect(offered).not.toContain("hundred_percent");
-  });
-
-  it("Juego con final", () => {
-    const offered = offeredKeys(ALL, false);
-
-    expect(offered).toContain("completed");
-    expect(offered).toContain("hundred_percent");
-    expect(offered).not.toContain("played");
-  });
-
-  it("ofrece siempre los estados creados por el usuario", () => {
-    const statuses = [...ALL, replaying];
-
-    const offered = [offeredKeys(statuses, true), offeredKeys(statuses, false)];
-
-    expect(offered.every((keys) => keys.includes("rejugando"))).toBe(true);
-  });
-
-  it("conserva el estado actual aunque no se le ofrecería", () => {
-    const offered = offeredKeys(ALL, true, "completed");
-
-    expect(offered).toContain("completed");
-    expect(offered).not.toContain("hundred_percent");
-  });
-
-  it("ofrece los demás estados en los dos casos", () => {
-    const shared = ["playing", "paused", "wishlist", "backlog", "abandoned", "tried"];
-
-    const offered = [offeredKeys(ALL, true), offeredKeys(ALL, false)];
-
-    expect(offered.every((keys) => shared.every((key) => keys.includes(key)))).toBe(true);
-  });
-});
-
 describe("statusMeaningKey", () => {
   it.each([
     { name: "un estado de fábrica tiene su línea", value: status(), expected: "playing" },
@@ -204,5 +157,83 @@ describe("statusMeaningKey", () => {
     const key = statusMeaningKey(value);
 
     expect(key).toBe(expected);
+  });
+});
+
+describe("statusMarks", () => {
+  const played = { systemKey: "played" };
+  const completedTarget = { systemKey: "completed" };
+  const FINITE = { endless: false, hundredPercent: false };
+  const ENDLESS = { endless: true, hundredPercent: false };
+
+  it("«Jugado» en un juego con final, sin el aviso aceptado, da EndlessChangeNotAcceptedError", () => {
+    const mark = () => statusMarks(FINITE, played);
+
+    expect(mark).toThrow(EndlessChangeNotAcceptedError);
+  });
+
+  it("«Jugado» en un juego con final, con el aviso aceptado, le pone la marca «Sin fin»", () => {
+    const marks = statusMarks(FINITE, played, { acceptEndless: true });
+
+    expect(marks).toEqual({ endless: true, hundredPercent: false });
+  });
+
+  it("«Completado» en un juego sin fin, con el aviso aceptado, le saca la marca «Sin fin»", () => {
+    const marks = statusMarks(ENDLESS, completedTarget, { acceptEndless: true });
+
+    expect(marks).toEqual({ endless: false, hundredPercent: false });
+  });
+
+  it("«Completado» en un juego sin fin, sin el aviso, da EndlessChangeNotAcceptedError", () => {
+    const mark = () => statusMarks(ENDLESS, completedTarget);
+
+    expect(mark).toThrow(EndlessChangeNotAcceptedError);
+  });
+
+  it("«Jugado» en un juego que ya es sin fin no pide el aviso", () => {
+    const marks = statusMarks(ENDLESS, played);
+
+    expect(marks).toEqual({ endless: true, hundredPercent: false });
+  });
+
+  it("Completar al 100%", () => {
+    const marks = statusMarks(FINITE, completedTarget, { hundredPercent: true });
+
+    expect(marks).toEqual({ endless: false, hundredPercent: true });
+  });
+
+  it("«100%» solo vale en «Completado»", () => {
+    const marks = statusMarks(FINITE, { systemKey: "playing" }, { hundredPercent: true });
+
+    expect(marks.hundredPercent).toBe(false);
+  });
+
+  it("Salir de Completado", () => {
+    const marks = statusMarks({ endless: false, hundredPercent: true }, { systemKey: "playing" });
+
+    expect(marks).toEqual({ endless: false, hundredPercent: false });
+  });
+
+  it("quedarse en «Completado» sin tocar la casilla conserva «100%»", () => {
+    const marks = statusMarks({ endless: false, hundredPercent: true }, completedTarget);
+
+    expect(marks.hundredPercent).toBe(true);
+  });
+
+  it("un estado creado por el usuario no cambia ninguna marca", () => {
+    const marks = statusMarks(ENDLESS, { systemKey: null });
+
+    expect(marks).toEqual(ENDLESS);
+  });
+});
+
+describe("Color de «Lo probé»", () => {
+  it("«Lo probé» es violeta y «Abandonado», coral", () => {
+    const colors = DEFAULT_STATUSES.filter((value) => value.group === "dropped").map(({ name, color }) => [name, color]);
+
+    expect(colors).toEqual([
+      ["Abandonado", "coral"],
+      ["Lo probé", "violet"],
+    ]);
   });
 });

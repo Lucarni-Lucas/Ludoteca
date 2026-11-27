@@ -12,7 +12,8 @@ import { resolveInitialStatus } from "@/model/game/initial-status";
 import { validateReleaseYear } from "@/model/game/release-year";
 import { playedMinutesFromHours } from "@/model/game/played-hours";
 import { normalizeOptionalScore } from "@/model/game/score";
-import type { Status } from "@/model/status/status";
+import { initialMarks } from "@/model/game/game-status";
+import type { MarkChoice, Status } from "@/model/status/status";
 import type { StoreChoice, StoreResolver } from "@/service/copy/store-resolver";
 
 export type NewCopyInput = CopyRow<StoreChoice>;
@@ -24,6 +25,9 @@ export type LibraryEntryInput = Readonly<{
   score: number | null;
   /** Opcional: vacío es «sin total a mano». */
   playedHours?: number | null;
+  /** El aviso de «Sin fin» aceptado y la casilla «Lo completé al 100%» (`04` design.md §22). */
+  acceptEndless?: boolean;
+  hundredPercent?: boolean;
 }>;
 
 export const EMPTY_ENTRY_INPUT: LibraryEntryInput = { statusId: null, copies: [], score: null };
@@ -63,6 +67,7 @@ type ValidEntry = Readonly<{
   rows: readonly ValidCopyRow<StoreChoice>[];
   score: number | null;
   playedMinutes: number | null;
+  marks: MarkChoice;
 }>;
 
 /** Todo lo que se puede rechazar sin tocar la base va primero: así un error no deja una tienda «Otra» creada. */
@@ -72,6 +77,7 @@ function validateEntry(input: LibraryEntryInput): ValidEntry {
     rows: validateCopyRows(input.copies),
     score: normalizeOptionalScore(input.score),
     playedMinutes: playedMinutesFromHours(input.playedHours ?? null),
+    marks: { acceptEndless: input.acceptEndless, hundredPercent: input.hundredPercent },
   };
 }
 
@@ -101,7 +107,8 @@ export function createCatalogService({
     const copies = await resolveCopies(userId, entry.rows);
 
     const played = entry.playedMinutes === null ? {} : { playedMinutes: entry.playedMinutes };
-    return { statusId: status.id, statusSince: today, copies, score: entry.score, ...played };
+    const marks = initialMarks(status, entry.marks);
+    return { statusId: status.id, statusSince: today, copies, score: entry.score, ...played, ...(marks ? { marks } : {}) };
   }
 
   return {

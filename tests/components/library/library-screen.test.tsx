@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -61,7 +61,7 @@ describe("LibraryScreen", () => {
     const user = userEvent.setup();
     renderScreen([visible, hidden]);
 
-    await user.click(screen.getByRole("switch", { name: "Mostrar ocultos" }));
+    await user.click(within(screen.getAllByRole("group", { name: "Ocultos" })[0]).getByRole("button", { name: "Mostrar ocultos" }));
 
     expect(screen.getByText("8BitMMO")).toBeInTheDocument();
     expect(screen.getByText("OCULTO")).toBeInTheDocument();

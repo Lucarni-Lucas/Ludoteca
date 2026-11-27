@@ -2,7 +2,7 @@ import type { CopyKind } from "@/model/copy/copy";
 import { InvalidImportDecisionError } from "@/model/import/errors";
 import type { DecisionWrite, ImportCandidate } from "@/model/import/import-entry";
 import type { ReviewChoice, ReviewGame } from "@/model/import/review";
-import { BACKLOG_KEY, findStatusByKey, offeredStatuses, type Status } from "@/model/status/status";
+import { BACKLOG_KEY, endlessChangeOf, findStatusByKey, type Status } from "@/model/status/status";
 import { STEAM_SLUG } from "@/model/store/store";
 
 /** Lo que el usuario hace con uno o varios juegos de un grupo. */
@@ -72,13 +72,33 @@ function steamCopyWrite(game: ReviewGame, copyKind: CopyKind): GameWrite {
 }
 
 /**
- * Una respuesta de la fila, o uno de «Otro estado» que se le ofrece al juego. Los estados de IGN de «¿Cómo lo
- * dejaste?» valen aunque no se le ofrecerían: Overwatch, solo multijugador, sigue después a «¿Es sin fin?».
+ * Uno de «Otro estado»: cualquier estado activo. Si cambia la marca «Sin fin» (Jugado en un juego que no es solo
+ * multijugador, Completado en uno que sí), la respuesta trae el aviso aceptado en `endless`, y se guarda en
+ * `endless_answer` como si se hubiera contestado «¿Es sin fin?» (`04` design.md §22).
  */
-function statusWrite(game: ReviewGame, statusId: string, context: DecisionContext): GameWrite {
-  const inRow = game.choices.some((choice) => choice.kind === "status" && choice.status.id === statusId);
-  const offered = offeredStatuses(context.statuses, { endless: game.endless }).some((status) => status.id === statusId);
-  return inRow || offered ? answer({ statusId }) : invalid();
+function otherStatusWrite(game: ReviewGame, status: Status, endless: boolean | undefined): GameWrite {
+  const change = endlessChangeOf(game.endless, status);
+
+  if (change === null) {
+    return answer({ statusId: status.id });
+  }
+
+  return endless === change ? answer({ statusId: status.id, endlessAnswer: change }) : invalid();
+}
+
+/**
+ * Una respuesta fija de la fila vale tal cual, sin aviso: Overwatch, solo multijugador, con «Lo terminaste» sigue
+ * después a «¿Es sin fin?». Si no es de la fila, es de «Otro estado».
+ */
+function statusWrite(game: ReviewGame, choice: Extract<ReviewChoice, { kind: "status" }>, context: DecisionContext): GameWrite {
+  const inRow = game.choices.some((offered) => offered.kind === "status" && offered.status.id === choice.status.id);
+
+  if (inRow) {
+    return answer({ statusId: choice.status.id });
+  }
+
+  const status = context.statuses.find(({ id }) => id === choice.status.id);
+  return status ? otherStatusWrite(game, status, choice.endless) : invalid();
 }
 
 /** «Ocultar»: entra oculto, en el Backlog del usuario. */
@@ -118,7 +138,7 @@ function offeredWrite(game: ReviewGame, choice: ReviewChoice, context: DecisionC
 
 function choiceWrite(game: ReviewGame, choice: ReviewChoice, context: DecisionContext): GameWrite {
   if (choice.kind === "status") {
-    return statusWrite(game, choice.status.id, context);
+    return statusWrite(game, choice, context);
   }
 
   if (choice.kind === "copy_kind") {

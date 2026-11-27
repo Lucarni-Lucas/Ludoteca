@@ -1,17 +1,18 @@
 import { assertIgdbGame, assertManualGame } from "@/model/game/add-game";
 import type { IgdbGameData } from "@/model/game/catalog";
 import { GameNotFoundError } from "@/model/game/errors";
+import { correctionsToSave, type MarksUpdate, planGameStatusChange } from "@/model/game/game-status";
 import type { GameCorrections, LibraryGame } from "@/model/game/library-game";
 import { planGameRemoval, type GameRemovalPlan } from "@/model/game/removal";
 import { normalizeOptionalScore } from "@/model/game/score";
 import { StatusNotFoundError } from "@/model/status/errors";
-import { planStatusChange, type Status, type StatusChangePlan } from "@/model/status/status";
+import type { MarkChoice, Status, StatusChangePlan } from "@/model/status/status";
 
 type LibraryServiceDependencies = Readonly<{
   gameRepo: Readonly<{
     listLibrary(userId: string): Promise<readonly LibraryGame[]>;
     findById(userId: string, gameId: string): Promise<LibraryGame | null>;
-    applyStatusChange(userId: string, gameId: string, plan: StatusChangePlan): Promise<void>;
+    applyStatusChange(userId: string, gameId: string, plan: StatusChangePlan | null, marks?: MarksUpdate): Promise<void>;
     updateCorrections(userId: string, gameId: string, corrections: GameCorrections): Promise<void>;
     updateScore(userId: string, gameId: string, score: number | null): Promise<void>;
     setHidden(userId: string, gameIds: readonly string[], hidden: boolean): Promise<void>;
@@ -27,7 +28,7 @@ type LibraryServiceDependencies = Readonly<{
 export type LibraryService = Readonly<{
   listLibrary(userId: string): Promise<readonly LibraryGame[]>;
   findGame(userId: string, gameId: string): Promise<LibraryGame | null>;
-  changeStatus(userId: string, gameId: string, statusId: string): Promise<void>;
+  changeStatus(userId: string, gameId: string, statusId: string, choice?: MarkChoice): Promise<void>;
   setScore(userId: string, gameId: string, score: number | null): Promise<number | null>;
   updateCorrections(userId: string, gameId: string, corrections: GameCorrections): Promise<void>;
   setHidden(userId: string, gameIds: readonly string[], hidden: boolean): Promise<void>;
@@ -83,11 +84,13 @@ export function createLibraryService({
       return gameRepo.findById(userId, gameId);
     },
 
-    async changeStatus(userId, gameId, statusId) {
+    async changeStatus(userId, gameId, statusId, choice) {
       const [game, target] = await Promise.all([getGame(userId, gameId), getStatus(userId, statusId)]);
-      const plan = planStatusChange(game, target, clock.today());
+      const { plan, marks } = planGameStatusChange(game, target, clock.today(), choice);
 
-      if (plan) {
+      if (marks) {
+        await gameRepo.applyStatusChange(userId, gameId, plan, marks);
+      } else if (plan) {
         await gameRepo.applyStatusChange(userId, gameId, plan);
       }
     },
@@ -101,8 +104,8 @@ export function createLibraryService({
     },
 
     async updateCorrections(userId, gameId, corrections) {
-      await getGame(userId, gameId);
-      await gameRepo.updateCorrections(userId, gameId, corrections);
+      const game = await getGame(userId, gameId);
+      await gameRepo.updateCorrections(userId, gameId, correctionsToSave(game, corrections));
     },
 
     setHidden(userId, gameIds, hidden) {

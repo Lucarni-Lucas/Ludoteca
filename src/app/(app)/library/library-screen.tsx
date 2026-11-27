@@ -71,8 +71,8 @@ export function LibraryScreen({ games, statusGroups, avatarInitial, initialSearc
 
   const results = useMemo(() => sortLibrary(filterLibrary(games, filters), sort), [games, filters, sort]);
   const counts = useMemo(
-    () => countLibraryOptions(games, filters.showHidden),
-    [games, filters.showHidden],
+    () => countLibraryOptions(games, filters.hidden),
+    [games, filters.hidden],
   );
   const stores = useMemo(() => listStoreOptions(games), [games]);
   const summary = useMemo(() => summarizeLibrary(games), [games]);

@@ -31,6 +31,7 @@ Cada archivo es **una pantalla** escrita en HTML con estilos inline. Ahí están
 | Aviso / "no es tuyo" / quiero jugarlo | `#FFC66B` |
 | Terminado | `#8EC5FF` |
 | Dejado | `#FF9C8A` |
+| Lo probé (desde `04`) | `#C9A7FF` |
 | Títulos | Space Grotesk 700 |
 | Texto | Inter 400–600 |
 | Etiquetas y números | JetBrains Mono 500 |

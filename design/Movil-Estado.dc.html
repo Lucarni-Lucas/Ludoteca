@@ -46,7 +46,7 @@ input::placeholder,textarea::placeholder{color:#7D8696}
           </div>
         </div>
       </sc-for>
-      <p style="margin: 0; font-size: 12px; color: #9AA3B2">Disco Elysium tiene final: no se ofrece «Jugado». A un juego sin fin se le ofrece «Jugado» en lugar de «Completado» y «100%».</p>
+      <p style="margin: 0; font-size: 12px; color: #9AA3B2">Se ofrecen todos los estados. Disco Elysium tiene final: «Jugado» le pone la marca «Sin fin» y lo pregunta al guardar.</p>
       <a href="Movil-Estados.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 14px; font-weight: 600; text-decoration: none">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path></svg>
         Editar o crear estados
@@ -90,6 +90,9 @@ input::placeholder,textarea::placeholder{color:#7D8696}
 
     <sc-if value="{{finished}}" hint-placeholder-val="{{ false }}">
       <p style="margin: 0; padding-top: 18px; border-top: 1px solid #222832; font-size: 14px; color: #C5CCD8">Se guarda la fecha de hoy como fecha de fin. Después podés ponerle puntaje y reseña.</p>
+      <sc-if value="{{completed}}" hint-placeholder-val="{{ false }}">
+        <label style="display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; color: #ECEEF2; cursor: pointer"><input type="checkbox" style="width: 20px; height: 20px; accent-color: #C8F25A"> Lo completé al 100%</label>
+      </sc-if>
     </sc-if>
   </section>
 
@@ -107,7 +110,7 @@ class Component extends DCLogic {
     const GROUPS = [
       ['En curso', [['jugando', 'Jugando', 'Lo estás jugando ahora'], ['pausa', 'En pausa', 'Lo empezaste y pensás volver']]],
       ['Sin empezar', [['quiero', 'Quiero jugarlo', 'Lo querés jugar pronto, lo tengas o no'], ['backlog', 'Backlog', 'Lo vas a jugar en algún momento, sin apuro']]],
-      ['Terminado', [['completado', 'Completado', 'Terminaste la historia principal'], ['cien', '100%', 'Lo terminaste todo']]],
+      ['Terminado', [['completado', 'Completado', 'Terminaste la historia principal'], ['jugado', 'Jugado', 'Un juego sin fin que jugaste y ya no']]],
       ['Dejado', [['abandonado', 'Abandonado', 'Lo jugaste en serio y lo dejaste sin terminar'], ['loprobe', 'Lo probé', 'Lo jugaste un rato y no te enganchó']]]
     ];
     const LABEL = {};
@@ -145,7 +148,8 @@ class Component extends DCLogic {
       groups,
       reasons,
       askWhy,
-      finished: status === 'completado' || status === 'cien',
+      finished: status === 'completado' || status === 'jugado',
+      completed: status === 'completado',
       whyTitle: status === 'pausa' ? '¿Por qué lo pausás?' : '¿Por qué lo dejás?',
       cta: `Guardar como «${LABEL[status]}»`
     };

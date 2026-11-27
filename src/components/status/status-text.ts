@@ -20,6 +20,11 @@ export function useStatusText() {
 
   return {
     name: (status: Pick<Status, "name" | "systemKey">): string => statusName(status, t),
+    /** «Completado · 100%»: el nombre con la marca, en la tarjeta y en la ficha (`04` design.md §22). */
+    label(status: Pick<Status, "name" | "systemKey">, hundredPercent: boolean): string {
+      const name = statusName(status, t);
+      return hundredPercent ? t("withHundredPercent", { status: name }) : name;
+    },
     group: (group: StatusGroup): string => t(`groups.${group}`),
     /** «Lo estás jugando ahora»: solo los estados de fábrica, también renombrados (`04` design.md §19). */
     meaning(status: Pick<Status, "systemKey">): string | null {

@@ -14,6 +14,8 @@ type ConfirmDialogProps = Readonly<{
   pending: boolean;
   errorMessage: string | null;
   onConfirm: () => void;
+  /** Quitar algo va en el color de borrar; aceptar un aviso, en el de la acción principal. */
+  tone?: "danger" | "primary";
 }>;
 
 export function ConfirmDialog({
@@ -25,6 +27,7 @@ export function ConfirmDialog({
   pending,
   errorMessage,
   onConfirm,
+  tone = "danger",
 }: ConfirmDialogProps) {
   const t = useTranslations("common");
 
@@ -39,7 +42,7 @@ export function ConfirmDialog({
           <button type="button" className={controls.secondary} onClick={() => onOpenChange(false)}>
             {t("cancel")}
           </button>
-          <button type="button" className={controls.danger} disabled={pending} onClick={onConfirm}>
+          <button type="button" className={tone === "danger" ? controls.danger : controls.primary} disabled={pending} onClick={onConfirm}>
             {confirmLabel}
           </button>
         </>

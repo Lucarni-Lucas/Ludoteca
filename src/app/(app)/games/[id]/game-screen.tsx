@@ -15,7 +15,7 @@ import { HELP } from "@/components/ui/help-texts";
 import { HelpTip } from "@/components/ui/HelpTip";
 import { useServerAction } from "@/hooks/use-server-action";
 import { effectiveCover, effectiveEndless, isManual, type LibraryGame } from "@/model/game/library-game";
-import type { StatusGroupView } from "@/model/status/status";
+import type { MarkChoice, StatusGroupView } from "@/model/status/status";
 import type { Store } from "@/model/store/store";
 
 import { uploadCoverAction } from "../../add/actions";
@@ -54,8 +54,9 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
     }
   }
 
-  async function saveStatus(statusId: string): Promise<void> {
-    const result = await changeStatus.run(game.id, statusId);
+  async function saveStatus(statusId: string, marks?: MarkChoice): Promise<void> {
+    // Sin marcas la acción se llama como siempre: no cambia ninguna.
+    const result = await (marks ? changeStatus.run(game.id, statusId, marks) : changeStatus.run(game.id, statusId));
 
     if (result.ok) {
       setStatusOpen(false);
@@ -110,7 +111,7 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
 
           <div className={styles.cards}>
             <div className={styles.status}>
-              <StatusCard status={game.status} statusSince={game.statusSince} onChange={() => setStatusOpen(true)} />
+              <StatusCard status={game.status} hundredPercent={game.hundredPercent ?? false} statusSince={game.statusSince} onChange={() => setStatusOpen(true)} />
             </div>
             <div className={styles.score}>
               <ScoreControl
@@ -133,9 +134,10 @@ export function GameScreen({ game, statusGroups, stores, openCopyDialog }: GameS
           current={game.status}
           groups={statusGroups}
           endless={effectiveEndless(game)}
+          hundredPercent={game.hundredPercent ?? false}
           pending={changeStatus.pending}
           errorMessage={changeStatus.errorMessage}
-          onSave={(statusId) => void saveStatus(statusId)}
+          onSave={(statusId, marks) => void saveStatus(statusId, marks)}
         />
       ) : null}
 

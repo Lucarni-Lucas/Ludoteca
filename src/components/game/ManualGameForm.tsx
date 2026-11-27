@@ -14,6 +14,7 @@ import type { StatusGroupView } from "@/model/status/status";
 import type { Store } from "@/model/store/store";
 
 import { CoverField } from "./CoverField";
+import { EntryStatusExtras } from "./EntryStatusExtras";
 import styles from "./ManualGameForm.module.css";
 import { ScoreInput } from "./ScoreInput";
 
@@ -53,7 +54,7 @@ export function ManualGameForm({
   const [year, setYear] = useState("");
   const [estimatedHours, setEstimatedHours] = useState("");
   const t = useTranslations();
-  const entry = useEntryForm();
+  const entry = useEntryForm(statusGroups);
   const yearId = useId();
   const durationId = useId();
 
@@ -67,7 +68,11 @@ export function ManualGameForm({
 
   function handleSubmit(event: FormEvent): void {
     event.preventDefault();
-    onSubmit({ title, coverUrl, pageUrl, year, estimatedHours, ...entry.values() });
+    entry.submit(save);
+  }
+
+  function save(values: EntryValues): void {
+    onSubmit({ title, coverUrl, pageUrl, year, estimatedHours, ...values });
   }
 
   return (
@@ -164,6 +169,17 @@ export function ManualGameForm({
           />
         </label>
       </div>
+      <EntryStatusExtras
+        completed={entry.completed}
+        hundredPercent={entry.hundredPercent}
+        onHundredPercentChange={entry.setHundredPercent}
+        confirmingEndless={entry.confirmingEndless}
+        endlessChange={entry.endlessChange}
+        pending={pending}
+        errorMessage={errorMessage}
+        onCancelEndless={entry.cancelEndless}
+        onAcceptEndless={() => entry.acceptEndless(save)}
+      />
 
       <ScoreInput value={entry.score} onChange={entry.setScore} />
 

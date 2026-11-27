@@ -144,6 +144,25 @@ input::placeholder{color:#7D8696}
           </sc-for>
         </section>
 
+        <section style="display: flex; flex-direction: column; gap: 2px">
+          <h2 style="margin: 0 0 8px; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Marcas</h2>
+          <sc-for list="{{markFilters}}" as="f" hint-placeholder-count="2">
+            <button type="button" onClick="{{f.pick}}" aria-pressed="{{f.active}}" style="{{f.style}}">
+              <span>{{f.label}}</span>
+              <span style="font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace; color: #9AA3B2">{{f.count}}</span>
+            </button>
+          </sc-for>
+        </section>
+
+        <section style="display: flex; flex-direction: column; gap: 8px">
+          <h2 style="margin: 0 0 8px; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Ocultos <button type="button" aria-label="Qué es «Oculto»" style="width: 20px; height: 20px; margin-left: 4px; padding: 0; border-radius: 99px; border: 1px solid #3A414E; background: transparent; color: #9AA3B2; font: 600 11px/1 Inter, system-ui, sans-serif; vertical-align: middle; cursor: pointer">?</button></h2>
+          <div role="group" aria-label="Ocultos" style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{hiddenOptions}}" as="o" hint-placeholder-count="3">
+              <button type="button" onClick="{{o.pick}}" aria-pressed="{{o.active}}" style="{{o.style}}">{{o.label}}</button>
+            </sc-for>
+          </div>
+        </section>
+
         <a href="Escritorio-Tiendas.dc.html" style="display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 12px; border: 1px dashed #3A414E; text-decoration: none; color: #ECEEF2">
           <span style="font-weight: 600; font-size: 14px">Conectar otra tienda</span>
           <span style="color: #9AA3B2; font-size: 13px; line-height: 1.45">PlayStation, EA app, Ubisoft Connect, Battle.net o cargá juegos físicos e indies a mano.</span>
@@ -250,7 +269,7 @@ class Component extends DCLogic {
       { title: 'Civilization VI', mono: 'CV', year: 2016, status: 'jugado', score: 7.4, hours: 112, dur: 0, bg: '#2E3B23', fg: '#E3EFCF', dup: true, stores: [{ s: 'epic', k: 'gratis' }, { s: 'steam', k: 'comprado' }] },
       { title: 'Frostpunk', mono: 'FP', year: 2018, status: 'quiero', score: 0, hours: 0, dur: 12, bg: '#26303A', fg: '#DCE6EF', stores: [], buy: { store: 'Microsoft Store', price: 'ARS 400', seen: 'Visto el 5 nov' } },
       { title: 'Cyberpunk 2077', mono: 'CP', year: 2020, status: 'pausa', score: 7.9, hours: 21, dur: 26, bg: '#3D3A12', fg: '#F2EEB3', reason: 'Lo retomo después · acto 2', stores: [{ s: 'gog', k: 'comprado' }] },
-      { title: 'Hades', mono: 'HA', year: 2020, status: 'cien', score: 9.6, hours: 64, dur: 22, bg: '#4A1E25', fg: '#F6CFD3', stores: [{ s: 'steam', k: 'comprado' }] },
+      { title: 'Hades', mono: 'HA', year: 2020, status: 'completado', hundred: true, score: 9.6, hours: 64, dur: 22, bg: '#4A1E25', fg: '#F6CFD3', stores: [{ s: 'steam', k: 'comprado' }] },
       { title: 'Outer Wilds', mono: 'OW', year: 2019, status: 'backlog', score: 0, hours: 0, dur: 17, bg: '#2A2442', fg: '#DCD5F5', stores: [{ s: 'steam', k: 'comprado' }] },
       { title: 'Hollow Knight', mono: 'HK', year: 2017, status: 'completado', score: 9.8, hours: 48, dur: 27, bg: '#22304A', fg: '#DCE6F7', stores: [{ s: 'steam', k: 'comprado' }] },
       { title: 'Portal 2', mono: 'P2', year: 2011, status: 'completado', score: 9.0, hours: 9, dur: 8, bg: '#2B3036', fg: '#E2E6EA', stores: [{ s: 'steam', k: 'familia' }] },
@@ -283,7 +302,7 @@ class Component extends DCLogic {
     const GROUPS = [
       { id: 'curso', label: 'En curso', statuses: [['jugando', 'Jugando'], ['pausa', 'En pausa']] },
       { id: 'empezar', label: 'Sin empezar', statuses: [['quiero', 'Quiero jugarlo'], ['backlog', 'Backlog']] },
-      { id: 'terminado', label: 'Terminado', statuses: [['completado', 'Completado'], ['cien', '100%'], ['jugado', 'Jugado']] },
+      { id: 'terminado', label: 'Terminado', statuses: [['completado', 'Completado'], ['jugado', 'Jugado']] },
       { id: 'dejado', label: 'Dejado', statuses: [['abandonado', 'Abandonado'], ['loprobe', 'Lo probé']] }
     ];
     const GROUP_OF = {};
@@ -292,8 +311,8 @@ class Component extends DCLogic {
     const COLOR = {
       jugando: ['#C8F25A', 'rgba(200,242,90,0.12)'], pausa: ['#C8F25A', 'rgba(200,242,90,0.12)'],
       quiero: ['#FFC66B', 'rgba(255,198,107,0.13)'], backlog: ['#C5CCD8', 'rgba(197,204,216,0.10)'],
-      completado: ['#8EC5FF', 'rgba(142,197,255,0.13)'], cien: ['#8EC5FF', 'rgba(142,197,255,0.13)'], jugado: ['#8EC5FF', 'rgba(142,197,255,0.13)'],
-      abandonado: ['#FF9C8A', 'rgba(255,156,138,0.13)'], loprobe: ['#FF9C8A', 'rgba(255,156,138,0.13)']
+      completado: ['#8EC5FF', 'rgba(142,197,255,0.13)'], jugado: ['#8EC5FF', 'rgba(142,197,255,0.13)'],
+      abandonado: ['#FF9C8A', 'rgba(255,156,138,0.13)'], loprobe: ['#C9A7FF', 'rgba(201,167,255,0.13)']
     };
 
     const num = (v) => (v === '' || v === null || isNaN(Number(v)) ? null : Number(v));
@@ -335,7 +354,7 @@ class Component extends DCLogic {
         year: g.year,
         rated: g.score > 0,
         scoreText: g.score.toFixed(1),
-        statusLabel: LABEL[g.status],
+        statusLabel: g.hundred ? `${LABEL[g.status]} · 100%` : LABEL[g.status],
         statusStyle: `display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; font: 500 12px/1 Inter, system-ui, sans-serif; color: ${c[0]}; background: ${c[1]}`,
         showHours: !wish,
         hoursText: g.hours ? `${g.hours} h` : 'Sin empezar',
@@ -432,6 +451,28 @@ class Component extends DCLogic {
         };
       });
 
+    const marks = st.marks || [];
+    // Varias marcas valen como «cualquiera de ellas», como los demás filtros.
+    const markFilters = [['sinfin', 'Sin fin', (g) => g.dur === 0], ['cien', '100%', (g) => g.hundred === true]].map(([id, label, has]) => {
+      const active = marks.indexOf(id) >= 0;
+      return {
+        label, active, style: row(active),
+        count: all.filter(has).length,
+        pick: () => this.setState({ marks: active ? marks.filter((x) => x !== id) : marks.concat([id]) })
+      };
+    });
+    const hiddenMode = st.hiddenMode || 'no';
+    const hiddenOptions = [['no', 'No mostrar'], ['si', 'Mostrar ocultos'], ['solo', 'Solo ocultos']].map(([id, label]) => {
+      const active = hiddenMode === id;
+      return {
+        label, active,
+        style: active
+          ? "min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #C8F25A; background: #1E232C; color: #ECEEF2; font: 500 13px/1.2 Inter, system-ui, sans-serif; cursor: pointer"
+          : "min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #2A303B; background: transparent; color: #C5CCD8; font: 500 13px/1.2 Inter, system-ui, sans-serif; cursor: pointer",
+        pick: () => this.setState({ hiddenMode: id })
+      };
+    });
+
     const owned = all.filter((g) => g.stores.some((x) => x.k !== 'perdido'));
     const storesUsed = new Set();
     owned.forEach((g) => g.stores.forEach((x) => { if (x.k !== 'perdido') storesUsed.add(x.s); }));
@@ -443,7 +484,7 @@ class Component extends DCLogic {
     return {
       summary: `${owned.length} juegos en ${storesUsed.size} tiendas · ${wishCount} en «Quiero jugarlo» · ${lostCount} que ya no tenés`,
       query, sort, durMin, durMax, hrsMin, hrsMax,
-      games, groups, durPresets, hrsPresets, storeFilters, kindFilters,
+      games, groups, durPresets, hrsPresets, storeFilters, kindFilters, markFilters, hiddenOptions,
       allActive,
       allStyle: pill(allActive),
       allCountStyle: countStyle(allActive),

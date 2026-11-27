@@ -22,6 +22,8 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 const idSchema = z.uuid();
 const statusIdSchema = z.uuid();
+// El aviso de «Sin fin» y la casilla «Lo completé al 100%» (`04` design.md §22).
+const marksSchema = z.object({ acceptEndless: z.boolean().optional(), hundredPercent: z.boolean().optional() }).optional();
 const scoreSchema = z.number().nullable();
 const STORE_REQUIRED: ValidationKey = "storeRequired";
 
@@ -49,10 +51,12 @@ const correctionsSchema = z.object({
   estimatedHours: z.preprocess(blankToNull, z.coerce.number().min(0).max(MAX_HOURS).nullable()),
   endless: z.boolean(),
   coverUrl: httpsUrlSchema,
+  hundredPercent: z.boolean().optional(),
 });
 
 export type AddCopyFormValues = z.input<typeof addCopySchema>;
 export type CorrectionsFormValues = z.input<typeof correctionsSchema>;
+export type StatusMarksInput = z.input<typeof marksSchema>;
 
 function refreshGame(gameId: string): void {
   revalidatePath(`/games/${gameId}`);
@@ -74,9 +78,9 @@ async function runGameAction<T>(
   });
 }
 
-export async function changeStatusAction(gameId: string, statusId: string): Promise<ActionResult<void>> {
+export async function changeStatusAction(gameId: string, statusId: string, marks?: StatusMarksInput): Promise<ActionResult<void>> {
   return runGameAction(gameId, (userId, id) =>
-    getLibraryService().changeStatus(userId, id, parseInput(statusIdSchema, statusId)),
+    getLibraryService().changeStatus(userId, id, parseInput(statusIdSchema, statusId), parseInput(marksSchema, marks)),
   );
 }
 

@@ -107,6 +107,24 @@ input::placeholder{color:#7D8696}
     </div>
   </section>
 
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Marcas</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{marks}}" as="t" hint-placeholder-count="2">
+        <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.active}}" style="{{t.style}}">{{t.label}}</button>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 10px">
+    <h2 style="margin: 0; font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3B2">Ocultos <button type="button" aria-label="Qué es «Oculto»" style="width: 20px; height: 20px; margin-left: 4px; padding: 0; border-radius: 99px; border: 1px solid #3A414E; background: transparent; color: #9AA3B2; font: 600 11px/1 Inter, system-ui, sans-serif; vertical-align: middle; cursor: pointer">?</button></h2>
+    <div role="group" aria-label="Ocultos" style="display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{hiddenOptions}}" as="t" hint-placeholder-count="3">
+        <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.active}}" style="{{t.style}}">{{t.label}}</button>
+      </sc-for>
+    </div>
+  </section>
+
   <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 20px 30px; background: rgba(14,16,20,0.97); border-top: 1px solid #222832">
     <a href="Movil-Biblioteca.dc.html" style="display: flex; align-items: center; justify-content: center; height: 52px; border-radius: 14px; background: #C8F25A; color: #0E1014; text-decoration: none; font: 600 16px/1 Inter, system-ui, sans-serif">{{cta}}</a>
   </div>
@@ -121,7 +139,7 @@ class Component extends DCLogic {
       { status: 'jugado', score: 7.4, hours: 112, dur: 0, stores: [['epic', 'gratis'], ['steam', 'comprado']] },
       { status: 'quiero', score: 0, hours: 0, dur: 12, stores: [] },
       { status: 'pausa', score: 7.9, hours: 21, dur: 26, stores: [['gog', 'comprado']] },
-      { status: 'cien', score: 9.6, hours: 64, dur: 22, stores: [['steam', 'comprado']] },
+      { status: 'completado', hundred: true, score: 9.6, hours: 64, dur: 22, stores: [['steam', 'comprado']] },
       { status: 'backlog', score: 0, hours: 0, dur: 17, stores: [['steam', 'comprado']] },
       { status: 'completado', score: 9.8, hours: 48, dur: 27, stores: [['steam', 'comprado']] },
       { status: 'completado', score: 9.0, hours: 9, dur: 8, stores: [['steam', 'familia']] },
@@ -158,7 +176,7 @@ class Component extends DCLogic {
     const GROUPS = [
       ['En curso', [['jugando', 'Jugando'], ['pausa', 'En pausa']]],
       ['Sin empezar', [['quiero', 'Quiero jugarlo'], ['backlog', 'Backlog']]],
-      ['Terminado', [['completado', 'Completado'], ['cien', '100%'], ['jugado', 'Jugado']]],
+      ['Terminado', [['completado', 'Completado'], ['jugado', 'Jugado']]],
       ['Dejado', [['abandonado', 'Abandonado'], ['loprobe', 'Lo probé']]]
     ];
     const groups = GROUPS.map(([label, list]) => ({
@@ -193,6 +211,13 @@ class Component extends DCLogic {
     const kinds = [['comprado', 'Comprado'], ['gratis', 'Gratis'], ['susc', 'Suscripción'], ['familia', 'Familia'], ['fisico', 'Físico'], ['perdido', 'Ya no lo tengo']]
       .map(([id, label]) => ({ label, active: kindsSel.indexOf(id) >= 0, style: chip(kindsSel.indexOf(id) >= 0), pick: () => this.setState({ kindsSel: toggle(kindsSel, id) }) }));
 
+    const marksSel = st.marksSel || [];
+    const marks = [['sinfin', 'Sin fin'], ['cien', '100%']]
+      .map(([id, label]) => ({ label, active: marksSel.indexOf(id) >= 0, style: chip(marksSel.indexOf(id) >= 0), pick: () => this.setState({ marksSel: toggle(marksSel, id) }) }));
+    const hiddenMode = st.hiddenMode || 'no';
+    const hiddenOptions = [['no', 'No mostrar'], ['si', 'Mostrar ocultos'], ['solo', 'Solo ocultos']]
+      .map(([id, label]) => ({ label, active: hiddenMode === id, style: chip(hiddenMode === id), pick: () => this.setState({ hiddenMode: id }) }));
+
     const num = (v) => (v === '' || isNaN(Number(v)) ? null : Number(v));
     const dMin = num(durMin), dMax = num(durMax), hMin = num(hrsMin), hMax = num(hrsMax), sMin = num(scMin), sMax = num(scMax);
     const count = this.games().filter((g) =>
@@ -205,7 +230,7 @@ class Component extends DCLogic {
     ).length;
 
     return {
-      groups, durPresets, hrsPresets, stores, kinds,
+      groups, durPresets, hrsPresets, stores, kinds, marks, hiddenOptions,
       durMin, durMax, hrsMin, hrsMax, scMin, scMax,
       cta: count === 1 ? 'Ver 1 juego' : `Ver ${count} juegos`,
       onDurMin: (e) => this.setState({ durMin: e.target.value }),

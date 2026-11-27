@@ -198,7 +198,7 @@ describe("ReviewPanel", () => {
         "Quiero jugarlo",
         "Backlog",
         "Completado",
-        "100%",
+        "Jugado",
         "Abandonado",
         "Lo probé",
       ]);
@@ -331,10 +331,8 @@ describe("ReviewPanel", () => {
       await userEvent.click(screen.getByRole("button", { name: "Otro estado" }));
 
       expect(screen.getByRole("button", { name: "Otro estado" })).toHaveAttribute("aria-expanded", "true");
-      expect(within(screen.getByRole("group", { name: "Estado de Overwatch" })).getAllByRole("button")).toHaveLength(
-        // Overwatch tiene final: se le ofrecen todos menos «Jugado».
-        STATUSES.filter(({ systemKey }) => systemKey !== "played").length,
-      );
+      // Se ofrecen todos los estados activos (design.md §22).
+      expect(within(screen.getByRole("group", { name: "Estado de Overwatch" })).getAllByRole("button")).toHaveLength(STATUSES.length);
     });
 
     it("Juego viejo sin cruce", async () => {
@@ -626,7 +624,7 @@ describe("ReviewPanel con los estados nuevos", () => {
     expect(onDecide).toHaveBeenCalledWith([hunt.entryId], { kind: "choose", choice: { kind: "status", status: statusRef("played") } });
   });
 
-  it("«Otro estado» de un juego sin fin ofrece «Jugado» y no «Completado» ni «100%»", async () => {
+  it("«Otro estado» de un juego sin fin ofrece todos los estados, sin «100%»", async () => {
     const hunt = view(
       entry("Hunt: Showdown", [playniteItem("Hunt: Showdown", EPIC, "hunt", { playtimeMinutes: 25 * 60 })], { multiplayerOnly: true }),
     );
@@ -638,8 +636,55 @@ describe("ReviewPanel con los estados nuevos", () => {
       .getAllByRole("button")
       .map((button) => button.textContent);
     expect(names).toContain("Jugado");
-    expect(names).not.toContain("Completado");
+    expect(names).toContain("Completado");
     expect(names).not.toContain("100%");
+  });
+
+  it("Otro estado: «Jugado» en un juego con final pide el aviso y responde con la marca", async () => {
+    const frostpunk = view(entry("Frostpunk", [steamItem("Frostpunk", "323190", 720)]));
+    const { onDecide } = renderPanel({ group: "status", games: [frostpunk] });
+
+    await userEvent.click(screen.getByRole("button", { name: "Otro estado" }));
+    await userEvent.click(within(screen.getByRole("group", { name: "Estado de Frostpunk" })).getByRole("button", { name: "Jugado" }));
+    const confirm = screen.getByRole("dialog", { name: "Marca «Sin fin»" });
+    expect(confirm).toHaveTextContent("Esto le pone la marca «Sin fin» al juego. ¿Estás de acuerdo?");
+    expect(onDecide).not.toHaveBeenCalled();
+    await userEvent.click(within(confirm).getByRole("button", { name: "Aceptar" }));
+
+    expect(onDecide).toHaveBeenCalledWith([frostpunk.entryId], {
+      kind: "choose",
+      choice: { kind: "status", status: statusRef("played"), endless: true },
+    });
+  });
+
+  it("Otro estado: cancelar el aviso no responde nada", async () => {
+    const hunt = view(
+      entry("Hunt: Showdown", [playniteItem("Hunt: Showdown", EPIC, "hunt", { playtimeMinutes: 25 * 60 })], { multiplayerOnly: true }),
+    );
+    const { onDecide } = renderPanel({ group: "status", games: [hunt] });
+
+    await userEvent.click(screen.getByRole("button", { name: "Otro estado" }));
+    await userEvent.click(within(screen.getByRole("group", { name: "Estado de Hunt: Showdown" })).getByRole("button", { name: "Completado" }));
+    await userEvent.click(within(screen.getByRole("dialog", { name: "Marca «Sin fin»" })).getByRole("button", { name: "Cancelar" }));
+
+    expect(onDecide).not.toHaveBeenCalled();
+  });
+
+  it("en lote, un solo aviso con la cantidad de juegos a los que les cambia la marca", async () => {
+    const games = ["Frostpunk", "Terraria"].map((title, index) => view(entry(title, [steamItem(title, String(index), 720)])));
+    const { onDecide } = renderPanel({ group: "status", games });
+
+    await userEvent.click(screen.getByRole("checkbox", { name: "Seleccionar los 2" }));
+    await userEvent.click(within(screen.getByRole("group", { name: "Selección" })).getByRole("button", { name: "Otro estado" }));
+    await userEvent.click(within(screen.getByRole("group", { name: "Estado de 2 juegos" })).getByRole("button", { name: "Jugado" }));
+    const confirm = screen.getByRole("dialog", { name: "Marca «Sin fin»" });
+    expect(confirm).toHaveTextContent("Esto le pone la marca «Sin fin» a 2 juegos. ¿Estás de acuerdo?");
+    await userEvent.click(within(confirm).getByRole("button", { name: "Aceptar" }));
+
+    expect(onDecide).toHaveBeenCalledWith(games.map((game) => game.entryId), {
+      kind: "choose",
+      choice: { kind: "status", status: statusRef("played"), endless: true },
+    });
   });
 
   it("«Ocultar» en «Elegí un estado» dice que entra oculto", async () => {

@@ -352,6 +352,10 @@ Volver a importar MUST NOT duplicar juegos ni copias. Las copias se reconocen po
 - **WHEN** el usuario importa de nuevo un archivo de Playnite con 2 juegos nuevos de Epic
 - **THEN** solo entran esos 2 juegos y el resto queda igual
 
+#### Scenario: Sacado de la biblioteca
+- **WHEN** el usuario importó un juego de Steam, después lo sacó de la biblioteca y vuelve a traer su cuenta de Steam
+- **THEN** el juego no vuelve a la revisión
+
 ### Requirement: Resumen al confirmar
 Al confirmar, el sistema SHALL mostrar cuántos juegos y copias entraron, cuántos quedaron ocultos y cuántos no se importaron.
 

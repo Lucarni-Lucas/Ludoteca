@@ -43,6 +43,8 @@ export function toLibraryGame({ library, catalog }: GameRow, status: Status, cop
     copies,
     // Solo aparece si vino de una importación: los juegos de siempre conservan su forma.
     ...(library.hltbHours === null ? {} : { hltbHours: library.hltbHours }),
+    // Igual que la duración de HowLongToBeat: solo aparece si la tiene.
+    ...(library.hundredPercent ? { hundredPercent: true } : {}),
   };
 }
 

@@ -237,7 +237,7 @@ describe("juegos ocultos", () => {
   it("aparecen con «Mostrar ocultos»", () => {
     const games = [hidden, shown];
 
-    const result = titles(games, { showHidden: true });
+    const result = titles(games, { hidden: "include" });
 
     expect(result).toEqual(["Oculto", "Visible"]);
   });
@@ -255,7 +255,7 @@ describe("normalizeText", () => {
 
 describe("hasActiveFilters", () => {
   it("no cuenta «Mostrar ocultos» como filtro para limpiar", () => {
-    const filters = { ...NO_FILTERS, showHidden: true };
+    const filters = { ...NO_FILTERS, hidden: "include" as const };
 
     const active = hasActiveFilters(filters);
 

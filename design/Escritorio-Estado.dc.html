@@ -49,7 +49,7 @@ input::placeholder,textarea::placeholder{color:#7D8696}
             </sc-for>
           </div>
         </sc-for>
-        <p style="margin: 0; font-size: 12px; color: #9AA3B2">Disco Elysium tiene final: no se ofrece «Jugado». A un juego sin fin se le ofrece «Jugado» en lugar de «Completado» y «100%». Los estados que crees vos se ofrecen siempre.</p>
+        <p style="margin: 0; font-size: 12px; color: #9AA3B2">Se ofrecen todos los estados. Disco Elysium tiene final: «Jugado» le pone la marca «Sin fin» y lo pregunta al guardar. En un juego sin fin, «Completado» se la saca y también lo pregunta.</p>
       </div>
 
       <div style="flex: 2 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
@@ -90,6 +90,20 @@ input::placeholder,textarea::placeholder{color:#7D8696}
           <div style="padding: 20px; border-radius: 14px; background: #0E1014; border: 1px solid #2A303B">
             <h2 style="margin: 0; font: 700 20px/1.2 'Space Grotesk', Arial, sans-serif">¡Terminado!</h2>
             <p style="margin: 6px 0 0; color: #C5CCD8">Guardamos la fecha de hoy como fecha de fin. Después podés ponerle puntaje y escribir la reseña.</p>
+            <sc-if value="{{completed}}" hint-placeholder-val="{{ false }}">
+              <label style="display: flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 12px; font-size: 15px; color: #ECEEF2; cursor: pointer"><input type="checkbox" style="width: 20px; height: 20px; accent-color: #C8F25A"> Lo completé al 100%</label>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{askEndless}}" hint-placeholder-val="{{ false }}">
+          <div role="alertdialog" aria-label="Marca «Sin fin»" style="padding: 20px; border-radius: 14px; background: #0E1014; border: 1px solid #FFC66B">
+            <p style="margin: 0; font-size: 12px; color: #9AA3B2">↓ Al tocar «Guardar como «Jugado»» en un juego con final:</p>
+            <p style="margin: 8px 0 0; color: #ECEEF2">Esto le pone la marca «Sin fin» al juego. ¿Estás de acuerdo?</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px">
+              <button type="button" style="height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #2A303B; background: transparent; color: #ECEEF2; font: 500 15px/1 Inter, system-ui, sans-serif; cursor: pointer">Cancelar</button>
+              <button type="button" style="height: 44px; padding: 0 16px; border-radius: 10px; border: 0; background: #C8F25A; color: #0E1014; font: 600 15px/1 Inter, system-ui, sans-serif; cursor: pointer">Aceptar</button>
+            </div>
           </div>
         </sc-if>
 
@@ -123,15 +137,16 @@ class Component extends DCLogic {
     const GROUPS = [
       ['En curso', '#C8F25A', [['jugando', 'Jugando', 'Lo estás jugando ahora'], ['pausa', 'En pausa', 'Lo empezaste y pensás volver']]],
       ['Sin empezar', '#C5CCD8', [['quiero', 'Quiero jugarlo', 'Lo querés jugar pronto, lo tengas o no'], ['backlog', 'Backlog', 'Lo vas a jugar en algún momento, sin apuro']]],
-      ['Terminado', '#8EC5FF', [['completado', 'Completado', 'Terminaste la historia principal'], ['cien', '100%', 'Lo terminaste todo']]],
-      ['Dejado', '#FF9C8A', [['abandonado', 'Abandonado', 'Lo jugaste en serio y lo dejaste sin terminar'], ['loprobe', 'Lo probé', 'Lo jugaste un rato y no te enganchó']]]
+      ['Terminado', '#8EC5FF', [['completado', 'Completado', 'Terminaste la historia principal'], ['jugado', 'Jugado', 'Un juego sin fin que jugaste y ya no']]],
+      ['Dejado', '#FF9C8A', [['abandonado', 'Abandonado', 'Lo jugaste en serio y lo dejaste sin terminar'], ['loprobe', 'Lo probé', 'Lo jugaste un rato y no te enganchó', '#C9A7FF']]]
     ];
     const LABEL = {};
     GROUPS.forEach(([, , list]) => list.forEach(([id, l]) => { LABEL[id] = l; }));
 
     const groups = GROUPS.map(([label, color, list]) => ({
       label,
-      statuses: list.map(([id, l, meaning]) => {
+      statuses: list.map(([id, l, meaning, own]) => {
+        const dot = own || color;
         const active = status === id;
         return {
           label: l,
@@ -141,7 +156,7 @@ class Component extends DCLogic {
           style: active
             ? 'display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 10px; background: #1E232C; box-shadow: inset 0 0 0 1px #C8F25A; color: #ECEEF2; font: 600 15px/1.2 Inter, system-ui, sans-serif; text-align: left; cursor: pointer'
             : 'display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 10px; background: transparent; color: #C5CCD8; font: 500 15px/1.2 Inter, system-ui, sans-serif; text-align: left; cursor: pointer',
-          dotStyle: `flex: none; width: 14px; height: 14px; box-sizing: border-box; border-radius: 99px; border: 2px solid ${color}; background: ${active ? color : 'transparent'}`
+          dotStyle: `flex: none; width: 14px; height: 14px; box-sizing: border-box; border-radius: 99px; border: 2px solid ${dot}; background: ${active ? dot : 'transparent'}`
         };
       })
     }));
@@ -159,12 +174,14 @@ class Component extends DCLogic {
     });
 
     const askWhy = ['pausa', 'abandonado', 'loprobe'].indexOf(status) >= 0;
-    const finished = status === 'completado' || status === 'cien';
+    const finished = status === 'completado' || status === 'jugado';
     return {
       groups,
       reasons,
       askWhy,
       finished,
+      completed: status === 'completado',
+      askEndless: status === 'jugado',
       plain: !askWhy && !finished,
       whyTitle: status === 'pausa' ? '¿Por qué lo pausás?' : '¿Por qué lo dejás?',
       cta: `Guardar como «${LABEL[status]}»`

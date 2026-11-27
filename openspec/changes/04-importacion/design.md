@@ -43,9 +43,9 @@ La motivación está en `proposal.md` (Why) y los comportamientos en `specs/impo
 | Biblioteca vacía | `design/Escritorio-Importar.dc.html` (el ejemplo del final; `Main.dc.html` no la muestra) | El aviso «Todavía no cargaste ningún juego.» ofrece «Agregá tu primer juego» (principal, como hoy) e «Importar tu biblioteca»: son dos acciones distintas. |
 | Ficha | `design/Escritorio-Juego.dc.html`, `design/Movil-Juego.dc.html` | Una duración que vino de HowLongToBeat se ve «unas 2.3 h · HowLongToBeat», como hoy «· IGDB» y «· tuya» (§11). |
 | Guías «¿Cómo lo saco?» | Los ejemplos del final de `design/Escritorio-Importar.dc.html` (IGN) y de `design/Movil-Importar.dc.html` (Playnite) | Páginas propias con el estilo de Ajustes (§17). |
-| Cambiar el estado | `design/Escritorio-Estado.dc.html`, `design/Movil-Estado.dc.html` (cambian en este cambio) | Sin «Sin fin» y con «Backlog»; cada estado de fábrica con su línea de qué significa; la lista según el juego sea sin fin o no (§19). |
-| Biblioteca y filtros | `design/Main.dc.html`, `design/Movil-Biblioteca.dc.html`, `design/Movil-Filtros.dc.html` (cambian) | Los estados nuevos; «Sin comprar» en cualquier juego sin copias; «Mostrar ocultos» y la marca «OCULTO» (§20), que el lienzo no muestra y la app ya tiene desde `02`. |
-| Agregar juego | `design/Escritorio-Agregar.dc.html`, `design/Movil-AgregarManual.dc.html` (cambian) | El estado arranca en «Backlog», sin «Según las copias», con la línea del estado elegido debajo (§19). |
+| Cambiar el estado | `design/Escritorio-Estado.dc.html`, `design/Movil-Estado.dc.html` (cambian en este cambio) | Sin «Sin fin» y con «Backlog»; cada estado de fábrica con su línea de qué significa; todos los estados, la casilla «Lo completé al 100%» con Completado, el aviso de «Sin fin» al guardar y «Lo probé» en violeta (§19, §22). |
+| Biblioteca y filtros | `design/Main.dc.html`, `design/Movil-Biblioteca.dc.html`, `design/Movil-Filtros.dc.html` (cambian) | Los estados nuevos; «Sin comprar» en cualquier juego sin copias; el filtro «Ocultos» de tres opciones, el filtro «Marcas», «Completado · 100%» y «Lo probé» en violeta (§20, §22). |
+| Agregar juego | `design/Escritorio-Agregar.dc.html`, `design/Movil-AgregarManual.dc.html` (cambian) | El estado arranca en «Backlog», sin «Según las copias», con la línea del estado elegido debajo; todos los estados y la casilla «Lo completé al 100%» con Completado (§19, §22). |
 | Ficha: ocultar y copias | `design/Escritorio-Juego.dc.html`, `design/Movil-Juego.dc.html` | «Ocultar» y «Volver a mostrar» donde hoy dice «Marcar sin interés» (§20). Agregar una copia ya no avisa un cambio de estado. |
 | Ajustes › Estados | `design/Escritorio-Estados.dc.html`, `design/Movil-Estados.dc.html` (cambian) | Solo los estados por defecto: sin «Sin fin» y con «Backlog». Renombrar, desactivar y crear estados son de la `07`. |
 
@@ -228,7 +228,7 @@ Un soundtrack cuyo juego tenés solo en otra tienda no cuelga: tener el soundtra
 | 4 | ¿Es de tu familia? | Tiene una copia de Steam de Playnite que la cuenta no tiene, sin `copy_kind` elegido, o una fila de Steam de Playnite con la cuenta sin conectar | «Sí, es de mi familia» (copia Steam · Familia), «No, es mío» (Steam · Comprado) y «No importar» |
 | 5 | ¿Es sin fin? | Entraría como Completado, `multiplayer_only` y sin `endless_answer` | «Sí, no se termina» (Jugado con la marca sin fin), «No, lo terminé» (Completado) y «No importar». La respuesta cuyo estado está desactivado no aparece |
 | 6 | ¿Lo vas a jugar alguna vez? | Entraría como Backlog, sin puntaje, sin `play_answer` ni `status_id`, con al menos una copia con horas conocidas y menos de `MIN_PLAYED_MINUTES` = 60 en total entre las copias con horas | «Sí, algún día» (`keep`: Backlog), «Ya lo jugué» (`played`: pasa a 7), «No» (`hidden`: Backlog, oculto) y «No importar» |
-| 7 | Elegí un estado | No hay `status_id` y: respondió «Ya lo jugué»; o no tiene un estado de IGN que sirva (no vino de IGN o IGN lo tiene en Backlog) y tiene `MIN_PLAYED_MINUTES` o más; o IGN lo trae en un estado desactivado, tenga las horas que tenga | Si el juego tiene final: «Lo estoy jugando» (Jugando), «Lo terminé» (Completado), «Lo abandoné» (Abandonado) y «Lo probé». Si es sin fin (`multiplayer_only`): «Lo sigo jugando» (Jugando), «Ya no lo juego» (Jugado) y «Lo probé». En los dos, «Otro estado», «Ocultar» (Backlog, oculto: guarda el Backlog en `status_id` y `hidden` en `play_answer`) y «No importar». «Otro estado» abre la lista de los estados activos según «Estados según el juego» (§19), sin ninguno marcado |
+| 7 | Elegí un estado | No hay `status_id` y: respondió «Ya lo jugué»; o no tiene un estado de IGN que sirva (no vino de IGN o IGN lo tiene en Backlog) y tiene `MIN_PLAYED_MINUTES` o más; o IGN lo trae en un estado desactivado, tenga las horas que tenga | Si el juego tiene final: «Lo estoy jugando» (Jugando), «Lo terminé» (Completado), «Lo abandoné» (Abandonado) y «Lo probé». Si es sin fin (`multiplayer_only`): «Lo sigo jugando» (Jugando), «Ya no lo juego» (Jugado) y «Lo probé». En los dos, «Otro estado», «Ocultar» (Backlog, oculto: guarda el Backlog en `status_id` y `hidden` en `play_answer`) y «No importar». «Otro estado» abre la lista de todos los estados activos, sin ninguno marcado; uno que cambia la marca «Sin fin» pide el aviso antes (§22) |
 | 8 | Listos para importar | No le queda ninguna pregunta de las anteriores, o quedó afuera con «No importar» (del usuario o del cruce) | Cómo va a entrar, o «No se importa», y «Volver a revisar» en los que tienen alguna respuesta del usuario o del cruce |
 
 **Las horas de 6 y 7** son la suma de las copias que se importarían (sin las excluidas) con horas conocidas. Una copia de Steam que llega solo por Playnite no tiene horas conocidas (§5). Un juego sin ninguna copia con horas conocidas no está en 6: «No» lo dejaría oculto, y «Oculto» es algo tuyo que no pensás jugar; tampoco está en 7 salvo por «Ya lo jugué» o un estado de IGN desactivado. Portal 2 y Watch Dogs, de Steam por Playnite, pasan de «¿Es de tu familia?» a «Listos para importar» como Backlog.
@@ -239,7 +239,7 @@ Un soundtrack cuyo juego tenés solo en otra tienda no cuelga: tener el soundtra
 - **Un estado de IGN se pasa a `system_key` y de ahí al estado activo con esa clave**, aunque esté renombrado: Beat entra como «Terminado» si así le puso el usuario a Completado. Si no hay un estado activo con esa clave, ese estado de IGN no cuenta: con dos estados de IGN y uno desactivado queda uno solo, y si no queda ninguno el juego va a «Elegí un estado».
 - **Cada respuesta que elige un estado lleva su id** (`ReviewChoice` `status` con `statusId`), resuelto por `system_key` en las respuestas fijas (`STATUS_ANSWER_KEYS` y `ENDLESS_STATUS_ANSWER_KEYS`) y tal cual en «Otro estado». Una respuesta fija cuyo estado no está activo no se ofrece; lo mismo «Sí, algún día», «No» y «Ocultar» sin un Backlog activo, y «Sí, no se termina» sin un Jugado activo. El texto de la respuesta sale de su `system_key` y de si el juego es sin fin, nunca del nombre.
 - **«Entra como…», el aviso y «Otro estado» muestran el nombre del usuario** con `statusName` (`02` §8): el renombrado tal cual, el de fábrica en el idioma elegido.
-- El modelo valida que el `statusId` elegido esté entre los estados recibidos; si no, `InvalidImportDecisionError`. Al confirmar, `planImportConfirmation` usa ese id sin buscar por clave.
+- El modelo valida que el `statusId` elegido esté entre los estados recibidos; si no, `InvalidImportDecisionError`. Si el estado cambia la marca «Sin fin» (Jugado en un juego con final, Completado en uno solo multijugador), la respuesta tiene que traer el aviso aceptado (§22). Al confirmar, `planImportConfirmation` usa ese id sin buscar por clave.
 
 **Después de decir qué juego es** (spec «Después de decir qué juego es»). Elegir un candidato, «Sí» en «¿Es este juego?», un juego de «Buscar con otro nombre» o «Cargar a mano» contesta solo las preguntas 1 y 3. Hasta ahora contaba como «decidido» y el juego iba directo a «Listos para importar», salteando las demás: LOVE, con 0 h y sin puntaje, nunca preguntaba si lo ibas a jugar. Ahora:
 
@@ -415,16 +415,16 @@ Lo piden `specs/estados`, `specs/catalogo` y `specs/copias` de este cambio.
 
 **El modelo** (`model/status/status.ts`):
 
-- `DEFAULT_STATUSES` queda: En curso: Jugando (`playing`), En pausa (`paused`). Sin empezar: Quiero jugarlo (`wishlist`, ámbar), Backlog (`backlog`, gris). Terminado: Completado (`completed`), 100% (`hundred_percent`), Jugado (`played`). Dejado: Abandonado (`abandoned`), Lo probé (`tried`). Sale `endless`. El nombre de fábrica de `backlog` pasa a «Backlog» (es lo que `hasDefaultName` compara) y `status.defaults.backlog` dice «Backlog» en los dos catálogos; `status.defaults.endless` sale.
+- `DEFAULT_STATUSES` queda: En curso: Jugando (`playing`), En pausa (`paused`). Sin empezar: Quiero jugarlo (`wishlist`, ámbar), Backlog (`backlog`, gris). Terminado: Completado (`completed`), Jugado (`played`). Dejado: Abandonado (`abandoned`, coral), Lo probé (`tried`, violeta). Salen `endless` y, desde §22, `hundred_percent`. El nombre de fábrica de `backlog` pasa a «Backlog» (es lo que `hasDefaultName` compara) y `status.defaults.backlog` dice «Backlog» en los dos catálogos; `status.defaults.endless` sale.
 - **El `system_key` `wishlist` no cambia**, aunque «Quiero jugarlo» ya no sea la wishlist: es un nombre interno, cambiarlo pediría otro paso en la migración y no cambia nada de lo que se ve. Un comentario lo explica junto a `WISHLIST_KEY`.
 - Las claves que hoy se repiten en `model/import/review.ts` y `components/import/import-text.ts` (`completed`, `played` y las demás) pasan a constantes con nombre en `model/status/status.ts`.
-- **`offeredStatuses(statuses, { endless, currentId })`**, puro: sin `completed` ni `hundred_percent` si el juego es sin fin, sin `played` si no lo es. Los demás estados de fábrica y los creados por el usuario (`systemKey` vacío) siempre. El estado actual siempre está, aunque no se le ofrecería: así un juego que ya lo tiene lo conserva (escenarios de «Estados según el juego»). Que un juego es sin fin sale de su corrección y, si no hay, del catálogo, como la duración (`02` §7).
+- **(Reemplazado en §22: se ofrecen todos los estados.)** `offeredStatuses(statuses, { endless, currentId })`, puro: sin `completed` ni `hundred_percent` si el juego es sin fin, sin `played` si no lo es. Los demás estados de fábrica y los creados por el usuario (`systemKey` vacío) siempre. El estado actual siempre está, aunque no se le ofrecería: así un juego que ya lo tiene lo conserva (escenarios de «Estados según el juego»). Que un juego es sin fin sale de su corrección y, si no hay, del catálogo, como la duración (`02` §7).
 - **Qué significa cada estado**: `status.meanings.<system_key>` en los dos catálogos, con los textos de la spec. Lo tiene todo estado con `system_key`, también uno renombrado: la función no cambia con el nombre. Un estado creado por el usuario no tiene línea. Los textos en inglés se definen al implementar.
 
 **En pantalla:**
 
-- **Cambiar el estado** (`components/status/StatusDialog.tsx`): la lista es `groupStatuses(offeredStatuses(…))` y cada opción muestra debajo de su nombre la línea de qué significa, unida con `aria-describedby`.
-- **Agregar un juego** (`StatusSelect` en `IgdbAddDialog` y `ManualGameForm`): sale la opción «Según las copias» (`status.fromCopies`) y el campo arranca en el Backlog del usuario. Ofrece los estados de un juego con final: un juego nuevo todavía no es sin fin (el catálogo de IGDB entra con `endless = false` y el formulario a mano no tiene la marca; se pone después, en la ficha). **Debajo del campo va la línea del estado elegido, no la de cada opción:** un `<select>` nativo no puede mostrar una línea debajo de cada opción, y cambiarlo por otro control es más de lo que pide la spec.
+- **Cambiar el estado** (`components/status/StatusDialog.tsx`): la lista es `groupStatuses(…)` con todos los estados (§22) y cada opción muestra debajo de su nombre la línea de qué significa, unida con `aria-describedby`.
+- **Agregar un juego** (`StatusSelect` en `IgdbAddDialog` y `ManualGameForm`): sale la opción «Según las copias» (`status.fromCopies`) y el campo arranca en el Backlog del usuario. Ofrece todos los estados; elegir «Jugado» pide el aviso de «Sin fin» al guardar, y elegir «Completado» muestra la casilla «Lo completé al 100%» (§22). **Debajo del campo va la línea del estado elegido, no la de cada opción:** un `<select>` nativo no puede mostrar una línea debajo de cada opción, y cambiarlo por otro control es más de lo que pide la spec.
 - **El estado inicial** (`model/game/initial-status.ts`): `resolveInitialStatus(statuses, chosenStatusId)` devuelve Backlog si no se eligió otro; sale `hasCopy`, y con él `findByCopies`.
 
 **Comprar ya no cambia el estado** (`specs/copias`, requisito sacado): salen `planStatusAfterNewCopy` de `model/copy/new-copy.ts`, el `movedTo` de `AddCopyResult`, el plan de estado que recibe `copyRepo.addCopy` (y su paso por el diario en la misma transacción) y el aviso «pasó a «Pendiente»» de `copies-section.tsx`, con su texto `movedTo` en los dos catálogos. La respuesta visible de agregar una copia es la copia nueva en la lista, como al agregar cualquier otra.
@@ -440,7 +440,7 @@ Lo piden `specs/estados`, `specs/catalogo` y `specs/copias` de este cambio.
 | Antes | Ahora |
 |---|---|
 | `library_game.not_interested` | `library_game.hidden` (§21) |
-| `LibraryGame.notInterested`, `filters.showNotInterested` | `LibraryGame.hidden`, `filters.showHidden`. El parámetro de la URL ya es `hidden=si`: los links guardados siguen andando |
+| `LibraryGame.notInterested`, `filters.showNotInterested` | `LibraryGame.hidden`, y el filtro de tres opciones `filters.hidden` (§22). El parámetro de la URL sigue siendo `hidden=1`: los links guardados siguen andando |
 | `setNotInterested` (repositorio y servicio), `setNotInterestedAction`, `setGameNotInterestedAction` | `setHidden`, `setHiddenAction`, `setGameHiddenAction` |
 | `HELP.notInterested` y las claves `notInterested` de los catálogos | `HELP.hidden` y claves `hidden` |
 | `ImportSummary.notInterested`, `ReviewSuggestion.notInterested`, la respuesta `not_interested` | `hidden` (§9, §11) |
@@ -506,6 +506,102 @@ Spec «Paso a los estados nuevos» y la columna `hidden`. Son tres migraciones, 
 
 **El test** («Juego en «Sin fin»» y «Juego en «Pendiente»») corre contra PGlite en `tests/persistence/repository/status/status-migration.test.ts`, sin carpeta nueva: aplica las migraciones hasta la `0010` (una copia de `drizzle/` con el `_journal.json` cortado ahí, en una carpeta temporal), carga los datos de antes (estados de fábrica con «Pendiente» y «Sin fin», juegos en los dos, un registro del diario hacia «Sin fin», un estado renombrado, un juego `not_interested` y una revisión abierta con `status_key` y `not_interested`) y aplica el resto. Verifica cada punto de arriba, que el diario no suma registros, y que los datos de otro usuario quedan con sus propios estados.
 
+### 22. Marcas «100%» y «Sin fin», colores y filtros
+
+Lo piden la cuarta prueba con datos reales y `specs/estados` («Jugado» y la marca sin fin, Marca «100%», Colores, Paso a los estados nuevos) y `specs/biblioteca` (Juegos ocultos, Filtro por marcas). Reemplaza lo que §19 decía de `offeredStatuses` y de «Estados según el juego».
+
+**El modelo** (`model/status/status.ts`):
+
+- `DEFAULT_STATUSES` queda: En curso: Jugando, En pausa. Sin empezar: Quiero jugarlo, Backlog. Terminado: Completado (posición 1), Jugado (posición 2). Dejado: Abandonado (coral), Lo probé (`violet`). Sale `hundred_percent`, con `HUNDRED_PERCENT_KEY`, `status.defaults.hundred_percent` y `status.meanings.hundred_percent`.
+- `STATUS_COLORS` suma `violet`. El token es `--color-status-violet: #C9A7FF` con `--color-status-violet-bg: rgba(201, 167, 255, 0.13)` en `styles/tokens.css`, y `design/LEEME.md` lo suma a su tabla. «Lo probé» no es algo negativo, así que deja el coral de Dejado (spec «Color de «Lo probé»»).
+- **Sale `offeredStatuses`:** al cambiar el estado, al agregar y en «Otro estado» de la importación se ofrecen todos los estados activos.
+- **`statusMarks(game, target, choice)`**, puro, decide qué marcas quedan al pasar a `target`. `choice` trae `acceptEndless` (el aviso aceptado) y `hundredPercent` (la casilla).
+  - Jugado en un juego que no es sin fin, o Completado en uno sin fin, cambia la marca «Sin fin» (`endless` `true` o `false`). Sin `acceptEndless` da `EndlessChangeNotAcceptedError` (en `model/status/errors.ts`, con su texto en los dos catálogos): el aviso es la forma de aceptarlo, y el servidor no lo saltea.
+  - Que un juego es sin fin sale de su corrección y, si no hay, del catálogo, como hasta ahora; la marca nueva se guarda como corrección (`library_game.endless`).
+  - `hundredPercent` solo vale con Completado; con cualquier otro estado la marca queda en `false` (spec «Salir de Completado»).
+  - El cambio de marcas no va al diario: el diario guarda cambios de estado (`planStatusChange` sigue igual).
+- **`statusLabel(status, hundredPercent)`** en `components/status/status-text.ts`: «Completado · 100%». Lo usan la tarjeta (`GameCard`), la ficha (`StatusCard`) y «Entra como…» si algún día la importación trae la marca.
+
+**Datos:** `library_game.hundred_percent` (`boolean`, `not null`, por defecto `false`) y `LibraryGame.hundredPercent` opcional en el modelo, como `hltbHours` (§16): vacío es `false`, y los fixtures de los tests existentes no cambian. La migración está en §23.
+
+**Cambiar el estado** (`StatusDialog` y `changeStatusAction(gameId, statusId, marks?)`):
+
+- La lista tiene todos los estados. Con Completado elegido, debajo aparece la casilla «Lo completé al 100%», marcada si el juego ya la tenía.
+- **El aviso sale al guardar**, no al elegir: tocar «Guardar como «Jugado»» en un juego con final abre el `ConfirmDialog` de `02` con «Esto le pone la marca «Sin fin» al juego. ¿Estás de acuerdo?», «Aceptar» y «Cancelar»; con Completado en un juego sin fin, «Esto le saca la marca «Sin fin» al juego. ¿Estás de acuerdo?». «Aceptar» guarda el estado y la marca juntos; «Cancelar» vuelve al diálogo sin cambiar nada. Elegir una opción todavía no cambia nada, así que no hace falta preguntar antes.
+- `marks` es opcional: `{ acceptEndless?: true; hundredPercent?: boolean }`. Sin `marks` no se cambia ninguna marca salvo borrar «100%» al salir de Completado, así una llamada como las de hoy sigue igual.
+- El servicio pide el juego, delega en `statusMarks` y `planStatusChange`, y el repositorio guarda en **una sola transacción** el estado, el registro del diario, la corrección `endless` y `hundred_percent` (`changeStatus` del repositorio de juegos, que ya escribe el diario con `writeStatusChange`).
+
+**Agregar un juego** (`StatusSelect`, `IgdbAddDialog`, `ManualGameForm`): todos los estados. Con Completado, la casilla «Lo completé al 100%» debajo de la línea de qué significa; con Jugado, «Guardar juego» pide el aviso de «Sin fin» (un juego nuevo nunca es sin fin) y, aceptado, se guarda con la marca. `resolveInitialStatus` pasa a devolver también las marcas, con `statusMarks`.
+
+**«Editar»** (`EditGameDialog`): la casilla «Lo completé al 100%» aparece solo si el juego está en Completado (fuera de ese estado la marca no existe). Va como `hundredPercent` opcional en las correcciones; el modelo la ignora si el juego no está en Completado.
+
+**Filtro «Ocultos»** (`model/game/filters.ts`, `FilterPanel`, `MobileFilters`):
+
+- `LibraryFilters.showHidden` pasa a `hidden: HiddenFilter`, con `HIDDEN_FILTERS = ["exclude", "include", "only"]`: «No mostrar», «Mostrar ocultos» y «Solo ocultos». Se elige con tres botones (como los atajos de los rangos), con la ayuda «?» de «Oculto» junto al título del filtro.
+- `visibleGames(games, hidden)` y `countLibraryOptions(games, hidden)` reciben el modo. «Solo ocultos» cuenta solo los ocultos.
+- URL: `hidden=1` es «Mostrar ocultos», como hasta ahora (los links guardados siguen andando); `hidden=solo`, «Solo ocultos». Cualquier otro valor, como `hidden=si`, se ignora.
+- **«Limpiar filtros»:** «Mostrar ocultos» sigue sin contar como filtro y se conserva; «Solo ocultos» sí cuenta, porque esconde todo lo demás, y «Limpiar» lo vuelve a «No mostrar».
+
+**Filtro por marcas:** `LibraryFilters.marks: readonly GameMark[]`, con `GAME_MARKS = ["endless", "hundred_percent"]`, «Sin fin» y «100%», con la cantidad de cada una. Como los demás filtros, varias opciones valen como «cualquiera de ellas» y el filtro se combina con el resto. URL: `marcas=sin-fin,100`. En PC va en la columna de filtros debajo de «Tipo de copia»; en el celu, en la pantalla de filtros.
+
+**La importación** (§9):
+
+- «Otro estado» ofrece todos los estados activos, también en lote.
+- Elegir Jugado para un juego que no es solo multijugador, o Completado para uno solo multijugador, abre el mismo aviso antes de responder. La respuesta lleva `endless` (`ReviewChoice` `status` suma `endless?: boolean`) y se guarda en `endless_answer` junto con `status_id`: Jugado con `true`, Completado con `false`, que es lo mismo que contestar «¿Es sin fin?». El modelo da `InvalidImportDecisionError` si el estado cambia la marca y la respuesta no trae `endless`.
+- **En lote**, si a algunos de los elegidos se les cambia la marca, sale un solo aviso con la cantidad: «Esto le pone la marca «Sin fin» a 3 juegos. ¿Estás de acuerdo?» (o «le saca»), con plurales ICU. Es un texto propio de la importación, en los dos catálogos.
+- Las respuestas fijas de «Elegí un estado» no cambian: siguen dependiendo de si el juego es solo multijugador.
+- «100%» no se pregunta al importar: IGN no lo informa. Se marca después desde «Editar».
+
+**Reimportar Steam** (spec «Sacado de la biblioteca»): ya anda así, porque `upsertItems` no toca las filas con `confirmed_at` (§10). Se cubre con un test contra PGlite y otro en el servicio.
+
+### 23. La migración: «100%» como marca y el color de «Lo probé»
+
+1. **`0014`, generada por drizzle-kit:** suma `library_game.hundred_percent`. Es solo agregar una columna, así que no debería preguntar nada; si pregunta, se frena y la genera Lucas.
+2. **`0015`, con SQL a mano** (`drizzle-kit generate --custom`), aprobado por Lucas:
+
+   ```sql
+   -- Los juegos en el estado «100%» pasan a «Completado» con la marca. status_since no cambia.
+   update "library_game" as "lg" set "status_id" = "completed"."id", "hundred_percent" = true
+   from "status" as "hundred"
+   join "status" as "completed"
+     on "completed"."user_id" = "hundred"."user_id" and "completed"."system_key" = 'completed'
+   where "hundred"."system_key" = 'hundred_percent' and "lg"."status_id" = "hundred"."id";
+
+   -- El diario deja de nombrar «100%»: sus registros pasan a nombrar «Completado».
+   update "journal_entry" as "je" set "from_status_id" = "completed"."id"
+   from "status" as "hundred"
+   join "status" as "completed"
+     on "completed"."user_id" = "hundred"."user_id" and "completed"."system_key" = 'completed'
+   where "hundred"."system_key" = 'hundred_percent' and "je"."from_status_id" = "hundred"."id";
+
+   update "journal_entry" as "je" set "to_status_id" = "completed"."id"
+   from "status" as "hundred"
+   join "status" as "completed"
+     on "completed"."user_id" = "hundred"."user_id" and "completed"."system_key" = 'completed'
+   where "hundred"."system_key" = 'hundred_percent' and "je"."to_status_id" = "hundred"."id";
+
+   -- Un registro entre «Completado» y «100%» quedó de «Completado» a «Completado»: no es un cambio.
+   delete from "journal_entry" where "from_status_id" = "to_status_id";
+
+   -- Las respuestas de las revisiones abiertas que eligieron «100%».
+   update "import_entry" as "ie" set "status_id" = "completed"."id"
+   from "status" as "hundred"
+   join "status" as "completed"
+     on "completed"."user_id" = "hundred"."user_id" and "completed"."system_key" = 'completed'
+   where "hundred"."system_key" = 'hundred_percent' and "ie"."status_id" = "hundred"."id";
+
+   delete from "status" where "system_key" = 'hundred_percent';
+
+   -- «Lo probé» pasa a violeta si el usuario no le cambió el color (hasta la 07 no se puede).
+   update "status" set "color" = 'violet' where "system_key" = 'tried' and "color" = 'coral';
+
+   -- «Jugado» queda segundo en Terminado, donde estaba «100%».
+   update "status" set "position" = 2 where "system_key" = 'played' and "position" = 3;
+   ```
+
+   Mismo criterio que §21: el diario no suma registros, `status_since` no cambia y las dos van en la transacción del migrador. Como la `0011`–`0013` ya están commiteadas (`53080f4`), van en migraciones nuevas.
+3. **El test** («Juego en «100%»») corre contra PGlite en `tests/persistence/repository/status/status-migration.test.ts`: se suma un bloque que aplica las migraciones hasta la `0013`, carga un juego en «100%», un registro del diario hacia «100%», una revisión abierta con «100%» elegido y un «Lo probé» coral, y aplica el resto.
+
 ## Risks / Trade-offs
 
 - **[El `uid` de Epic en IGDB no es el app name de Playnite]** → Los 209 juegos de Epic cruzan por título. Se verifica contra IGDB real en la primera tarea del adapter; el diseño no cambia, solo crecen «¿Cuál de estos es?» y «No lo encontré».
@@ -529,10 +625,14 @@ Spec «Paso a los estados nuevos» y la columna `hidden`. Son tres migraciones, 
 - **[Ningún juego llega a «¿Lo vas a jugar alguna vez?» sin horas conocidas]** → Los de Steam que llegan solo por Playnite entran en Backlog sin preguntar. Se pueden ocultar después desde la biblioteca, de a varios.
 - **[Una respuesta que se ofrecía ya no aparece]** (un estado desactivado en la `07`) → El juego no se queda sin salida: «Otro estado», «Ocultar» si hay Backlog y «No importar» siguen.
 
+- **[Un «100%» renombrado]** → Deja de ser un estado: el juego queda como «Completado · 100%», con el nombre de fábrica. Hasta la `07` no se puede renombrar, así que hoy no pasa.
+- **[Se acepta el aviso sin leerlo]** → El aviso nombra la marca que pone o saca; la marca se cambia después desde «Editar», como cualquier corrección.
+
 ## Migration Plan
 
 1. Migraciones nuevas generadas por drizzle-kit: `store_connection`, `import_item`, `import_entry`, sus enumerados, `store_game_id`, `origin` y la única de `copy`, `hltb_hours` de `library_game`, y una más para `chosen_igdb_id` de `import_item` (§4). Ninguna edita una ya aplicada.
 2. Paso a los estados nuevos (§21): `0011` y `0013` generadas por drizzle-kit (la `0011` la genera Lucas en su terminal, eligiendo «rename») y `0012` con el SQL a mano aprobado.
 3. Paso del usuario: `STEAM_API_KEY` en `.env.local` y en las variables de Vercel (`docs/configuracion-externa.md`, etapa 04, se actualiza con el nombre).
-4. Vuelta atrás: hasta la `0010`, la app de `03` ignora las tablas nuevas y las columnas nuevas de `copy` y `library_game` son opcionales. **Desde la `0011` ya no**: un deploy anterior lee `not_interested` y espera el estado «Sin fin», así que no anda con la base migrada. El código y las tres migraciones van juntos en el mismo deploy; si hubiera que volver, es con una migración nueva que deshaga el renombre, no editando las aplicadas.
+4. «100%» como marca (§23): `0014` generada por drizzle-kit y `0015` con el SQL a mano aprobado.
+5. Vuelta atrás: hasta la `0010`, la app de `03` ignora las tablas nuevas y las columnas nuevas de `copy` y `library_game` son opcionales. **Desde la `0011` ya no**: un deploy anterior lee `not_interested` y espera el estado «Sin fin», así que no anda con la base migrada. El código y las tres migraciones van juntos en el mismo deploy; si hubiera que volver, es con una migración nueva que deshaga el renombre, no editando las aplicadas.
 

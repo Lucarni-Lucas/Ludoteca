@@ -59,7 +59,7 @@ function CardContents({ game }: Readonly<{ game: LibraryGame }>) {
         </span>
         <span className={styles.statusRow}>
           <StatusBadge group={game.status.group} color={game.status.color}>
-            {statusText.name(game.status)}
+            {statusText.label(game.status, game.hundredPercent ?? false)}
           </StatusBadge>
           {played ? (
             <span className={styles.played}>

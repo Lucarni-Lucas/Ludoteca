@@ -2,11 +2,12 @@ import { useTranslations } from "next-intl";
 
 import { useCopyText } from "@/components/copy/copy-text";
 import { HELP, type HelpText } from "@/components/ui/help-texts";
-import { Toggle } from "@/components/ui/Toggle";
 import { COPY_KINDS } from "@/model/copy/copy";
 import {
   type CopyKindFilter,
   DURATION_PRESETS,
+  GAME_MARKS,
+  type GameMark,
   type LibraryFilters,
   LOST_KIND,
   PLAYED_PRESETS,
@@ -14,11 +15,13 @@ import {
 } from "@/model/game/filters";
 import type { LibraryCounts, StoreOption } from "@/model/game/summary";
 
+import { HiddenFilter } from "./HiddenFilter";
 import { OptionFilter } from "./OptionFilter";
 import { RangeFilter } from "./RangeFilter";
 
 const KIND_FILTERS: readonly CopyKindFilter[] = [...COPY_KINDS, LOST_KIND];
 const KIND_HELP: Partial<Record<CopyKindFilter, HelpText>> = { family: HELP.family, other: HELP.other, [LOST_KIND]: HELP.lost };
+const MARK_HELP: Partial<Record<GameMark, HelpText>> = { endless: HELP.endless };
 
 export type FilterPanelProps = Readonly<{
   filters: LibraryFilters;
@@ -79,12 +82,13 @@ export function FilterPanel({ filters, counts, stores, onChange }: FilterPanelPr
         selected={filters.kinds}
         onToggle={(id) => onChange({ kinds: toggleOption(filters.kinds, id as CopyKindFilter) })}
       />
-      <Toggle
-        label={t("showHidden")}
-        help={HELP.hidden}
-        checked={filters.showHidden}
-        onCheckedChange={(showHidden) => onChange({ showHidden })}
+      <OptionFilter
+        title={t("marks.title")}
+        options={GAME_MARKS.map((mark) => ({ id: mark, label: t(`marks.${mark}`), count: counts.marks[mark], help: MARK_HELP[mark] }))}
+        selected={filters.marks}
+        onToggle={(id) => onChange({ marks: toggleOption(filters.marks, id as GameMark) })}
       />
+      <HiddenFilter value={filters.hidden} onChange={(hidden) => onChange({ hidden })} />
     </>
   );
 }

@@ -29,9 +29,9 @@ El sistema SHALL permitir crear un estado nuevo dentro de un grupo. Los estados 
 ### Requirement: Desactivar estados
 El sistema SHALL permitir desactivar y volver a activar cualquier estado. Un estado desactivado no se ofrece al cambiar de estado ni en la importación, pero los juegos que lo tienen lo conservan. Se dice «desactivar» para no confundirlo con ocultar un juego.
 
-#### Scenario: Desactivar «100%»
-- **WHEN** el usuario desactiva «100%» y Hades está en «100%»
-- **THEN** «100%» no aparece al cambiar de estado y Hades sigue en «100%»
+#### Scenario: Desactivar «Lo probé»
+- **WHEN** el usuario desactiva «Lo probé» y Hades está en «Lo probé»
+- **THEN** «Lo probé» no aparece al cambiar de estado y Hades sigue en «Lo probé»
 
 ### Requirement: Borrar estados propios
 El sistema SHALL permitir borrar un estado creado por el usuario solo si ningún juego lo tiene. Los estados por defecto MUST NOT poder borrarse; solo desactivarse.

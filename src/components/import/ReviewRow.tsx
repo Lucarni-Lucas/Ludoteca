@@ -8,7 +8,8 @@ import controls from "@/components/ui/controls.module.css";
 import { keptCopies } from "@/model/import/copies";
 import type { ImportCandidate } from "@/model/import/import-entry";
 import { canGoBack, isQuestionGroup, type ReviewChoice, type ReviewGame, type StatusRef } from "@/model/import/review";
-import { offeredStatuses } from "@/model/status/status";
+import { EndlessConfirm } from "@/components/status/EndlessConfirm";
+import { endlessChangeOf } from "@/model/status/status";
 
 import { useImportText } from "./import-text";
 import styles from "./ReviewRow.module.css";
@@ -16,8 +17,8 @@ import styles from "./ReviewRow.module.css";
 /** Un estado activo del usuario, con el nombre que se ve en el idioma elegido. */
 export type StatusOption = StatusRef & Readonly<{ label: string }>;
 
-export function statusChoiceOf({ id, name, systemKey }: StatusOption): ReviewChoice {
-  return { kind: "status", status: { id, name, systemKey } };
+export function statusChoiceOf({ id, name, systemKey }: StatusOption, endless?: boolean): ReviewChoice {
+  return { kind: "status", status: { id, name, systemKey }, ...(endless === undefined ? {} : { endless }) };
 }
 
 /** Las respuestas que solo abren algo para elegir: no deciden nada todavía. */
@@ -65,7 +66,7 @@ type StatusListProps = Readonly<{
   onPick: (status: StatusOption) => void;
 }>;
 
-/** Lo que abre «Otro estado»: los estados que se le ofrecen al juego, ninguno marcado (design.md §9). */
+/** Lo que abre «Otro estado»: todos los estados activos, ninguno marcado (design.md §9, §22). */
 export function StatusList({ label, statuses, disabled, onPick }: StatusListProps) {
   const t = useTranslations("import.review");
 
@@ -135,17 +136,43 @@ function Answers({ game, disabled, onChoose, opening, onOpen }: RowProps) {
   );
 }
 
+/** Jugado en un juego con final, o Completado en uno solo multijugador, piden el aviso de «Sin fin» antes. */
 function OtherStatuses({ game, statuses, disabled, opening, onChoose }: RowProps) {
   const t = useTranslations("import.review");
+  const [confirming, setConfirming] = useState<Readonly<{ status: StatusOption; endless: boolean }> | null>(null);
 
-  return opening === "other_status" ? (
-    <StatusList
-      label={t("otherStatus", { title: game.title })}
-      statuses={offeredStatuses(statuses, { endless: game.endless })}
-      disabled={disabled}
-      onPick={(status) => onChoose(statusChoiceOf(status))}
-    />
-  ) : null;
+  function pick(status: StatusOption): void {
+    const change = endlessChangeOf(game.endless, status);
+
+    if (change === null) {
+      onChoose(statusChoiceOf(status));
+      return;
+    }
+
+    setConfirming({ status, endless: change });
+  }
+
+  if (opening !== "other_status") {
+    return null;
+  }
+
+  return (
+    <>
+      <StatusList label={t("otherStatus", { title: game.title })} statuses={statuses} disabled={disabled} onPick={pick} />
+      {confirming ? (
+        <EndlessConfirm
+          endless={confirming.endless}
+          pending={disabled}
+          errorMessage={null}
+          onCancel={() => setConfirming(null)}
+          onAccept={() => {
+            setConfirming(null);
+            onChoose(statusChoiceOf(confirming.status, confirming.endless));
+          }}
+        />
+      ) : null}
+    </>
+  );
 }
 
 function Origins({ game }: Readonly<{ game: ReviewGame }>) {

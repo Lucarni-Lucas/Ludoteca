@@ -573,3 +573,81 @@ describe("createGameRepository con las horas jugadas a mano", () => {
     expect((await repositories.games.findById(USER_A, gameId))?.manualPlayedMinutes).toBeNull();
   });
 });
+
+describe("marcas al cambiar el estado", () => {
+  let database: TestDatabase;
+  let repositories: Repositories;
+  let statusesA: readonly Status[];
+  let statusesB: readonly Status[];
+
+  beforeEach(async () => {
+    database = await createTestDatabase();
+    repositories = createRepositories(database);
+    statusesA = await seedStatuses(repositories, USER_A);
+    statusesB = await seedStatuses(repositories, USER_B);
+  });
+
+  afterEach(async () => {
+    await database.client.close();
+  });
+
+  async function addGame(userId: string, statuses: readonly Status[]): Promise<string> {
+    const result = await repositories.games.addIgdbGame(userId, igdbData(1, "Hollow Knight"), entry(statuses, "Jugando"));
+    return result.kind === "added" ? result.gameId : "";
+  }
+
+  it("Completar al 100%: el estado y la marca entran juntos y el diario guarda solo el cambio de estado", async () => {
+    const gameId = await addGame(USER_A, statusesA);
+    const from = statusNamed(statusesA, "Jugando");
+    const to = statusNamed(statusesA, "Completado");
+    const plan = { statusId: to.id, statusSince: TODAY, entry: { occurredOn: TODAY, fromStatusId: from.id, toStatusId: to.id } };
+
+    await repositories.games.applyStatusChange(USER_A, gameId, plan, { endless: null, hundredPercent: true });
+
+    const game = await repositories.games.findById(USER_A, gameId);
+    const entries = await database.db.select().from(journalEntry);
+    expect(game).toMatchObject({ status: { name: "Completado" }, hundredPercent: true });
+    expect(entries).toHaveLength(1);
+  });
+
+  it("Jugado en un juego con final le pone la marca «Sin fin» como corrección", async () => {
+    const gameId = await addGame(USER_A, statusesA);
+    const from = statusNamed(statusesA, "Jugando");
+    const to = statusNamed(statusesA, "Jugado");
+    const plan = { statusId: to.id, statusSince: TODAY, entry: { occurredOn: TODAY, fromStatusId: from.id, toStatusId: to.id } };
+
+    await repositories.games.applyStatusChange(USER_A, gameId, plan, { endless: true, hundredPercent: false });
+
+    const game = await repositories.games.findById(USER_A, gameId);
+    expect(game).toMatchObject({ status: { name: "Jugado" }, corrections: { endless: true } });
+  });
+
+  it("solo la marca, sin cambio de estado, no escribe el diario", async () => {
+    const gameId = await addGame(USER_A, statusesA);
+
+    await repositories.games.applyStatusChange(USER_A, gameId, null, { endless: null, hundredPercent: true });
+
+    expect(await database.db.select().from(journalEntry)).toHaveLength(0);
+    expect((await repositories.games.findById(USER_A, gameId))?.hundredPercent).toBe(true);
+  });
+
+  it("las marcas no alcanzan los juegos de otro usuario", async () => {
+    const gameOfB = await addGame(USER_B, statusesB);
+
+    const change = repositories.games.applyStatusChange(USER_A, gameOfB, null, { endless: true, hundredPercent: true });
+
+    await expect(change).rejects.toBeInstanceOf(GameNotFoundError);
+    expect(await repositories.games.findById(USER_B, gameOfB)).not.toHaveProperty("hundredPercent");
+  });
+
+  it("si falla el cambio de estado, las marcas no quedan", async () => {
+    const gameId = await addGame(USER_A, statusesA);
+    const from = statusNamed(statusesA, "Jugando");
+    const plan = { statusId: MISSING_ID, statusSince: TODAY, entry: { occurredOn: TODAY, fromStatusId: from.id, toStatusId: MISSING_ID } };
+
+    const change = repositories.games.applyStatusChange(USER_A, gameId, plan, { endless: null, hundredPercent: true });
+
+    await expect(change).rejects.toThrow();
+    expect(await repositories.games.findById(USER_A, gameId)).not.toHaveProperty("hundredPercent");
+  });
+});

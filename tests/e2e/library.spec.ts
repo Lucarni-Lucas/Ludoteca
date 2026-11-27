@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 
 import { expectTabOrderAndVisibleFocus, measureInteractive } from "./support/accessibility.ts";
 import {
@@ -132,7 +132,7 @@ test.describe("ficha", () => {
     await expect(page.getByText(/Terminado · lo terminaste el/)).toBeVisible();
   });
 
-  test("Juego con final", async ({ page }) => {
+  test("Líneas de cada estado", async ({ page }) => {
     await signInAsNewAccount(page);
     const gamePath = await addFromIgdb(page, "disco", "Disco Elysium");
     await page.goto(gamePath);
@@ -142,7 +142,8 @@ test.describe("ficha", () => {
     const dialog = page.getByRole("dialog", { name: "Cambiar estado" });
     await expect(dialog.getByRole("button", { name: "Completado", exact: true })).toHaveAccessibleDescription("Terminaste la historia principal");
     await expect(dialog.getByRole("button", { name: "Backlog", exact: true })).toHaveAccessibleDescription("Lo vas a jugar en algún momento, sin apuro");
-    await expect(dialog.getByRole("button", { name: "Jugado" })).toHaveCount(0);
+    await expect(dialog.getByRole("button", { name: "Jugado", exact: true })).toHaveAccessibleDescription("Un juego sin fin que jugaste y ya no");
+    await expect(dialog.getByRole("button", { name: "100%" })).toHaveCount(0);
     await expect(dialog.getByRole("button", { name: "Sin fin" })).toHaveCount(0);
   });
 
@@ -198,6 +199,125 @@ test.describe("ficha", () => {
     await page.waitForURL("**/library");
     await expect(gameCard(page, "Hades")).toBeVisible();
     await expect(gameCard(page, "Outer Wilds")).toHaveCount(0);
+  });
+});
+
+/** En el celu los filtros están en su propia pantalla; desde 1024 px, al costado. */
+async function openFilters(page: Page): Promise<Page | Locator> {
+  if ((page.viewportSize()?.width ?? 0) >= 1024) {
+    return page;
+  }
+
+  await page.getByRole("button", { name: "Filtros" }).click();
+  return page.getByRole("dialog", { name: "Filtros" });
+}
+
+async function changeStatus(page: Page, status: string): Promise<Locator> {
+  await page.getByRole("button", { name: "Cambiar estado" }).click();
+  const dialog = page.getByRole("dialog", { name: "Cambiar estado" });
+  await dialog.getByRole("button", { name: status, exact: true }).click();
+  return dialog;
+}
+
+test.describe("«Jugado», «Sin fin» y «100%»", () => {
+  test("Jugado en un juego con final", async ({ page }) => {
+    await signInAsNewAccount(page);
+    const gamePath = await addFromIgdb(page, "hollow", "Hollow Knight");
+    await page.goto(gamePath);
+
+    const dialog = await changeStatus(page, "Jugado");
+    await dialog.getByRole("button", { name: "Guardar como «Jugado»" }).click();
+    const confirm = page.getByRole("dialog", { name: "Marca «Sin fin»" });
+    await expect(confirm).toContainText("Esto le pone la marca «Sin fin» al juego. ¿Estás de acuerdo?");
+    await confirm.getByRole("button", { name: "Aceptar" }).click();
+
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText("Jugado", { exact: true })).toBeVisible();
+    await expect(page.getByText(/^Sin fin/).filter({ visible: true }).first()).toBeVisible();
+  });
+
+  test("Completado en un juego sin fin", async ({ page }) => {
+    await signInAsNewAccount(page);
+    const gamePath = await addFromIgdb(page, "hollow", "Hollow Knight");
+    await page.goto(gamePath);
+    await changeStatus(page, "Jugado");
+    await page.getByRole("button", { name: "Guardar como «Jugado»" }).click();
+    await page.getByRole("dialog", { name: "Marca «Sin fin»" }).getByRole("button", { name: "Aceptar" }).click();
+    await expect(page.getByRole("dialog", { name: "Cambiar estado" })).toBeHidden();
+
+    const dialog = await changeStatus(page, "Completado");
+    await dialog.getByRole("button", { name: "Guardar como «Completado»" }).click();
+    const confirm = page.getByRole("dialog", { name: "Marca «Sin fin»" });
+    await expect(confirm).toContainText("Esto le saca la marca «Sin fin» al juego. ¿Estás de acuerdo?");
+    await confirm.getByRole("button", { name: "Cancelar" }).click();
+
+    await expect(confirm).toBeHidden();
+    await dialog.getByRole("button", { name: "Cancelar" }).click();
+    await expect(page.getByText("Jugado", { exact: true })).toBeVisible();
+  });
+
+  test("Completar al 100%", async ({ page }) => {
+    await signInAsNewAccount(page);
+    const gamePath = await addFromIgdb(page, "hollow", "Hollow Knight");
+    await page.goto(gamePath);
+
+    const dialog = await changeStatus(page, "Completado");
+    await dialog.getByRole("checkbox", { name: "Lo completé al 100%" }).check();
+    await dialog.getByRole("button", { name: "Guardar como «Completado»" }).click();
+
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText("Completado · 100%")).toBeVisible();
+    await page.goto("/library");
+    await expect(gameCard(page, "Hollow Knight").getByText("Completado · 100%")).toBeVisible();
+  });
+
+  test("Salir de Completado", async ({ page }) => {
+    await signInAsNewAccount(page);
+    const gamePath = await addFromIgdb(page, "hollow", "Hollow Knight");
+    await page.goto(gamePath);
+    const first = await changeStatus(page, "Completado");
+    await first.getByRole("checkbox", { name: "Lo completé al 100%" }).check();
+    await first.getByRole("button", { name: "Guardar como «Completado»" }).click();
+    await expect(page.getByText("Completado · 100%")).toBeVisible();
+
+    const dialog = await changeStatus(page, "Jugando");
+    await dialog.getByRole("button", { name: "Guardar como «Jugando»" }).click();
+
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText("Jugando", { exact: true })).toBeVisible();
+    await expect(page.getByText(/100%/)).toHaveCount(0);
+  });
+
+  test("Solo ocultos y el filtro por marcas", async ({ page }) => {
+    await signInAsNewAccount(page);
+    const hiddenPath = await addFromIgdb(page, "8bit", "8BitMMO");
+    await page.goto(hiddenPath);
+    await page.getByRole("button", { name: "Ocultar" }).click();
+    await expect(page.getByRole("button", { name: "Volver a mostrar" })).toBeVisible();
+    const hollowPath = await addFromIgdb(page, "hollow", "Hollow Knight");
+    await page.goto(hollowPath);
+    const dialog = await changeStatus(page, "Completado");
+    await dialog.getByRole("checkbox", { name: "Lo completé al 100%" }).check();
+    await dialog.getByRole("button", { name: "Guardar como «Completado»" }).click();
+    await expect(dialog).toBeHidden();
+    await page.goto("/library");
+
+    let filters = await openFilters(page);
+    await filters.getByRole("group", { name: "Ocultos" }).getByRole("button", { name: "Solo ocultos" }).click();
+    if (filters !== page) {
+      await filters.getByRole("button", { name: /^Ver / }).click();
+    }
+    await expect(gameCard(page, "8BitMMO")).toBeVisible();
+    await expect(gameCard(page, "Hollow Knight")).toHaveCount(0);
+
+    filters = await openFilters(page);
+    await filters.getByRole("group", { name: "Ocultos" }).getByRole("button", { name: "No mostrar" }).click();
+    await filters.getByRole("button", { name: /^100%/ }).click();
+    if (filters !== page) {
+      await filters.getByRole("button", { name: /^Ver / }).click();
+    }
+    await expect(gameCard(page, "Hollow Knight")).toBeVisible();
+    await expect(gameCard(page, "8BitMMO")).toHaveCount(0);
   });
 });
 

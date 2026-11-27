@@ -10,6 +10,7 @@ import { type EntryValues, useEntryForm } from "@/hooks/use-entry-form";
 import type { StatusGroupView } from "@/model/status/status";
 import type { Store } from "@/model/store/store";
 
+import { EntryStatusExtras } from "./EntryStatusExtras";
 import { ScoreInput } from "./ScoreInput";
 
 type IgdbAddDialogProps = Readonly<{
@@ -25,7 +26,7 @@ type IgdbAddDialogProps = Readonly<{
 
 /**
  * El alta desde IGDB: el mismo formulario que a mano, sin título, año ni portada, que vienen de IGDB.
- * Guardar sin tocar nada deja el juego sin copias y en «Quiero jugarlo», como el alta de un toque.
+ * Guardar sin tocar nada deja el juego sin copias y en Backlog, como el alta de un toque.
  */
 export function IgdbAddDialog({
   open,
@@ -38,7 +39,7 @@ export function IgdbAddDialog({
   onSave,
 }: IgdbAddDialogProps) {
   const t = useTranslations();
-  const entry = useEntryForm();
+  const entry = useEntryForm(statusGroups);
 
   return (
     <Modal
@@ -51,7 +52,7 @@ export function IgdbAddDialog({
           <button type="button" className={controls.secondary} onClick={() => onOpenChange(false)}>
             {t("common.cancel")}
           </button>
-          <button type="button" className={controls.primary} disabled={pending} onClick={() => onSave(entry.values())}>
+          <button type="button" className={controls.primary} disabled={pending} onClick={() => entry.submit(onSave)}>
             {t("add.form.save")}
           </button>
         </>
@@ -73,6 +74,17 @@ export function IgdbAddDialog({
           onChange={entry.setStatusId}
         />
       </label>
+      <EntryStatusExtras
+        completed={entry.completed}
+        hundredPercent={entry.hundredPercent}
+        onHundredPercentChange={entry.setHundredPercent}
+        confirmingEndless={entry.confirmingEndless}
+        endlessChange={entry.endlessChange}
+        pending={pending}
+        errorMessage={errorMessage}
+        onCancelEndless={entry.cancelEndless}
+        onAcceptEndless={() => entry.acceptEndless(onSave)}
+      />
       <label className={controls.field}>
         {t("add.form.played")}
         <input

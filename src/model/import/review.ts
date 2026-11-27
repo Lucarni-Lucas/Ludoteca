@@ -51,7 +51,8 @@ export function isQuestionGroup(group: ReviewGroup): boolean {
 export type ReviewChoice =
   | Readonly<{ kind: "candidate"; candidate: ImportCandidate }>
   | Readonly<{ kind: "search" }>
-  | Readonly<{ kind: "status"; status: StatusRef }>
+  /** Con `endless`, el aviso de «Sin fin» aceptado al elegirlo en «Otro estado» (`04` design.md §22). */
+  | Readonly<{ kind: "status"; status: StatusRef; endless?: boolean }>
   | Readonly<{ kind: "other_status" }>
   | Readonly<{ kind: "manual" }>
   | Readonly<{ kind: "exclude" }>
@@ -502,7 +503,8 @@ function factsOf(entry: ImportEntry, library: readonly LibraryMatch[], context: 
     copies,
     ignStatuses,
     ignInactive: ignStatuses.length < keys.length,
-    endless: entry.multiplayerOnly || entry.answers.endlessAnswer === true,
+    // Lo que se contestó manda sobre IGDB: «Completado» con el aviso le saca la marca a uno solo multijugador.
+    endless: entry.answers.endlessAnswer ?? entry.multiplayerOnly,
     statuses: context.statuses,
     decided: isDecided(entry, copies),
   };

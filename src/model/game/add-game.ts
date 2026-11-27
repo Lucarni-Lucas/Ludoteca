@@ -1,4 +1,5 @@
 import type { NewCopy } from "@/model/copy/new-copy";
+import type { MarksUpdate } from "@/model/game/game-status";
 import type { IgdbSearchResult } from "@/model/game/catalog";
 import { isManual, type LibraryGame } from "@/model/game/library-game";
 import { GameNotFromIgdbError, GameNotManualError } from "@/model/game/errors";
@@ -12,6 +13,8 @@ export type NewLibraryEntry = Readonly<{
   score: number | null;
   /** Solo si el usuario cargó un total de horas al agregarlo. */
   playedMinutes?: number;
+  /** Solo si el estado elegido pone una marca: «Jugado» pone «Sin fin» y la casilla, «100%». */
+  marks?: MarksUpdate;
 }>;
 
 /** «Ya lo tenés» no es un fallo: la pantalla ofrece agregar una copia al juego existente. */

@@ -106,7 +106,7 @@ class Component extends DCLogic {
       { title: 'Civilization VI', mono: 'CV', status: 'jugado', score: 7.4, hours: 112, bg: '#2E3B23', fg: '#E3EFCF', stores: [{ s: 'epic', k: 'gratis' }, { s: 'steam', k: 'comprado' }] },
       { title: 'Frostpunk', mono: 'FP', status: 'quiero', score: 0, hours: 0, bg: '#26303A', fg: '#DCE6EF', stores: [] },
       { title: 'Cyberpunk 2077', mono: 'CP', status: 'pausa', score: 7.9, hours: 21, bg: '#3D3A12', fg: '#F2EEB3', stores: [{ s: 'gog', k: 'comprado' }] },
-      { title: 'Hades', mono: 'HA', status: 'cien', score: 9.6, hours: 64, bg: '#4A1E25', fg: '#F6CFD3', stores: [{ s: 'steam', k: 'comprado' }] },
+      { title: 'Hades', mono: 'HA', status: 'completado', hundred: true, score: 9.6, hours: 64, bg: '#4A1E25', fg: '#F6CFD3', stores: [{ s: 'steam', k: 'comprado' }] },
       { title: 'Outer Wilds', mono: 'OW', status: 'backlog', score: 0, hours: 0, bg: '#2A2442', fg: '#DCD5F5', stores: [{ s: 'steam', k: 'comprado' }] },
       { title: 'Hollow Knight', mono: 'HK', status: 'completado', score: 9.8, hours: 48, bg: '#22304A', fg: '#DCE6F7', stores: [{ s: 'steam', k: 'comprado' }] },
       { title: 'Portal 2', mono: 'P2', status: 'completado', score: 9.0, hours: 9, bg: '#2B3036', fg: '#E2E6EA', stores: [{ s: 'steam', k: 'familia' }] },
@@ -126,9 +126,11 @@ class Component extends DCLogic {
     const all = this.games();
     const STORE = { steam: 'Steam', epic: 'Epic', gog: 'GOG', ms: 'MS Store', gp: 'Game Pass', sw: 'Switch', itch: 'itch.io' };
     const KIND = { gratis: 'Gratis', susc: 'Susc.', familia: 'Familia', fisico: 'Físico', perdido: 'Ya no' };
-    const LABEL = { jugando: 'Jugando', pausa: 'En pausa', quiero: 'Quiero jugarlo', backlog: 'Backlog', completado: 'Completado', cien: '100%', jugado: 'Jugado', abandonado: 'Abandonado', loprobe: 'Lo probé' };
-    const GROUP_OF = { jugando: 'curso', pausa: 'curso', quiero: 'empezar', backlog: 'empezar', completado: 'terminado', cien: 'terminado', jugado: 'terminado', abandonado: 'dejado', loprobe: 'dejado' };
+    const LABEL = { jugando: 'Jugando', pausa: 'En pausa', quiero: 'Quiero jugarlo', backlog: 'Backlog', completado: 'Completado', jugado: 'Jugado', abandonado: 'Abandonado', loprobe: 'Lo probé' };
+    const GROUP_OF = { jugando: 'curso', pausa: 'curso', quiero: 'empezar', backlog: 'empezar', completado: 'terminado', jugado: 'terminado', abandonado: 'dejado', loprobe: 'dejado' };
     const COLOR = { curso: '#C8F25A', empezar: '#C5CCD8', terminado: '#8EC5FF', dejado: '#FF9C8A' };
+    // Los estados con color propio: «Quiero jugarlo» en ámbar y «Lo probé» en violeta.
+    const OWN_COLOR = { quiero: '#FFC66B', loprobe: '#C9A7FF' };
 
     const chip = (k) => k === 'perdido'
       ? "font: 500 10px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: 0.04em; text-transform: uppercase; padding: 4px 6px; border-radius: 5px; border: 1px dashed #4A5160; color: #9AA3B2; text-decoration: line-through"
@@ -145,8 +147,8 @@ class Component extends DCLogic {
           mono: g.mono,
           rated: g.score > 0,
           scoreText: g.score.toFixed(1),
-          statusLabel: LABEL[g.status],
-          statusStyle: `color: ${g.status === 'quiero' ? '#FFC66B' : COLOR[GROUP_OF[g.status]]}; font-weight: 500`,
+          statusLabel: g.hundred ? `${LABEL[g.status]} · 100%` : LABEL[g.status],
+          statusStyle: `color: ${OWN_COLOR[g.status] || COLOR[GROUP_OF[g.status]]}; font-weight: 500`,
           showHours: !wish,
           hoursText: g.hours ? `${g.hours} h` : 'sin empezar',
           stores,
