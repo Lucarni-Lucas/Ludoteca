@@ -2,7 +2,7 @@ import type { StatusChangeEntry } from "@/model/journal/journal-entry";
 import { EndlessChangeNotAcceptedError } from "@/model/status/errors";
 import { STATUS_GROUPS, type StatusGroup } from "@/model/status/status-group";
 
-export const STATUS_COLORS = ["lime", "amber", "gray", "blue", "coral", "violet"] as const;
+export const STATUS_COLORS = ["lime", "amber", "gray", "blue", "coral", "violet", "green"] as const;
 
 export type StatusColor = (typeof STATUS_COLORS)[number];
 
@@ -36,7 +36,7 @@ export type DefaultStatus = Omit<Status, "id">;
  */
 export const DEFAULT_STATUSES: readonly DefaultStatus[] = [
   { group: "in_progress", name: "Jugando", color: "lime", position: 1, systemKey: PLAYING_KEY },
-  { group: "in_progress", name: "En pausa", color: "lime", position: 2, systemKey: PAUSED_KEY },
+  { group: "in_progress", name: "En pausa", color: "green", position: 2, systemKey: PAUSED_KEY },
   { group: "not_started", name: "Quiero jugarlo", color: "amber", position: 1, systemKey: WISHLIST_KEY },
   { group: "not_started", name: "Backlog", color: "gray", position: 2, systemKey: BACKLOG_KEY },
   { group: "finished", name: "Completado", color: "blue", position: 1, systemKey: COMPLETED_KEY },

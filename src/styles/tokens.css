@@ -58,6 +58,9 @@
   /* «Lo probé»: probar un juego y que no enganche no es negativo (04 design.md §22). */
   --color-status-violet: #c9a7ff;
   --color-status-violet-bg: rgba(201, 167, 255, 0.13);
+  /* «En pausa»: un verde más hondo que el lima de «Jugando», para diferenciarlos. */
+  --color-status-green: #7fcf8a;
+  --color-status-green-bg: rgba(127, 207, 138, 0.13);
 
   /* Superficies y bordes propios de la biblioteca */
   --color-sheet: #12151b;
