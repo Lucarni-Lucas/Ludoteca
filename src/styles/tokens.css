@@ -59,8 +59,8 @@
   --color-status-violet: #c9a7ff;
   --color-status-violet-bg: rgba(201, 167, 255, 0.13);
   /* «En pausa»: un verde más hondo que el lima de «Jugando», para diferenciarlos. */
-  --color-status-green: #8fc99e;
-  --color-status-green-bg: rgba(143, 201, 158, 0.12);
+  --color-status-green: #9ec488;
+  --color-status-green-bg: rgba(158, 196, 136, 0.12);
 
   /* Superficies y bordes propios de la biblioteca */
   --color-sheet: #12151b;
